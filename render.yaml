@@ -2,7 +2,7 @@ services:
   - type: web
     name: rez-merchant-frontend
     env: static
-    buildCommand: npm install && npx expo export:web
+    buildCommand: npm install && npx expo export --platform web
     staticPublishPath: ./dist
     envVars:
       - key: EXPO_PUBLIC_ENVIRONMENT
