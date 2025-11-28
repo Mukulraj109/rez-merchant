@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(mv:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm ls:*)",
+      "Bash(timeout 15s npx expo start --no-dev-client --web-only --non-interactive)",
+      "Bash(timeout 10s npx expo start --web --non-interactive)",
+      "Bash(npx expo install:*)",
+      "Bash(timeout 10s npx expo start --tunnel --non-interactive)",
+      "Bash(CI=1 timeout 8s npx expo start --dev-client)",
+      "Bash(set CI=1)",
+      "Bash(timeout 8s npx expo prebuild --platform android)",
+      "Bash(npm start)",
+      "Bash(curl:*)",
+      "Bash(npx expo start:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(rm:*)",
+      "Bash(netsh:*)",
+      "Read(/C:\\Users\\Mukul raj\\Downloads\\healthtick\\rez-app/**)",
+      "Read(/C:\\Users\\Mukul raj\\Downloads\\healthtick\\rez-app\\user-backend\\src/**)",
+      "Read(/C:\\Users\\Mukul raj\\Downloads\\healthtick\\rez-app\\user-backend\\src\\merchantroutes/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
