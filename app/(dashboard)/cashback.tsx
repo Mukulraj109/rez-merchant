@@ -8,8 +8,14 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { cashbackService } from '@/services';
 import { CashbackRequest, CashbackMetrics, CashbackStatus } from '@/types/api';
+import { SocialMediaPostsList } from '@/components/social-media';
+import { useStore } from '@/contexts/StoreContext';
+
+type ViewMode = 'cashback' | 'social_media';
 
 export default function CashbackScreen() {
+  const { activeStore } = useStore(); // Get the currently selected store
+  const [viewMode, setViewMode] = useState<ViewMode>('cashback');
   const [cashbackRequests, setCashbackRequests] = useState<CashbackRequest[]>([]);
   const [metrics, setMetrics] = useState<CashbackMetrics | null>(null);
   const [activeFilter, setActiveFilter] = useState<CashbackStatus | 'all'>('all');
@@ -136,8 +142,67 @@ export default function CashbackScreen() {
     );
   }
 
+  // If social media tab is selected, render SocialMediaPostsList
+  if (viewMode === 'social_media') {
+    return (
+      <View style={styles.container}>
+        <ThemedView style={styles.content}>
+          <View style={styles.header}>
+            <View>
+              <ThemedText type="title" style={styles.title}>
+                Cashback Management
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                Review and manage customer cashback requests
+              </ThemedText>
+            </View>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/(cashback)/analytics')}
+            >
+              <Ionicons name="analytics" size={20} color={Colors.light.background} />
+            </TouchableOpacity>
+          </View>
+
+          {/* View Mode Tabs */}
+          <View style={styles.viewModeTabs}>
+            <TouchableOpacity
+              style={[styles.viewModeTab, viewMode === 'cashback' && styles.viewModeTabActive]}
+              onPress={() => setViewMode('cashback')}
+            >
+              <Ionicons
+                name="receipt-outline"
+                size={18}
+                color={viewMode === 'cashback' ? Colors.light.background : Colors.light.text}
+              />
+              <ThemedText style={[styles.viewModeTabText, viewMode === 'cashback' && styles.viewModeTabTextActive]}>
+                Cashback Requests
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.viewModeTab, viewMode === 'social_media' && styles.viewModeTabActive]}
+              onPress={() => setViewMode('social_media')}
+            >
+              <Ionicons
+                name="logo-instagram"
+                size={18}
+                color={viewMode === 'social_media' ? Colors.light.background : Colors.light.text}
+              />
+              <ThemedText style={[styles.viewModeTabText, viewMode === 'social_media' && styles.viewModeTabTextActive]}>
+                Social Media
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          {/* Social Media Posts List */}
+          <SocialMediaPostsList storeId={activeStore?._id} />
+        </ThemedView>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -158,6 +223,36 @@ export default function CashbackScreen() {
             onPress={() => router.push('/(cashback)/analytics')}
           >
             <Ionicons name="analytics" size={20} color={Colors.light.background} />
+          </TouchableOpacity>
+        </View>
+
+        {/* View Mode Tabs */}
+        <View style={styles.viewModeTabs}>
+          <TouchableOpacity
+            style={[styles.viewModeTab, viewMode === 'cashback' && styles.viewModeTabActive]}
+            onPress={() => setViewMode('cashback')}
+          >
+            <Ionicons
+              name="receipt-outline"
+              size={18}
+              color={viewMode === 'cashback' ? Colors.light.background : Colors.light.text}
+            />
+            <ThemedText style={[styles.viewModeTabText, viewMode === 'cashback' && styles.viewModeTabTextActive]}>
+              Cashback Requests
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.viewModeTab, viewMode === 'social_media' && styles.viewModeTabActive]}
+            onPress={() => setViewMode('social_media')}
+          >
+            <Ionicons
+              name="logo-instagram"
+              size={18}
+              color={viewMode === 'social_media' ? Colors.light.background : Colors.light.text}
+            />
+            <ThemedText style={[styles.viewModeTabText, viewMode === 'social_media' && styles.viewModeTabTextActive]}>
+              Social Media
+            </ThemedText>
           </TouchableOpacity>
         </View>
 
@@ -542,5 +637,35 @@ const styles = StyleSheet.create({
   },
   rejectBtn: {
     backgroundColor: Colors.light.error,
+  },
+  viewModeTabs: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 10,
+  },
+  viewModeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    gap: 8,
+  },
+  viewModeTabActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  viewModeTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.light.text,
+  },
+  viewModeTabTextActive: {
+    color: Colors.light.background,
   },
 });

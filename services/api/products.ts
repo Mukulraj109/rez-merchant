@@ -103,8 +103,16 @@ export interface BulkProductAction {
 }
 
 class ProductsService {
+  // Token cache for performance optimization
+  private tokenCache: { token: string; expiresAt: number } | null = null;
+  private readonly TOKEN_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly REQUEST_TIMEOUT = 30000; // 30 seconds
+
   // Get products with filtering and pagination
   async getProducts(filters?: ProductFilters): Promise<ProductListResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const params = new URLSearchParams();
 
@@ -128,10 +136,14 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -142,13 +154,22 @@ class ProductsService {
         throw new Error(data.message || 'Failed to get products');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Get products error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get products');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to get products');
     }
   }
 
   // Get single product by ID
   async getProduct(productId: string): Promise<Product> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}`), {
         method: 'GET',
@@ -156,10 +177,14 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -170,13 +195,22 @@ class ProductsService {
         throw new Error(data.message || 'Failed to get product');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Get product error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get product');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to get product');
     }
   }
 
   // Create new product
   async createProduct(productData: CreateProductRequest): Promise<Product> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl('merchant/products'), {
         method: 'POST',
@@ -184,11 +218,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(productData)
+        body: JSON.stringify(productData),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -199,13 +237,22 @@ class ProductsService {
         throw new Error(data.message || 'Failed to create product');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Create product error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to create product');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to create product');
     }
   }
 
   // Update product
   async updateProduct(productId: string, updates: UpdateProductRequest): Promise<Product> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}`), {
         method: 'PUT',
@@ -213,11 +260,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(updates),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -228,8 +279,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to update product');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Update product error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update product');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to update product');
     }
   }
 
@@ -275,8 +332,50 @@ class ProductsService {
 
   // Get product categories
   async getCategories(): Promise<Array<{ label: string; value: string; id?: string }>> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl('merchant/products/categories'), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data && data.data.categories) {
+        return data.data.categories;
+      } else {
+        throw new Error(data.message || 'Failed to get categories');
+      }
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      console.error('Get categories error:', error);
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to get categories');
+    }
+  }
+
+  // Get subcategories for a parent category
+  async getSubcategories(parentCategoryId: string): Promise<Array<{ label: string; value: string; id?: string }>> {
+    try {
+      // Fetch categories that have this category as their parent
+      const response = await fetch(buildApiUrl(`categories?parent=${parentCategoryId}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -290,19 +389,28 @@ class ProductsService {
 
       const data = await response.json();
 
-      if (data.success && data.data && data.data.categories) {
-        return data.data.categories;
+      if (data.success && data.data) {
+        // Transform to dropdown format
+        const subcategories = Array.isArray(data.data) ? data.data : [];
+        return subcategories.map((cat: any) => ({
+          label: cat.name,
+          value: cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-'),
+          id: cat._id || cat.id
+        }));
       } else {
-        throw new Error(data.message || 'Failed to get categories');
+        return [];
       }
     } catch (error: any) {
-      console.error('Get categories error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get categories');
+      console.error('Get subcategories error:', error);
+      return []; // Return empty array on error, don't throw
     }
   }
 
   // Bulk action on products
   async bulkProductAction(bulkAction: BulkProductAction): Promise<{ successful: number; failed: number; errors: any[] }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl('merchant/products/bulk-action'), {
         method: 'POST',
@@ -310,11 +418,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(bulkAction)
+        body: JSON.stringify(bulkAction),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -325,13 +437,22 @@ class ProductsService {
         throw new Error(data.message || 'Failed to perform bulk product action');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Bulk product action error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to perform bulk product action');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to perform bulk product action');
     }
   }
 
   // Export products
   async exportProducts(filters?: ProductFilters, format: 'csv' | 'excel' = 'csv'): Promise<{ url: string; filename: string }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const params = new URLSearchParams();
       params.append('format', format);
@@ -348,7 +469,10 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -362,8 +486,14 @@ class ProductsService {
 
       return { url, filename };
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Export products error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to export products');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to export products');
     }
   }
 
@@ -430,6 +560,9 @@ class ProductsService {
 
   // Get all variants for a product
   async getProductVariants(productId: string): Promise<import('../../types/variants').GetVariantsResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}/variants`), {
         method: 'GET',
@@ -437,10 +570,14 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -451,13 +588,22 @@ class ProductsService {
         throw new Error(data.message || 'Failed to get product variants');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Get product variants error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get product variants');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to get product variants');
     }
   }
 
   // Get single variant
   async getVariant(productId: string, variantId: string): Promise<import('../../types/variants').ProductVariant> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}/variants/${variantId}`), {
         method: 'GET',
@@ -465,10 +611,14 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -479,8 +629,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to get variant');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Get variant error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get variant');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to get variant');
     }
   }
 
@@ -489,6 +645,9 @@ class ProductsService {
     productId: string,
     variantData: import('../../types/variants').CreateVariantRequest
   ): Promise<import('../../types/variants').ProductVariant> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}/variants`), {
         method: 'POST',
@@ -496,11 +655,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(variantData)
+        body: JSON.stringify(variantData),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -511,8 +674,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to create variant');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Create variant error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to create variant');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to create variant');
     }
   }
 
@@ -522,6 +691,9 @@ class ProductsService {
     variantId: string,
     updates: import('../../types/variants').UpdateVariantRequest
   ): Promise<import('../../types/variants').ProductVariant> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}/variants/${variantId}`), {
         method: 'PUT',
@@ -529,11 +701,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(updates),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -544,13 +720,22 @@ class ProductsService {
         throw new Error(data.message || 'Failed to update variant');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Update variant error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update variant');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to update variant');
     }
   }
 
   // Delete variant
   async deleteVariant(productId: string, variantId: string): Promise<void> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}/variants/${variantId}`), {
         method: 'DELETE',
@@ -558,10 +743,14 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -570,8 +759,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to delete variant');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Delete variant error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to delete variant');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to delete variant');
     }
   }
 
@@ -580,6 +775,9 @@ class ProductsService {
     productId: string,
     request: import('../../types/variants').GenerateVariantsRequest
   ): Promise<import('../../types/variants').GenerateVariantsResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/products/${productId}/variants/generate`), {
         method: 'POST',
@@ -587,11 +785,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -602,8 +804,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to generate variant combinations');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Generate variant combinations error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to generate variant combinations');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to generate variant combinations');
     }
   }
 
@@ -613,6 +821,9 @@ class ProductsService {
   async bulkImportProducts(
     request: import('../../types/variants').BulkImportRequest
   ): Promise<import('../../types/variants').BulkImportResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const formData = new FormData();
 
@@ -641,11 +852,15 @@ class ProductsService {
           'Authorization': `Bearer ${await this.getAuthToken()}`
           // Don't set Content-Type, let browser/RN set it with boundary
         },
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -656,8 +871,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to start bulk import');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Bulk import error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to import products');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to import products');
     }
   }
 
@@ -665,6 +886,9 @@ class ProductsService {
   async exportProductsAdvanced(
     config: import('../../types/variants').ExportConfig
   ): Promise<import('../../types/variants').ExportProductsResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl('merchant/bulk/products/export/advanced'), {
         method: 'POST',
@@ -672,8 +896,11 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(config)
+        body: JSON.stringify(config),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -691,8 +918,14 @@ class ProductsService {
         recordCount: 0 // Unknown count from blob response
       };
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Export products advanced error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to export products');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to export products');
     }
   }
 
@@ -700,6 +933,9 @@ class ProductsService {
   async bulkUpdateProducts(
     request: import('../../types/variants').BulkUpdateProductsRequest
   ): Promise<import('../../types/variants').BulkUpdateProductsResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl('merchant/bulk/products/bulk-update'), {
         method: 'POST',
@@ -707,11 +943,15 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -722,8 +962,14 @@ class ProductsService {
         throw new Error(data.message || 'Failed to bulk update products');
       }
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Bulk update products error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to bulk update products');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to bulk update products');
     }
   }
 
@@ -731,6 +977,9 @@ class ProductsService {
   async downloadImportTemplate(
     format: 'csv' | 'excel' = 'csv'
   ): Promise<{ url: string; filename: string }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
     try {
       const response = await fetch(buildApiUrl(`merchant/bulk/products/template?format=${format}`), {
         method: 'GET',
@@ -738,7 +987,10 @@ class ProductsService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -751,16 +1003,159 @@ class ProductsService {
 
       return { url, filename };
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Download template error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to download template');
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      throw new Error(error.message || 'Failed to download template');
+    }
+  }
+
+  // ==================== SKU VALIDATION ====================
+
+  /**
+   * Validate if SKU is unique (not already used by another product)
+   * @param sku - The SKU to validate
+   * @param excludeProductId - Optional product ID to exclude (for edit mode)
+   * @returns Object with isAvailable boolean and optional suggestion
+   */
+  async validateSku(sku: string, excludeProductId?: string): Promise<{
+    isAvailable: boolean;
+    message?: string;
+    suggestion?: string;
+  }> {
+    if (!sku || !sku.trim()) {
+      return {
+        isAvailable: false,
+        message: 'SKU is required'
+      };
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
+    try {
+      const params = new URLSearchParams();
+      params.append('sku', sku.trim());
+      if (excludeProductId) {
+        params.append('excludeProductId', excludeProductId);
+      }
+
+      const response = await fetch(buildApiUrl(`merchant/products/validate-sku?${params}`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        // If endpoint doesn't exist (404), fall back to client-side check
+        if (response.status === 404) {
+          return await this.validateSkuFallback(sku, excludeProductId);
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        return {
+          isAvailable: data.data.isAvailable,
+          message: data.data.message,
+          suggestion: data.data.suggestion
+        };
+      } else {
+        throw new Error(data.message || 'Failed to validate SKU');
+      }
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+
+      // If network error or endpoint not available, use fallback
+      console.warn('SKU validation error, using fallback:', error.message);
+      return await this.validateSkuFallback(sku, excludeProductId);
+    }
+  }
+
+  /**
+   * Fallback SKU validation by searching existing products
+   * Used when backend endpoint is not available
+   */
+  private async validateSkuFallback(sku: string, excludeProductId?: string): Promise<{
+    isAvailable: boolean;
+    message?: string;
+    suggestion?: string;
+  }> {
+    try {
+      // Search for products with this SKU
+      const response = await this.getProducts({
+        query: sku,
+        page: 1,
+        limit: 10
+      });
+
+      // Check if any product has exact SKU match
+      const existingProduct = response.products.find(p =>
+        p.sku?.toUpperCase() === sku.toUpperCase() &&
+        p._id !== excludeProductId
+      );
+
+      if (existingProduct) {
+        // Generate a unique suggestion
+        const timestamp = Date.now().toString().slice(-4);
+        const suggestion = `${sku}-${timestamp}`;
+
+        return {
+          isAvailable: false,
+          message: `SKU "${sku}" is already used by product "${existingProduct.name}"`,
+          suggestion
+        };
+      }
+
+      return {
+        isAvailable: true,
+        message: 'SKU is available'
+      };
+    } catch (error) {
+      console.error('SKU fallback validation error:', error);
+      // If we can't validate, assume it's available to avoid blocking
+      return {
+        isAvailable: true,
+        message: 'Could not validate SKU uniqueness'
+      };
     }
   }
 
   private async getAuthToken(): Promise<string> {
+    // Check if we have a valid cached token
+    if (this.tokenCache && this.tokenCache.expiresAt > Date.now()) {
+      return this.tokenCache.token;
+    }
+
+    // Fetch fresh token from storage
     const token = await storageService.getAuthToken();
     if (!token) {
       throw new Error('No auth token found');
     }
+
+    // Cache the token for 5 minutes
+    this.tokenCache = {
+      token,
+      expiresAt: Date.now() + this.TOKEN_CACHE_DURATION
+    };
+
     return token;
   }
 }

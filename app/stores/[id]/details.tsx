@@ -20,17 +20,22 @@ import { useStore } from '@/contexts/StoreContext';
 import { storeService, Store } from '@/services/api/stores';
 import { Colors } from '@/constants/Colors';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
+import ConfirmModal from '@/components/common/ConfirmModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function StoreDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { activeStore, setActiveStore } = useStore();
+  const { activateStoreById, deactivateStoreById } = useStore();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const bannerFlatListRef = useRef<FlatList>(null);
+
+  // Deactivate modal state
+  const [deactivateModalVisible, setDeactivateModalVisible] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -152,7 +157,6 @@ export default function StoreDetailsScreen() {
   const status = getStoreStatus(store);
   const rating = store.ratings?.average || 0;
   const ratingCount = store.ratings?.count || 0;
-  const isActive = activeStore?._id === store._id;
 
   return (
     <View style={styles.container}>
@@ -218,10 +222,10 @@ export default function StoreDetailsScreen() {
               <Ionicons name="storefront" size={64} color="#9CA3AF" />
             </View>
           )}
-          {isActive && (
+          {store.isActive && (
             <View style={styles.activeBadge}>
               <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
-              <Text style={styles.activeBadgeText}>Active Store</Text>
+              <Text style={styles.activeBadgeText}>Active</Text>
             </View>
           )}
         </View>
@@ -547,6 +551,33 @@ export default function StoreDetailsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Promotional Videos Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="videocam" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Promotional Videos</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              Upload promotional videos to showcase products in UGC section
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/promotional-videos`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="play-circle" size={24} color="#EC4899" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Manage Videos</Text>
+                    <Text style={styles.actionCardSubtitle}>Upload and track promotional videos</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* UPI Payment Discounts Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -607,22 +638,86 @@ export default function StoreDetailsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Store Vouchers Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="ticket" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Store Vouchers</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              Create discount vouchers for store visits and promotions
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/vouchers`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="ticket-outline" size={24} color="#8B5CF6" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Manage Vouchers</Text>
+                    <Text style={styles.actionCardSubtitle}>Create and manage discount vouchers for customers</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Store Outlets Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="location" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Store Outlets</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              Manage your store outlet locations for customers to visit
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/outlets`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="storefront-outline" size={24} color="#10B981" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Manage Outlets</Text>
+                    <Text style={styles.actionCardSubtitle}>Add and manage store outlet locations</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Actions */}
           <View style={styles.actionsSection}>
-            {!isActive && (
+            {!store.isActive ? (
               <TouchableOpacity
                 style={styles.activateButton}
                 onPress={async () => {
                   try {
-                    await setActiveStore(store);
-                    Alert.alert('Success', `${store.name} is now your active store.`);
+                    await activateStoreById(store._id);
+                    // Reload store details to get updated status
+                    await loadStoreDetails();
+                    Alert.alert('Success', `${store.name} is now active and visible to customers.`);
                   } catch (error: any) {
                     Alert.alert('Error', error.message || 'Failed to activate store');
                   }
                 }}
               >
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.activateButtonText}>Set as Active Store</Text>
+                <Text style={styles.activateButtonText}>Activate Store</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.deactivateButton}
+                onPress={() => setDeactivateModalVisible(true)}
+              >
+                <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                <Text style={styles.activateButtonText}>Deactivate Store</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -637,6 +732,32 @@ export default function StoreDetailsScreen() {
       </ScrollView>
       </SafeAreaView>
       <BottomNav />
+
+      {/* Deactivate Confirmation Modal */}
+      <ConfirmModal
+        visible={deactivateModalVisible}
+        title="Deactivate Store"
+        message={`Are you sure you want to deactivate "${store?.name || ''}"? It will no longer be visible to customers.`}
+        confirmText="Deactivate"
+        cancelText="Cancel"
+        type="warning"
+        loading={deactivating}
+        onConfirm={async () => {
+          if (!store) return;
+          setDeactivating(true);
+          try {
+            await deactivateStoreById(store._id);
+            await loadStoreDetails();
+            setDeactivateModalVisible(false);
+            Alert.alert('Success', `${store.name} has been deactivated.`);
+          } catch (error: any) {
+            Alert.alert('Error', error.message || 'Failed to deactivate store');
+          } finally {
+            setDeactivating(false);
+          }
+        }}
+        onCancel={() => setDeactivateModalVisible(false)}
+      />
     </View>
   );
 }
@@ -1025,6 +1146,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.light.success,
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  deactivateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F59E0B',
     padding: 16,
     borderRadius: 12,
     gap: 8,

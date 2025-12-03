@@ -387,28 +387,43 @@ export default function ProductDetailScreen() {
             <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
           </TouchableOpacity>
           <ThemedText type="title" style={styles.title}>Product Details</ThemedText>
-          <TouchableOpacity
-            onPress={() => {
-              const productId = product.id || (product as any)._id;
-              console.log('✏️ [EDIT] Header edit button pressed');
-              console.log('✏️ [EDIT] Product ID:', productId);
-              console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
-              if (!productId) {
-                console.error('❌ [EDIT] No product ID available');
-                Alert.alert('Error', 'Product ID not found. Cannot edit product.');
-                return;
-              }
-              const editRoute = `/products/edit/${productId}`;
-              console.log('✏️ [EDIT] Navigating to:', editRoute);
-              console.log('✏️ [EDIT] Router state before navigation');
-              // Use simple string format like other routes
-              router.push(editRoute as any);
-              console.log('✏️ [EDIT] Router push called');
-            }}
-            style={styles.editButton}
-          >
-            <Ionicons name="pencil" size={20} color={Colors.light.primary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => {
+                const productId = product.id || (product as any)._id;
+                if (!productId) {
+                  Alert.alert('Error', 'Product ID not found');
+                  return;
+                }
+                router.push(`/products/${productId}/images` as any);
+              }}
+              style={styles.editButton}
+            >
+              <Ionicons name="images" size={20} color={Colors.light.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                const productId = product.id || (product as any)._id;
+                console.log('✏️ [EDIT] Header edit button pressed');
+                console.log('✏️ [EDIT] Product ID:', productId);
+                console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
+                if (!productId) {
+                  console.error('❌ [EDIT] No product ID available');
+                  Alert.alert('Error', 'Product ID not found. Cannot edit product.');
+                  return;
+                }
+                const editRoute = `/products/edit/${productId}`;
+                console.log('✏️ [EDIT] Navigating to:', editRoute);
+                console.log('✏️ [EDIT] Router state before navigation');
+                // Use simple string format like other routes
+                router.push(editRoute as any);
+                console.log('✏️ [EDIT] Router push called');
+              }}
+              style={styles.editButton}
+            >
+              <Ionicons name="pencil" size={20} color={Colors.light.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Image Gallery */}
@@ -698,6 +713,20 @@ export default function ProductDetailScreen() {
             >
               <Ionicons name="pencil" size={20} color={Colors.light.background} />
               <ThemedText style={styles.editActionText}>Edit Product</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.editActionButton, { backgroundColor: '#8B5CF6' }]}
+              onPress={() => {
+                const productId = product.id || (product as any)._id;
+                if (!productId) {
+                  Alert.alert('Error', 'Product ID not found');
+                  return;
+                }
+                router.push(`/products/${productId}/images` as any);
+              }}
+            >
+              <Ionicons name="images" size={20} color={Colors.light.background} />
+              <ThemedText style={styles.editActionText}>Manage Images</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteActionButton}

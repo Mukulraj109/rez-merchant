@@ -28,7 +28,7 @@ import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { productsService } from '@/services';
+import { productsService, uploadsService } from '@/services';
 import { Product } from '@/shared/types';
 
 // Validation schema
@@ -127,6 +127,18 @@ export default function AddVariantScreen() {
 
   const handlePickImage = async () => {
     try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant camera roll permissions to upload images.'
+        );
+        return;
+      }
+
+      // Pick image
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -135,12 +147,41 @@ export default function AddVariantScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        setVariantImage(result.assets[0].uri);
-        // TODO: Upload to server
+        const imageUri = result.assets[0].uri;
+        setVariantImage(imageUri);
+
+        // Upload to server
+        await uploadVariantImage(imageUri);
       }
     } catch (error) {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const uploadVariantImage = async (imageUri: string) => {
+    try {
+      setUploadingImage(true);
+
+      console.log('📤 Uploading variant image:', imageUri);
+
+      // Upload image using uploadsService
+      const result = await uploadsService.uploadImage(imageUri, `variant_${Date.now()}.jpg`);
+
+      console.log('✅ Variant image uploaded successfully:', result.url);
+
+      // Update variant image with the uploaded URL
+      setVariantImage(result.url);
+
+      // Show success feedback
+      Alert.alert('Success', 'Image uploaded successfully');
+    } catch (error: any) {
+      console.error('❌ Failed to upload variant image:', error);
+      Alert.alert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
+      // Reset image on upload failure
+      setVariantImage(null);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -187,7 +228,11 @@ export default function AddVariantScreen() {
           trackQuantity: data.trackQuantity,
         },
         attributes,
-        image: variantImage || undefined,
+        images: variantImage ? [{
+          url: variantImage,
+          isMain: true,
+          sortOrder: 0,
+        }] : undefined,
         isDefault: data.isDefault,
         status: data.status,
       };
@@ -286,13 +331,39 @@ export default function AddVariantScreen() {
           {/* Variant Image */}
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Variant Image</ThemedText>
-            <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+            <TouchableOpacity
+              style={styles.imagePicker}
+              onPress={handlePickImage}
+              disabled={uploadingImage}
+            >
               {variantImage ? (
-                <Image source={{ uri: variantImage }} style={styles.imagePreview} />
+                <View style={styles.imageContainer}>
+                  <Image source={{ uri: variantImage }} style={styles.imagePreview} />
+
+                  {/* Upload Progress Overlay */}
+                  {uploadingImage && (
+                    <View style={styles.uploadOverlay}>
+                      <ActivityIndicator size="large" color={Colors.light.background} />
+                      <ThemedText style={styles.uploadingText}>Uploading...</ThemedText>
+                    </View>
+                  )}
+
+                  {/* Remove Button */}
+                  {!uploadingImage && (
+                    <TouchableOpacity
+                      style={styles.removeImageButton}
+                      onPress={() => setVariantImage(null)}
+                    >
+                      <Ionicons name="close-circle" size={28} color={Colors.light.destructive} />
+                    </TouchableOpacity>
+                  )}
+                </View>
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Ionicons name="image-outline" size={40} color={Colors.light.textSecondary} />
-                  <ThemedText style={styles.imagePlaceholderText}>Add Image</ThemedText>
+                  <ThemedText style={styles.imagePlaceholderText}>
+                    {uploadingImage ? 'Uploading...' : 'Add Image'}
+                  </ThemedText>
                 </View>
               )}
             </TouchableOpacity>
@@ -570,6 +641,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  imageContainer: {
+    position: 'relative',
+    width: 120,
+    height: 120,
+  },
   imagePreview: {
     width: 120,
     height: 120,
@@ -590,6 +666,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.light.textSecondary,
     marginTop: 8,
+  },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  uploadingText: {
+    color: Colors.light.background,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: Colors.light.background,
+    borderRadius: 14,
   },
   emptyAttributes: {
     padding: 20,

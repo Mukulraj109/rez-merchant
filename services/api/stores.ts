@@ -232,6 +232,21 @@ class StoreService {
       throw new Error(error.response?.data?.message || error.message || 'Failed to activate store');
     }
   }
+
+  /**
+   * Deactivate store (set as inactive)
+   */
+  async deactivateStore(storeId: string): Promise<Store> {
+    try {
+      const response = await apiClient.post<any>(`merchant/stores/${storeId}/deactivate`);
+      if (!response.data) {
+        throw new Error('Failed to deactivate store');
+      }
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to deactivate store');
+    }
+  }
 }
 
 export const storeService = new StoreService();

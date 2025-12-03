@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Switch,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,7 @@ import CollapsibleSection from '@/components/forms/CollapsibleSection';
 import ImageUploader, { ProductImage } from '@/components/products/ImageUploader';
 import VideoUploader, { ProductVideo } from '@/components/products/VideoUploader';
 import CurrencySelector from '@/components/forms/CurrencySelector';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 // Comprehensive FormData interface matching backend model
 interface ProductFormData {
@@ -156,7 +158,41 @@ export default function AddProductScreen() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [categories, setCategories] = useState<Array<{ label: string; value: string; id?: string }>>([]);
+  const [subcategories, setSubcategories] = useState<Array<{ label: string; value: string; id?: string }>>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+
+  // SKU validation state
+  const [skuValidating, setSkuValidating] = useState(false);
+  const [skuValidationMessage, setSkuValidationMessage] = useState<string>('');
+  const [skuIsValid, setSkuIsValid] = useState<boolean | null>(null);
+
+  // Draft modal state
+  const [showDraftModal, setShowDraftModal] = useState(false);
+
+  // Form persistence hook
+  const {
+    hasDraft,
+    draftSavedAt,
+    lastSavedAt,
+    isSaving: isSavingDraft,
+    isLoading: isLoadingDraft,
+    loadDraft,
+    clearDraft,
+    saveNow,
+  } = useFormPersistence({
+    key: 'product-add-form',
+    formData,
+    onDraftLoaded: (draft) => {
+      // Show draft resume modal
+      setShowDraftModal(true);
+    },
+    excludeFields: ['images', 'videos'], // Don't persist image/video blobs
+    autoSaveInterval: 30000, // 30 seconds
+    debounceDelay: 2000, // 2 seconds
+    expiryDays: 7,
+    enabled: true,
+  });
 
   // Load categories from API
   useEffect(() => {
@@ -181,6 +217,40 @@ export default function AddProductScreen() {
     loadCategories();
   }, []);
 
+  // Load subcategories when category changes
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      if (!formData.category) {
+        setSubcategories([]);
+        return;
+      }
+
+      try {
+        setLoadingSubcategories(true);
+        // Find the category ID from the selected category
+        const selectedCategory = categories.find(c => c.value === formData.category);
+        const categoryId = selectedCategory?.id || formData.category;
+
+        console.log('📋 [ADD PRODUCT] Loading subcategories for category:', categoryId);
+        const fetchedSubcategories = await productsService.getSubcategories(categoryId);
+        console.log('📋 [ADD PRODUCT] Subcategories loaded:', fetchedSubcategories.length, 'subcategories');
+        setSubcategories(fetchedSubcategories);
+
+        // Reset subcategory if current selection is not in the new list
+        if (formData.subcategory && !fetchedSubcategories.find((s: any) => s.value === formData.subcategory || s.id === formData.subcategory)) {
+          updateFormData('subcategory', '');
+        }
+      } catch (error: any) {
+        console.error('❌ [ADD PRODUCT] Failed to load subcategories:', error);
+        setSubcategories([]);
+      } finally {
+        setLoadingSubcategories(false);
+      }
+    };
+
+    loadSubcategories();
+  }, [formData.category, categories]);
+
   const updateFormData = <K extends keyof ProductFormData>(
     key: K,
     value: ProductFormData[K]
@@ -203,11 +273,62 @@ export default function AddProductScreen() {
     }));
   };
 
-  const generateSKU = () => {
+  /**
+   * Validate SKU uniqueness
+   */
+  const validateSku = useCallback(async (sku: string) => {
+    if (!sku || !sku.trim()) {
+      setSkuIsValid(null);
+      setSkuValidationMessage('');
+      return;
+    }
+
+    setSkuValidating(true);
+    setSkuValidationMessage('Checking SKU...');
+
+    try {
+      const result = await productsService.validateSku(sku);
+
+      if (result.isAvailable) {
+        setSkuIsValid(true);
+        setSkuValidationMessage('✓ SKU is available');
+      } else {
+        setSkuIsValid(false);
+        setSkuValidationMessage(result.message || 'SKU is already in use');
+
+        // Show suggestion in alert
+        if (result.suggestion) {
+          Alert.alert(
+            'SKU Already Exists',
+            `${result.message}\n\nSuggested SKU: ${result.suggestion}`,
+            [
+              { text: 'Keep Current', style: 'cancel' },
+              {
+                text: 'Use Suggestion',
+                onPress: () => updateFormData('sku', result.suggestion!),
+              },
+            ]
+          );
+        }
+      }
+    } catch (error: any) {
+      console.error('SKU validation error:', error);
+      setSkuIsValid(null);
+      setSkuValidationMessage('Could not validate SKU');
+    } finally {
+      setSkuValidating(false);
+    }
+  }, []);
+
+  const generateSKU = async () => {
     const prefix = formData.name.substring(0, 3).toUpperCase() || 'PRD';
     const timestamp = Date.now().toString().slice(-6);
     const sku = `${prefix}${timestamp}`;
     updateFormData('sku', sku);
+
+    // Validate the generated SKU
+    await validateSku(sku);
+
     Alert.alert('SKU Generated', `Auto-generated SKU: ${sku}`);
   };
 
@@ -344,6 +465,31 @@ export default function AddProductScreen() {
       return;
     }
 
+    // Validate SKU before submission if provided
+    if (formData.sku && formData.sku.trim()) {
+      const skuResult = await productsService.validateSku(formData.sku);
+      if (!skuResult.isAvailable) {
+        Alert.alert(
+          'Invalid SKU',
+          skuResult.message || 'SKU is already in use. Please use a different SKU.',
+          [
+            { text: 'OK', style: 'cancel' },
+            ...(skuResult.suggestion
+              ? [
+                  {
+                    text: 'Use Suggestion',
+                    onPress: () => {
+                      updateFormData('sku', skuResult.suggestion!);
+                    },
+                  },
+                ]
+              : []),
+          ]
+        );
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -358,7 +504,10 @@ export default function AddProductScreen() {
         // Use category id if available, otherwise use the value (slug)
         category: categories.find(c => c.value === formData.category)?.id || formData.category,
         categoryType: formData.categoryType,
-        subcategory: formData.subcategory?.trim() || undefined,
+        // Use subcategory id if available, otherwise use the value (slug)
+        subcategory: formData.subcategory
+          ? (subcategories.find(s => s.value === formData.subcategory)?.id || formData.subcategory)
+          : undefined,
         brand: formData.brand?.trim() || undefined,
         storeId: selectedStoreId || undefined,
 
@@ -437,6 +586,9 @@ export default function AddProductScreen() {
       // If we get here, the product was created successfully
       // The service throws an error if it fails, so response is the product data
       if (response) {
+        // Clear the draft on successful submission
+        await clearDraft();
+
         Alert.alert(
           'Success',
           'Product created successfully!',
@@ -516,8 +668,69 @@ export default function AddProductScreen() {
   const physicalErrors = getSectionErrors(['weight', 'dimensions.length', 'dimensions.width', 'dimensions.height']);
   const seoErrors = getSectionErrors(['metaTitle', 'metaDescription', 'searchKeywords', 'tags']);
 
+  /**
+   * Handle draft resume
+   */
+  const handleResumeDraft = useCallback(async () => {
+    const loaded = await loadDraft();
+    if (loaded) {
+      setShowDraftModal(false);
+    }
+  }, [loadDraft]);
+
+  /**
+   * Handle draft discard
+   */
+  const handleDiscardDraft = useCallback(async () => {
+    await clearDraft();
+    setShowDraftModal(false);
+  }, [clearDraft]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Draft Resume Modal */}
+      <Modal
+        visible={showDraftModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDraftModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Ionicons name="document-text" size={48} color={Colors.light.primary} />
+            <ThemedText style={styles.modalTitle}>Resume Draft?</ThemedText>
+            <ThemedText style={styles.modalMessage}>
+              You have an unsaved draft from{' '}
+              {draftSavedAt?.toLocaleDateString()} at{' '}
+              {draftSavedAt?.toLocaleTimeString()}.
+            </ThemedText>
+            <ThemedText style={styles.modalSubtext}>
+              Would you like to continue where you left off?
+            </ThemedText>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={handleDiscardDraft}
+              >
+                <ThemedText style={styles.modalButtonTextSecondary}>
+                  Discard Draft
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={handleResumeDraft}
+              >
+                <ThemedText style={styles.modalButtonTextPrimary}>
+                  Resume Draft
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ThemedView style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -525,8 +738,47 @@ export default function AddProductScreen() {
         >
           <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
         </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>Add Product</ThemedText>
-        <View style={styles.headerRight} />
+        <View style={styles.headerCenter}>
+          <ThemedText style={styles.headerTitle}>Add Product</ThemedText>
+          {isSavingDraft && (
+            <View style={styles.savingIndicator}>
+              <ActivityIndicator size="small" color={Colors.light.primary} />
+              <ThemedText style={styles.savingText}>Saving draft...</ThemedText>
+            </View>
+          )}
+          {!isSavingDraft && lastSavedAt && (
+            <View style={styles.savedIndicator}>
+              <Ionicons name="checkmark-circle" size={14} color={Colors.light.success} />
+              <ThemedText style={styles.savedText}>
+                Draft saved at {lastSavedAt.toLocaleTimeString()}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.headerRight}
+          onPress={async () => {
+            Alert.alert(
+              'Discard Draft?',
+              'Are you sure you want to discard the saved draft?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Discard',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await clearDraft();
+                    Alert.alert('Draft Discarded', 'Your draft has been deleted.');
+                  },
+                },
+              ]
+            );
+          }}
+        >
+          {hasDraft && (
+            <Ionicons name="trash-outline" size={20} color={Colors.light.error} />
+          )}
+        </TouchableOpacity>
       </ThemedView>
 
       <ScrollView
@@ -598,14 +850,68 @@ export default function AddProductScreen() {
                 <ThemedText style={styles.generateButtonText}>Generate</ThemedText>
               </TouchableOpacity>
             </View>
-            <TextInput
-              style={[styles.input, errors.sku && styles.inputError]}
-              value={formData.sku}
-              onChangeText={(value) => updateFormData('sku', value.toUpperCase())}
-              placeholder="Auto-generated if empty"
-              placeholderTextColor={Colors.light.textSecondary}
-              autoCapitalize="characters"
-            />
+            <View style={styles.skuInputContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.skuInput,
+                  errors.sku && styles.inputError,
+                  skuIsValid === true && styles.inputSuccess,
+                  skuIsValid === false && styles.inputError,
+                ]}
+                value={formData.sku}
+                onChangeText={(value) => {
+                  updateFormData('sku', value.toUpperCase());
+                  // Debounce validation
+                  if (value.trim()) {
+                    const timeoutId = setTimeout(() => validateSku(value), 1000);
+                    return () => clearTimeout(timeoutId);
+                  }
+                }}
+                onBlur={() => {
+                  if (formData.sku.trim()) {
+                    validateSku(formData.sku);
+                  }
+                }}
+                placeholder="Auto-generated if empty"
+                placeholderTextColor={Colors.light.textSecondary}
+                autoCapitalize="characters"
+              />
+              {skuValidating && (
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.light.primary}
+                  style={styles.skuValidationIcon}
+                />
+              )}
+              {!skuValidating && skuIsValid === true && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={Colors.light.success}
+                  style={styles.skuValidationIcon}
+                />
+              )}
+              {!skuValidating && skuIsValid === false && (
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={Colors.light.error}
+                  style={styles.skuValidationIcon}
+                />
+              )}
+            </View>
+            {skuValidationMessage && (
+              <ThemedText
+                style={[
+                  styles.validationMessage,
+                  skuIsValid === true && styles.successText,
+                  skuIsValid === false && styles.errorText,
+                ]}
+              >
+                {skuValidationMessage}
+              </ThemedText>
+            )}
             {errors.sku && <ThemedText style={styles.errorText}>{errors.sku}</ThemedText>}
           </View>
 
@@ -653,15 +959,16 @@ export default function AddProductScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <ThemedText style={styles.label}>Subcategory</ThemedText>
-            <TextInput
-              style={[styles.input, errors.subcategory && styles.inputError]}
+            <FormSelect
+              label="Subcategory"
               value={formData.subcategory}
-              onChangeText={(value) => updateFormData('subcategory', value)}
-              placeholder="Enter subcategory (optional)"
-              placeholderTextColor={Colors.light.textSecondary}
+              onValueChange={(value) => updateFormData('subcategory', value)}
+              options={subcategories}
+              placeholder={loadingSubcategories ? "Loading subcategories..." : (subcategories.length === 0 ? "No subcategories available" : "Select subcategory")}
+              error={errors.subcategory}
+              disabled={!formData.category || loadingSubcategories}
+              helperText={!formData.category ? "Select a category first" : undefined}
             />
-            {errors.subcategory && <ThemedText style={styles.errorText}>{errors.subcategory}</ThemedText>}
           </View>
 
           <View style={styles.formGroup}>
@@ -1130,8 +1437,35 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.text,
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerRight: {
     width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  savingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  savingText: {
+    fontSize: 11,
+    color: Colors.light.primary,
+    fontStyle: 'italic',
+  },
+  savedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  savedText: {
+    fontSize: 10,
+    color: Colors.light.success,
   },
   scrollView: {
     flex: 1,
@@ -1274,5 +1608,104 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: Colors.light.background,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.light.background,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.light.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: Colors.light.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalSubtext: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalButtonPrimary: {
+    backgroundColor: Colors.light.primary,
+  },
+  modalButtonSecondary: {
+    backgroundColor: Colors.light.card,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  modalButtonTextPrimary: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.light.background,
+  },
+  modalButtonTextSecondary: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.light.text,
+  },
+  // SKU validation styles
+  skuInputContainer: {
+    position: 'relative',
+  },
+  skuInput: {
+    paddingRight: 40, // Make room for validation icon
+  },
+  skuValidationIcon: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+  },
+  validationMessage: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  successText: {
+    color: Colors.light.success,
+  },
+  inputSuccess: {
+    borderColor: Colors.light.success,
+    borderWidth: 2,
   },
 });

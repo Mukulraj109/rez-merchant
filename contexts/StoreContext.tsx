@@ -9,6 +9,8 @@ interface StoreContextType {
   error: string | null;
   refreshStores: () => Promise<void>;
   setActiveStore: (store: Store) => Promise<void>;
+  activateStoreById: (storeId: string) => Promise<void>;
+  deactivateStoreById: (storeId: string) => Promise<void>;
   createStore: (storeData: any) => Promise<Store>;
   updateStore: (storeId: string, storeData: any) => Promise<Store>;
   deleteStore: (storeId: string) => Promise<void>;
@@ -121,25 +123,61 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [loadStores]);
 
   /**
-   * Set active store
+   * Set active store (selects store and activates it)
    */
   const setActiveStore = useCallback(async (store: Store) => {
     try {
       setError(null);
-      
+
       // Activate store on backend
       await storeService.activateStore(store._id);
-      
+
       // Update local state
       setActiveStoreState(store);
-      
+
       // Save to storage
       await storageService.setItem(ACTIVE_STORE_KEY, store._id);
-      
+
       // Refresh stores to get updated status
       await loadStores();
     } catch (err: any) {
       setError(err.message || 'Failed to set active store');
+      throw err;
+    }
+  }, [loadStores]);
+
+  /**
+   * Activate store by ID (just activates, doesn't change selected store)
+   */
+  const activateStoreById = useCallback(async (storeId: string) => {
+    try {
+      setError(null);
+
+      // Activate store on backend
+      await storeService.activateStore(storeId);
+
+      // Refresh stores to get updated status
+      await loadStores();
+    } catch (err: any) {
+      setError(err.message || 'Failed to activate store');
+      throw err;
+    }
+  }, [loadStores]);
+
+  /**
+   * Deactivate store by ID
+   */
+  const deactivateStoreById = useCallback(async (storeId: string) => {
+    try {
+      setError(null);
+
+      // Deactivate store on backend
+      await storeService.deactivateStore(storeId);
+
+      // Refresh stores to get updated status
+      await loadStores();
+    } catch (err: any) {
+      setError(err.message || 'Failed to deactivate store');
       throw err;
     }
   }, [loadStores]);
@@ -244,6 +282,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     error,
     refreshStores,
     setActiveStore,
+    activateStoreById,
+    deactivateStoreById,
     createStore,
     updateStore,
     deleteStore

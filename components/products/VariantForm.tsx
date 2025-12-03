@@ -12,12 +12,16 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import { ProductVariant } from '../../types/products';
+import { uploadsService } from '../../services';
 
 interface VariantFormProps {
   variant?: ProductVariant;
@@ -83,6 +87,9 @@ const VariantForm: React.FC<VariantFormProps> = ({
   });
 
   const [selectedImage, setSelectedImage] = useState<string | undefined>(variant?.image);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | undefined>(variant?.image);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const trackQuantity = watch('inventory.trackQuantity');
   const price = watch('price');
   const salePrice = watch('salePrice');
@@ -95,15 +102,94 @@ const VariantForm: React.FC<VariantFormProps> = ({
     }
   }, [baseProductSku, variant, setValue]);
 
-  const handleImageSelect = () => {
-    // TODO: Implement image picker
-    console.log('Image picker');
+  const handleImageSelect = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant camera roll permissions to upload images.'
+        );
+        return;
+      }
+
+      // Pick image
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setSelectedImage(imageUri);
+
+        // Upload image immediately
+        await uploadImage(imageUri);
+      }
+    } catch (error: any) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
+
+  const uploadImage = async (imageUri: string) => {
+    try {
+      setUploadingImage(true);
+      setUploadProgress(0);
+
+      console.log('📤 Uploading variant image:', imageUri);
+
+      // Upload image using uploadsService
+      const result = await uploadsService.uploadImageWithProgress(
+        imageUri,
+        `variant_${Date.now()}.jpg`,
+        (progress) => {
+          setUploadProgress(progress);
+        }
+      );
+
+      console.log('✅ Variant image uploaded successfully:', result.url);
+
+      setUploadedImageUrl(result.url);
+      Alert.alert('Success', 'Image uploaded successfully');
+    } catch (error: any) {
+      console.error('❌ Failed to upload variant image:', error);
+      Alert.alert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
+      // Reset selected image on upload failure
+      setSelectedImage(undefined);
+    } finally {
+      setUploadingImage(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    Alert.alert(
+      'Remove Image',
+      'Are you sure you want to remove this image?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            setSelectedImage(undefined);
+            setUploadedImageUrl(undefined);
+          },
+        },
+      ]
+    );
   };
 
   const handleFormSubmit = (data: VariantFormData) => {
+    // Use the uploaded URL if available, otherwise use the selected image
     onSubmit({
       ...data,
-      image: selectedImage,
+      image: uploadedImageUrl || selectedImage,
     });
   };
 
@@ -293,21 +379,46 @@ const VariantForm: React.FC<VariantFormProps> = ({
           <TouchableOpacity
             style={styles.imageUploadContainer}
             onPress={handleImageSelect}
+            disabled={uploadingImage}
           >
             {selectedImage ? (
               <View style={styles.imagePreview}>
                 <Image source={{ uri: selectedImage }} style={styles.image} />
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={() => setSelectedImage(undefined)}
-                >
-                  <Ionicons name="close-circle" size={24} color="#EF4444" />
-                </TouchableOpacity>
+
+                {/* Upload Progress Overlay */}
+                {uploadingImage && (
+                  <View style={styles.uploadOverlay}>
+                    <ActivityIndicator size="large" color="#FFFFFF" />
+                    <Text style={styles.uploadProgressText}>
+                      {uploadProgress}%
+                    </Text>
+                  </View>
+                )}
+
+                {/* Remove Button (only when not uploading) */}
+                {!uploadingImage && (
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={handleRemoveImage}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#EF4444" />
+                  </TouchableOpacity>
+                )}
+
+                {/* Success Badge (when uploaded) */}
+                {uploadedImageUrl && !uploadingImage && (
+                  <View style={styles.uploadSuccessBadge}>
+                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                    <Text style={styles.uploadSuccessText}>Uploaded</Text>
+                  </View>
+                )}
               </View>
             ) : (
               <View style={styles.uploadPlaceholder}>
                 <Ionicons name="image-outline" size={40} color="#9CA3AF" />
-                <Text style={styles.uploadText}>Tap to upload image</Text>
+                <Text style={styles.uploadText}>
+                  {uploadingImage ? 'Uploading...' : 'Tap to upload image'}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -477,6 +588,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     marginTop: 8,
+  },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  uploadProgressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginTop: 8,
+  },
+  uploadSuccessBadge: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  uploadSuccessText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#16A34A',
   },
   actions: {
     flexDirection: 'row',

@@ -36,13 +36,14 @@ class ApiClient {
   constructor() {
     // Ensure baseURL doesn't end with slash for proper URL joining
     const baseURL = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-    
-    
+
+
     this.axiosInstance = axios.create({
       baseURL: baseURL,
       timeout: API_TIMEOUT,
       headers: {
-        'Content-Type': 'application/json',
+        // Don't set default Content-Type here - let interceptor handle it per request
+        // This allows FormData to be sent with proper multipart/form-data boundary
       },
     });
 
@@ -70,11 +71,24 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
-        // For FormData, remove Content-Type to let axios set it with boundary
-        if (config.data instanceof FormData || 
-            (config.data && typeof config.data === 'object' && config.data.constructor?.name === 'FormData')) {
+        // Set Content-Type based on data type
+        config.headers = config.headers || {};
+
+        // Check if data is FormData
+        const isFormData = config.data instanceof FormData ||
+            (typeof FormData !== 'undefined' && config.data instanceof FormData) ||
+            (config.data && typeof config.data === 'object' && config.data.constructor?.name === 'FormData');
+
+        if (isFormData) {
+          // For FormData, remove Content-Type to let browser/axios set it with boundary
           delete config.headers['Content-Type'];
           delete config.headers['content-type'];
+          delete config.headers['content-Type'];
+          delete config.headers['Content-type'];
+          console.log('🔵 [API Client] FormData detected, Content-Type headers removed');
+        } else if (config.data && !config.headers['Content-Type']) {
+          // For JSON data, set Content-Type to application/json
+          config.headers['Content-Type'] = 'application/json';
         }
 
         return config;
@@ -116,34 +130,30 @@ class ApiClient {
   async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     // Ensure URL doesn't start with slash to properly join with baseURL
     const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
-    
+
     // Check if data is FormData (works for both web and React Native)
-    const isFormData = data instanceof FormData || 
+    const isFormData = data instanceof FormData ||
                       (typeof FormData !== 'undefined' && data instanceof FormData) ||
                       (data && typeof data === 'object' && data.constructor?.name === 'FormData');
-    
+
     // If data is FormData, configure request to send as multipart/form-data
     let requestConfig: AxiosRequestConfig = { ...config };
-    
+
     if (isFormData) {
-      // For FormData:
-      // 1. Interceptor will add Authorization header
-      // 2. Interceptor will remove Content-Type (so axios sets it with boundary)
-      // 3. We just need to prevent JSON transformation
+      // For FormData, explicitly prevent transformation and let axios handle it natively
+      // Setting transformRequest to a passthrough function prevents default transformers
       requestConfig = {
         ...config,
-        // Prevent axios from transforming FormData - return as-is
-        transformRequest: [(data) => {
-          // If it's FormData, return it without transformation
-          if (data instanceof FormData || (data && typeof data === 'object' && data.constructor?.name === 'FormData')) {
-            return data;
-          }
-          // For other data types, use default JSON transformation
-          return JSON.stringify(data);
-        }],
+        headers: {
+          ...config?.headers,
+          // Explicitly remove Content-Type so axios sets it with proper multipart boundary
+          'Content-Type': undefined,
+        },
+        // Prevent axios default transformers from converting FormData
+        transformRequest: [(data) => data],
       };
     }
-    
+
     try {
       const response = await this.axiosInstance.post<ApiResponse<T>>(cleanUrl, data, requestConfig);
       return response.data;
@@ -187,6 +197,14 @@ class ApiClient {
     // Ensure URL doesn't start with slash to properly join with baseURL
     const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
     const response = await this.axiosInstance.delete<ApiResponse<T>>(cleanUrl, config);
+    return response.data;
+  }
+
+  // Generic PATCH request
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    // Ensure URL doesn't start with slash to properly join with baseURL
+    const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
+    const response = await this.axiosInstance.patch<ApiResponse<T>>(cleanUrl, data, config);
     return response.data;
   }
 
@@ -236,3 +254,7 @@ export * from './reviews';
 export * from './stores';
 export * from './offers';
 export * from './discounts';
+export * from './storeVouchers';
+export * from './outlets';
+export * from './promotionalVideos';
+export * from './socialMedia';

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  TextInput,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -127,6 +128,15 @@ export default function EditStoreScreen() {
     title: '',
     message: '',
   });
+
+  // Action buttons configuration
+  const [actionButtonsEnabled, setActionButtonsEnabled] = useState(true);
+  const [callButtonEnabled, setCallButtonEnabled] = useState(true);
+  const [callButtonLabel, setCallButtonLabel] = useState('Call');
+  const [productButtonEnabled, setProductButtonEnabled] = useState(true);
+  const [productButtonLabel, setProductButtonLabel] = useState('Products');
+  const [locationButtonEnabled, setLocationButtonEnabled] = useState(true);
+  const [locationButtonLabel, setLocationButtonLabel] = useState('Location');
   
   // Helper functions for modals
   const showError = (title: string, message: string) => {
@@ -254,6 +264,28 @@ export default function EditStoreScreen() {
           sundayClose: getDayHours('sunday').close,
           sundayClosed: getDayHours('sunday').closed,
         });
+
+        // Load action buttons configuration
+        if (s.actionButtons) {
+          setActionButtonsEnabled(s.actionButtons.enabled !== false);
+          const buttons = s.actionButtons.buttons || [];
+          const callBtn = buttons.find((b: any) => b.id === 'call');
+          const productBtn = buttons.find((b: any) => b.id === 'product');
+          const locationBtn = buttons.find((b: any) => b.id === 'location');
+
+          if (callBtn) {
+            setCallButtonEnabled(callBtn.enabled !== false);
+            setCallButtonLabel(callBtn.label || 'Call');
+          }
+          if (productBtn) {
+            setProductButtonEnabled(productBtn.enabled !== false);
+            setProductButtonLabel(productBtn.label || 'Products');
+          }
+          if (locationBtn) {
+            setLocationButtonEnabled(locationBtn.enabled !== false);
+            setLocationButtonLabel(locationBtn.label || 'Location');
+          }
+        }
       }
     } catch (error: any) {
       showError('Error', error.message || 'Failed to load store');
@@ -576,7 +608,35 @@ export default function EditStoreScreen() {
       
       // Always include deliveryCategories object (even if empty) to allow clearing categories
       updatePayload.deliveryCategories = deliveryCategories;
-      
+
+      // Action buttons configuration
+      updatePayload.actionButtons = {
+        enabled: actionButtonsEnabled,
+        buttons: [
+          {
+            id: 'call',
+            enabled: callButtonEnabled,
+            label: callButtonLabel.trim() || 'Call',
+            destination: { type: 'phone', value: '' },
+            order: 0,
+          },
+          {
+            id: 'product',
+            enabled: productButtonEnabled,
+            label: productButtonLabel.trim() || 'Products',
+            destination: { type: 'internal', value: 'store-products' },
+            order: 1,
+          },
+          {
+            id: 'location',
+            enabled: locationButtonEnabled,
+            label: locationButtonLabel.trim() || 'Location',
+            destination: { type: 'maps', value: '' },
+            order: 2,
+          },
+        ],
+      };
+
       await updateStore(id, updatePayload);
       
       // Show success message and navigate to stores page
@@ -1058,6 +1118,127 @@ export default function EditStoreScreen() {
           </View>
         </TouchableOpacity>
 
+        <Text style={styles.sectionTitle}>Action Buttons</Text>
+        <Text style={styles.sectionHint}>Configure the action buttons shown on your product pages (Call, Products, Location).</Text>
+
+        {/* Master Toggle */}
+        <View style={styles.switchRow}>
+          <View style={styles.categoryInfo}>
+            <Text style={styles.switchLabel}>Enable Action Buttons</Text>
+            <Text style={styles.categoryDescription}>Show Call, Products, and Location buttons on product pages</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.switchContainer}
+            onPress={() => setActionButtonsEnabled(!actionButtonsEnabled)}
+          >
+            <Ionicons
+              name={actionButtonsEnabled ? "toggle" : "toggle-outline"}
+              size={32}
+              color={actionButtonsEnabled ? "#3B82F6" : "#9CA3AF"}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {actionButtonsEnabled && (
+          <View style={styles.actionButtonsContainer}>
+            {/* Call Button Config */}
+            <View style={styles.actionButtonRow}>
+              <View style={styles.actionButtonToggle}>
+                <Ionicons name="call-outline" size={20} color="#3B82F6" />
+                <Text style={styles.actionButtonLabel}>Call Button</Text>
+                <TouchableOpacity
+                  style={styles.switchContainer}
+                  onPress={() => setCallButtonEnabled(!callButtonEnabled)}
+                >
+                  <Ionicons
+                    name={callButtonEnabled ? "checkbox" : "checkbox-outline"}
+                    size={24}
+                    color={callButtonEnabled ? "#3B82F6" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+              </View>
+              {callButtonEnabled && (
+                <View style={styles.actionButtonInput}>
+                  <Text style={styles.actionButtonInputLabel}>Custom Label</Text>
+                  <View style={styles.textInputContainer}>
+                    <TextInput
+                      style={styles.textInput}
+                      value={callButtonLabel}
+                      onChangeText={setCallButtonLabel}
+                      placeholder="Call"
+                      maxLength={20}
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Products Button Config */}
+            <View style={styles.actionButtonRow}>
+              <View style={styles.actionButtonToggle}>
+                <Ionicons name="cube-outline" size={20} color="#3B82F6" />
+                <Text style={styles.actionButtonLabel}>Products Button</Text>
+                <TouchableOpacity
+                  style={styles.switchContainer}
+                  onPress={() => setProductButtonEnabled(!productButtonEnabled)}
+                >
+                  <Ionicons
+                    name={productButtonEnabled ? "checkbox" : "checkbox-outline"}
+                    size={24}
+                    color={productButtonEnabled ? "#3B82F6" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+              </View>
+              {productButtonEnabled && (
+                <View style={styles.actionButtonInput}>
+                  <Text style={styles.actionButtonInputLabel}>Custom Label</Text>
+                  <View style={styles.textInputContainer}>
+                    <TextInput
+                      style={styles.textInput}
+                      value={productButtonLabel}
+                      onChangeText={setProductButtonLabel}
+                      placeholder="Products"
+                      maxLength={20}
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Location Button Config */}
+            <View style={styles.actionButtonRow}>
+              <View style={styles.actionButtonToggle}>
+                <Ionicons name="location-outline" size={20} color="#3B82F6" />
+                <Text style={styles.actionButtonLabel}>Location Button</Text>
+                <TouchableOpacity
+                  style={styles.switchContainer}
+                  onPress={() => setLocationButtonEnabled(!locationButtonEnabled)}
+                >
+                  <Ionicons
+                    name={locationButtonEnabled ? "checkbox" : "checkbox-outline"}
+                    size={24}
+                    color={locationButtonEnabled ? "#3B82F6" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+              </View>
+              {locationButtonEnabled && (
+                <View style={styles.actionButtonInput}>
+                  <Text style={styles.actionButtonInputLabel}>Custom Label</Text>
+                  <View style={styles.textInputContainer}>
+                    <TextInput
+                      style={styles.textInput}
+                      value={locationButtonLabel}
+                      onChangeText={setLocationButtonLabel}
+                      placeholder="Location"
+                      maxLength={20}
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         <Text style={styles.sectionTitle}>Store Settings</Text>
         <View style={styles.switchRow}>
           <Text style={styles.switchLabel}>Featured Store</Text>
@@ -1386,6 +1567,53 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 12,
     fontStyle: 'italic',
+  },
+  // Action Buttons Styles
+  actionButtonsContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  actionButtonRow: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  actionButtonToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  actionButtonLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  actionButtonInput: {
+    marginTop: 12,
+    marginLeft: 32,
+  },
+  actionButtonInputLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 6,
+  },
+  textInputContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  textInput: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
   },
 });
 

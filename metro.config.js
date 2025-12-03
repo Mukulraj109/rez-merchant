@@ -1,15 +1,13 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
 // Add web-specific configurations
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
-// Add alias for path resolution and web fallbacks
+// Add alias for web fallbacks
 config.resolver.alias = {
   ...config.resolver.alias,
-  '@': path.resolve(__dirname),
   'react-native-draggable-flatlist': require.resolve('./utils/webFallbacks.js'),
 };
 

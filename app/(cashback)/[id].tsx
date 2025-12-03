@@ -872,20 +872,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  approveButton: {
-    backgroundColor: Colors.light.success,
-  },
-  approveButtonText: {
-    color: Colors.light.background,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  rejectButton: {
-    backgroundColor: Colors.light.error,
-  },
-  rejectButtonText: {
-    color: Colors.light.background,
-    fontSize: 16,
-    fontWeight: '600',
-  },
 });

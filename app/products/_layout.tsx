@@ -8,19 +8,27 @@ export default function ProductsLayout() {
         animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen 
-        name="[id]" 
-        options={{ 
+      <Stack.Screen
+        name="[id]"
+        options={{
           headerShown: false,
           presentation: 'card',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="add" 
-        options={{ 
+      <Stack.Screen
+        name="[id]/images"
+        options={{
           headerShown: false,
           presentation: 'card',
-        }} 
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="add"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
       />
       <Stack.Screen 
         name="edit/[id]" 

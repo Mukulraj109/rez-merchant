@@ -8,6 +8,7 @@ export { productsService } from './api/products';
 export { uploadsService } from './api/uploads';
 export { socketService } from './api/socket';
 export { documentsService } from './api/documents';
+export { socialMediaService } from './api/socialMedia';
 
 // Storage Service
 export { storageService } from './storage';
@@ -24,6 +25,7 @@ import { productsService } from './api/products';
 import { uploadsService } from './api/uploads';
 import { socketService } from './api/socket';
 import { documentsService } from './api/documents';
+import { socialMediaService } from './api/socialMedia';
 import { storageService } from './storage';
 import { offlineService } from './offline';
 
@@ -37,6 +39,7 @@ export const apiServices = {
   uploads: uploadsService,
   socket: socketService,
   documents: documentsService,
+  socialMedia: socialMediaService,
 };
 
 // Storage utilities

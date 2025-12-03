@@ -7,30 +7,34 @@ const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
 // API Configuration
 export const API_CONFIG = {
   // Use the environment variable or fallback to the hardcoded URL
+  // Replace old IP address with localhost for development
   BASE_URL: (() => {
-    const url = Constants.expoConfig?.extra?.apiBaseUrl ||
-                process.env.EXPO_PUBLIC_API_BASE_URL ||
+    const url = Constants.expoConfig?.extra?.apiBaseUrl || 
+                process.env.EXPO_PUBLIC_API_BASE_URL || 
                 process.env.EXPO_PUBLIC_API_URL ||
-                (isDevelopment ? 'http://localhost:5001/api' : 'https://rez-backend-vvhl.onrender.com/api');
-    return url;
+                (isDevelopment ? 'http://localhost:5001/api' : 'https://api.rezmerchant.com/api');
+    // Replace old IP with localhost if present
+    return url.includes('172.20.10.4') ? url.replace('172.20.10.4', 'localhost') : url;
   })(),
-
+  
   // Environment-specific URLs
   DEV_URL: process.env.EXPO_PUBLIC_DEV_API_URL || 'http://localhost:5001/api',
-  PROD_URL: process.env.EXPO_PUBLIC_PROD_API_URL || 'https://rez-backend-vvhl.onrender.com/api',
-
+  PROD_URL: process.env.EXPO_PUBLIC_PROD_API_URL || 'https://api.rezmerchant.com/api',
+  
   TIMEOUT: parseInt(
-    Constants.expoConfig?.extra?.apiTimeout ||
-    process.env.EXPO_PUBLIC_API_TIMEOUT ||
+    Constants.expoConfig?.extra?.apiTimeout || 
+    process.env.EXPO_PUBLIC_API_TIMEOUT || 
     '60000'
   ),
-
+  
   // Socket configuration
+  // Replace old IP address with localhost for development
   SOCKET_URL: (() => {
-    const url = Constants.expoConfig?.extra?.socketUrl ||
-                process.env.EXPO_PUBLIC_SOCKET_URL ||
-                (isDevelopment ? 'http://localhost:5001' : 'https://rez-backend-vvhl.onrender.com');
-    return url;
+    const url = Constants.expoConfig?.extra?.socketUrl || 
+                process.env.EXPO_PUBLIC_SOCKET_URL || 
+                (isDevelopment ? 'http://localhost:5001' : 'https://api.rezmerchant.com');
+    // Replace old IP with localhost if present
+    return url.includes('172.20.10.4') ? url.replace('172.20.10.4', 'localhost') : url;
   })(),
   SOCKET_TIMEOUT: parseInt(
     Constants.expoConfig?.extra?.socketTimeout || 

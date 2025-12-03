@@ -22,15 +22,21 @@ import { useStore } from '@/contexts/StoreContext';
 import { Store } from '@/services/api/stores';
 import { Colors } from '@/constants/Colors';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
+import ConfirmModal from '@/components/common/ConfirmModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function StoresScreen() {
   const router = useRouter();
-  const { stores, isLoading, refreshStores, deleteStore, activeStore, setActiveStore } = useStore();
+  const { stores, isLoading, refreshStores, deleteStore, activeStore, activateStoreById, deactivateStoreById } = useStore();
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [bannerIndices, setBannerIndices] = useState<Record<string, number>>({});
+
+  // Deactivate modal state
+  const [deactivateModalVisible, setDeactivateModalVisible] = useState(false);
+  const [storeToDeactivate, setStoreToDeactivate] = useState<Store | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
 
   useEffect(() => {
     refreshStores();
@@ -40,6 +46,35 @@ export default function StoresScreen() {
     setRefreshing(true);
     await refreshStores();
     setRefreshing(false);
+  };
+
+  // Handle deactivate - show modal
+  const handleDeactivatePress = (store: Store) => {
+    setStoreToDeactivate(store);
+    setDeactivateModalVisible(true);
+  };
+
+  // Confirm deactivate
+  const handleDeactivateConfirm = async () => {
+    if (!storeToDeactivate) return;
+
+    setDeactivating(true);
+    try {
+      await deactivateStoreById(storeToDeactivate._id);
+      setDeactivateModalVisible(false);
+      setStoreToDeactivate(null);
+      Alert.alert('Success', `${storeToDeactivate.name} has been deactivated.`);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to deactivate store');
+    } finally {
+      setDeactivating(false);
+    }
+  };
+
+  // Cancel deactivate
+  const handleDeactivateCancel = () => {
+    setDeactivateModalVisible(false);
+    setStoreToDeactivate(null);
   };
 
   const handleDelete = (store: Store) => {
@@ -192,8 +227,8 @@ export default function StoresScreen() {
           >
             <Ionicons name="information-circle" size={22} color="#FFFFFF" />
           </TouchableOpacity>
-          {/* Active Badge - Positioned below the icon button */}
-          {isActive && (
+          {/* Active Badge - Shows if store is active for customers */}
+          {item.isActive && (
             <View style={styles.activeBadgeOverlay}>
               <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
               <Text style={styles.activeBadgeOverlayText}>Active</Text>
@@ -350,14 +385,14 @@ export default function StoresScreen() {
             <Ionicons name="pencil" size={16} color="#3B82F6" />
             <Text style={styles.actionButtonText}>Edit</Text>
           </TouchableOpacity>
-          {!isActive && (
+          {!item.isActive ? (
             <TouchableOpacity
               style={[styles.actionButton, styles.activateButton]}
               onPress={async (e) => {
                 e.stopPropagation();
                 try {
-                  await setActiveStore(item);
-                  Alert.alert('Success', `${item.name} is now your active store.`);
+                  await activateStoreById(item._id);
+                  Alert.alert('Success', `${item.name} is now active and visible to customers.`);
                 } catch (error: any) {
                   Alert.alert('Error', error.message || 'Failed to activate store');
                 }
@@ -366,6 +401,19 @@ export default function StoresScreen() {
               <Ionicons name="checkmark-circle" size={16} color="#10B981" />
               <Text style={[styles.actionButtonText, styles.activateButtonText]}>
                 Activate
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.deactivateButton]}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleDeactivatePress(item);
+              }}
+            >
+              <Ionicons name="close-circle" size={16} color="#F59E0B" />
+              <Text style={[styles.actionButtonText, styles.deactivateButtonText]}>
+                Deactivate
               </Text>
             </TouchableOpacity>
           )}
@@ -473,6 +521,19 @@ export default function StoresScreen() {
       )}
       </SafeAreaView>
       <BottomNav />
+
+      {/* Deactivate Confirmation Modal */}
+      <ConfirmModal
+        visible={deactivateModalVisible}
+        title="Deactivate Store"
+        message={`Are you sure you want to deactivate "${storeToDeactivate?.name || ''}"? It will no longer be visible to customers.`}
+        confirmText="Deactivate"
+        cancelText="Cancel"
+        type="warning"
+        loading={deactivating}
+        onConfirm={handleDeactivateConfirm}
+        onCancel={handleDeactivateCancel}
+      />
     </View>
   );
 }
@@ -905,6 +966,10 @@ const styles = StyleSheet.create({
   activateButton: {
     borderColor: Colors.light.success,
   },
+  deactivateButton: {
+    borderColor: '#F59E0B',
+    backgroundColor: '#FEF3C7',
+  },
   deleteButton: {
     borderColor: Colors.light.error,
   },
@@ -921,6 +986,9 @@ const styles = StyleSheet.create({
   },
   activateButtonText: {
     color: Colors.light.success,
+  },
+  deactivateButtonText: {
+    color: '#F59E0B',
   },
   deleteButtonText: {
     color: Colors.light.error,
