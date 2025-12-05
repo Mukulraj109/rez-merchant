@@ -22,4 +22,4 @@ config.transformer = {
 // Add resolver fields for web compatibility
 config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
 
-module.exports = config;
+module.exports = config

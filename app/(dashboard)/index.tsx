@@ -636,13 +636,20 @@ export default function DashboardScreen() {
               onPress={() => router.push('/reports')}
                     index={6}
                 />
+            <QuickActionButton
+              title="Events"
+              icon="calendar"
+                    color={Colors.secondary[500]}
+              onPress={() => router.push('/events')}
+                    index={7}
+                />
                 {activeStore && (
                   <QuickActionButton
                     title="Store Details"
                     icon="information-circle"
                     color={Colors.secondary[600]}
                     onPress={() => router.push(`/stores/${activeStore._id}/details`)}
-                    index={7}
+                    index={8}
             />
                 )}
           </View>
