@@ -12,14 +12,14 @@ export const API_CONFIG = {
     const url = Constants.expoConfig?.extra?.apiBaseUrl || 
                 process.env.EXPO_PUBLIC_API_BASE_URL || 
                 process.env.EXPO_PUBLIC_API_URL ||
-                (isDevelopment ? 'http://localhost:5001/api' : 'https://rez-backend-vvhl.onrender.com/api');
+                (isDevelopment ? 'http://localhost:5001/api' : 'https://rez-backend-vvhl.onrender.com');
     // Replace old IP with localhost if present
     return url.includes('172.20.10.4') ? url.replace('172.20.10.4', 'localhost') : url;
   })(),
   
   // Environment-specific URLs
   DEV_URL: process.env.EXPO_PUBLIC_DEV_API_URL || 'http://localhost:5001/api',
-  PROD_URL: process.env.EXPO_PUBLIC_PROD_API_URL || 'https://rez-backend-vvhl.onrender.com/api',
+  PROD_URL: process.env.EXPO_PUBLIC_PROD_API_URL || 'https://rez-backend-vvhl.onrender.com',
   
   TIMEOUT: parseInt(
     Constants.expoConfig?.extra?.apiTimeout || 
