@@ -65,8 +65,8 @@ export default function StoreQRCodeScreen() {
   const fetchQRData = useCallback(async () => {
     try {
       const response = await api.get(`/store-payment/qr/${storeId}`);
-      if (response.data.success) {
-        setQrData(response.data.data);
+      if (response.success) {
+        setQrData(response.data);
       }
     } catch (error: any) {
       console.error('Error fetching QR data:', error);
@@ -95,13 +95,13 @@ export default function StoreQRCodeScreen() {
     setGenerating(true);
     try {
       const response = await api.post(`/store-payment/generate-qr/${storeId}`);
-      if (response.data.success) {
+      if (response.success && response.data) {
         setQrData({
           hasQR: true,
-          code: response.data.data.code,
-          qrImageUrl: response.data.data.qrImageUrl,
+          code: response.data.code,
+          qrImageUrl: response.data.qrImageUrl,
           isActive: true,
-          generatedAt: response.data.data.generatedAt,
+          generatedAt: response.data.generatedAt,
           storeName: store?.name,
         });
         setSuccessMessage({
@@ -128,13 +128,13 @@ export default function StoreQRCodeScreen() {
     setShowConfirmModal(false);
     try {
       const response = await api.post(`/store-payment/regenerate-qr/${storeId}`);
-      if (response.data.success) {
+      if (response.success && response.data) {
         setQrData({
           hasQR: true,
-          code: response.data.data.code,
-          qrImageUrl: response.data.data.qrImageUrl,
+          code: response.data.code,
+          qrImageUrl: response.data.qrImageUrl,
           isActive: true,
-          generatedAt: response.data.data.generatedAt,
+          generatedAt: response.data.generatedAt,
           storeName: store?.name,
         });
         setSuccessMessage({
@@ -164,7 +164,7 @@ export default function StoreQRCodeScreen() {
       const response = await api.patch(`/store-payment/qr/${storeId}/toggle`, {
         isActive: newStatus,
       });
-      if (response.data.success) {
+      if (response.success) {
         setQrData(prev => prev ? { ...prev, isActive: newStatus } : null);
         setSuccessMessage({
           title: 'Success',

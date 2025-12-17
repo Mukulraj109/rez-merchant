@@ -692,6 +692,49 @@ export default function StoreDetailsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Payment QR Code Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="qr-code" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Payment QR Code</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              Generate and manage QR code for customers to pay at your store
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/qr-code`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="qr-code-outline" size={24} color="#6366F1" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Manage QR Code</Text>
+                    <Text style={styles.actionCardSubtitle}>Generate, download, or share your store's payment QR</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/payment-settings`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="settings-outline" size={24} color="#F59E0B" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Payment Settings</Text>
+                    <Text style={styles.actionCardSubtitle}>Configure accepted payment methods and rewards</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Actions */}
           <View style={styles.actionsSection}>
             {!store.isActive ? (
