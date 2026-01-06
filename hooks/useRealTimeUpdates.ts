@@ -43,6 +43,7 @@ export const useRealTimeUpdates = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [connectionStats, setConnectionStats] = useState<RealTimeStats | null>(null);
   const eventListeners = useRef<Map<string, (data: any) => void>>(new Map());
+  const socketListenersAttached = useRef(false);
 
   // Connect to real-time updates using Socket.IO
   const connect = useCallback(async () => {
@@ -84,8 +85,30 @@ export const useRealTimeUpdates = () => {
     console.log('📡 Real-time Socket.IO disconnected');
   }, []);
 
+  // Cleanup socket listeners
+  const cleanupSocketListeners = useCallback(() => {
+    if (!socketListenersAttached.current) return;
+
+    socketService.off('connection-status');
+    socketService.off('initial-dashboard-data');
+    socketService.off('metrics-updated');
+    socketService.off('overview-updated');
+    socketService.off('order-event');
+    socketService.off('cashback-event');
+    socketService.off('product-event');
+    socketService.off('system-notification');
+    socketService.off('connection-error');
+    socketService.off('reconnected');
+    socketService.off('reconnecting');
+
+    socketListenersAttached.current = false;
+  }, []);
+
   // Setup Socket.IO event listeners
   const setupSocketListeners = useCallback(() => {
+    // Prevent duplicate listeners
+    if (socketListenersAttached.current) return;
+
     // Connection status events
     socketService.on('connection-status', (status: string) => {
       setConnectionState(status as SocketConnectionState);
@@ -165,6 +188,8 @@ export const useRealTimeUpdates = () => {
     socketService.on('reconnecting', () => {
       setConnectionState('reconnecting');
     });
+
+    socketListenersAttached.current = true;
   }, []);
 
   const emitEvent = (eventName: string, data: any) => {
@@ -272,11 +297,12 @@ export const useRealTimeUpdates = () => {
     }
 
     return () => {
+      cleanupSocketListeners();
       if (isConnected) {
         disconnect();
       }
     };
-  }, [authState.merchant?.id, isConnected, connect, disconnect, setupSocketListeners]);
+  }, [authState.merchant?.id, isConnected, connect, disconnect, setupSocketListeners, cleanupSocketListeners]);
 
   // Update connection stats periodically
   useEffect(() => {
