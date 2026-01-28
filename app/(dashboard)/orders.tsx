@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  FlatList, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
   RefreshControl,
   Dimensions,
   Alert,
   Pressable,
-  Platform
+  Platform,
+  Modal,
+  Text,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,23 +46,27 @@ const { width } = Dimensions.get('window');
 
 type StatusFilter = OrderStatus | 'all';
 
-const statusColors: Record<OrderStatus, string> = {
+const statusColors: Record<string, string> = {
+  placed: Colors.warning[500],
   pending: Colors.warning[500],
   confirmed: Colors.primary[500],
   preparing: Colors.warning[600],
   ready: Colors.success[500],
   out_for_delivery: Colors.primary[600],
+  dispatched: Colors.primary[600],
   delivered: Colors.success[600],
   cancelled: Colors.error[500],
   refunded: Colors.gray[500]
 };
 
-const statusLabels: Record<OrderStatus, string> = {
+const statusLabels: Record<string, string> = {
+  placed: 'Placed',
   pending: 'Pending',
   confirmed: 'Confirmed',
   preparing: 'Preparing',
   ready: 'Ready',
   out_for_delivery: 'Out for Delivery',
+  dispatched: 'Dispatched',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
   refunded: 'Refunded'
@@ -93,14 +100,30 @@ const StatusTab = ({ status, label, count, active, onPress }: StatusTabProps) =>
   </Pressable>
 );
 
+// Valid status transitions for merchants
+// Backend may use 'placed'/'dispatched' or 'pending'/'out_for_delivery' — handle both
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  placed: ['confirmed', 'cancelled'],
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['preparing', 'cancelled'],
+  preparing: ['ready', 'cancelled'],
+  ready: ['out_for_delivery', 'dispatched', 'delivered'],
+  out_for_delivery: ['delivered'],
+  dispatched: ['delivered'],
+  delivered: [],
+  cancelled: [],
+  refunded: [],
+};
+
 interface OrderCardProps {
   order: Order;
   onPress: () => void;
   onQuickAction: (orderId: string, action: string) => void;
+  onUpdateStatus: (orderId: string, currentStatus: string) => void;
   index: number;
 }
 
-const OrderCard = ({ order, onPress, onQuickAction, index }: OrderCardProps) => {
+const OrderCard = ({ order, onPress, onQuickAction, onUpdateStatus, index }: OrderCardProps) => {
   const scale = useSharedValue(1);
   const rotateX = useSharedValue(0);
   const rotateY = useSharedValue(0);
@@ -120,8 +143,8 @@ const OrderCard = ({ order, onPress, onQuickAction, index }: OrderCardProps) => 
     }
   }, [order.createdAt]);
 
-  const isUrgent = order.priority === 'urgent' || 
-    (order.status === 'pending' && 
+  const isUrgent = order.priority === 'urgent' ||
+    ((order.status === 'pending' || order.status === 'placed') &&
      order.createdAt &&
      (new Date().getTime() - new Date(order.createdAt).getTime()) > 2 * 60 * 60 * 1000);
 
@@ -368,14 +391,13 @@ const OrderCard = ({ order, onPress, onQuickAction, index }: OrderCardProps) => 
       
       {/* Quick Actions */}
       <View style={styles.quickActions}>
-        {order.status === 'pending' && (
+        {(order.status === 'pending' || order.status === 'placed') && (
           <>
             <Button
                 title="Accept"
                 size="small"
                 variant="ghost"
                 onPress={(e: any) => {
-                    // e.stopPropagation(); // Handled by Pressable inside Button if customized, but here simpler
                     const orderId = order.id || (order as any)._id;
                     if (orderId) onQuickAction(orderId, 'confirm');
                 }}
@@ -397,7 +419,7 @@ const OrderCard = ({ order, onPress, onQuickAction, index }: OrderCardProps) => 
             />
           </>
         )}
-        
+
         {order.status === 'confirmed' && (
             <Button
                 title="Start Preparing"
@@ -412,7 +434,7 @@ const OrderCard = ({ order, onPress, onQuickAction, index }: OrderCardProps) => 
                 icon={<Ionicons name="restaurant" size={16} color={Colors.warning[500]} />}
             />
         )}
-        
+
         {order.status === 'preparing' && (
              <Button
                 title="Mark Ready"
@@ -428,6 +450,21 @@ const OrderCard = ({ order, onPress, onQuickAction, index }: OrderCardProps) => 
             />
         )}
       </View>
+
+      {/* Update Status Button */}
+      {(STATUS_TRANSITIONS[order.status]?.length > 0) && (
+        <TouchableOpacity
+          style={styles.updateStatusButton}
+          onPress={() => {
+            const orderId = order.id || (order as any)._id;
+            if (orderId) onUpdateStatus(orderId, order.status);
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="swap-horizontal" size={16} color="#FFFFFF" />
+          <Text style={styles.updateStatusButtonText}>Update Status</Text>
+        </TouchableOpacity>
+      )}
       </Card>
     </Pressable>
     </Animated.View>
@@ -445,6 +482,12 @@ export default function OrdersScreen() {
   const [sortBy, setSortBy] = useState<'created' | 'priority' | 'total'>('created');
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [selectedStoreId, setSelectedStoreId] = useState<string | undefined>(activeStore?._id);
+
+  // Status update modal state
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusOrderId, setStatusOrderId] = useState<string | null>(null);
+  const [statusOrderCurrent, setStatusOrderCurrent] = useState<string>('');
+  const [processingStatus, setProcessingStatus] = useState(false);
   
   const statusCounts = useMemo(() => {
     const counts: Record<OrderStatus | 'all', number> = {
@@ -637,6 +680,41 @@ export default function OrdersScreen() {
       Alert.alert('Error', 'Failed to update order status. Please try again.');
     }
   }, [fetchOrders]);
+
+  const handleUpdateStatus = useCallback((orderId: string, currentStatus: string) => {
+    setStatusOrderId(orderId);
+    setStatusOrderCurrent(currentStatus);
+    setShowStatusModal(true);
+  }, []);
+
+  const handleStatusSelect = useCallback(async (newStatus: string) => {
+    if (!statusOrderId) return;
+    try {
+      setProcessingStatus(true);
+      await ordersService.updateOrderStatus(statusOrderId, {
+        status: newStatus as OrderStatus,
+        notifyCustomer: true,
+      });
+      setShowStatusModal(false);
+      await fetchOrders();
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`Order status updated to ${newStatus.replace(/_/g, ' ')}`);
+      } else {
+        Alert.alert('Success', `Order status updated to ${newStatus.replace(/_/g, ' ')}`);
+      }
+    } catch (error: any) {
+      console.error('❌ Error updating order status:', error);
+      const msg = error.message || 'Failed to update order status.';
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`Error: ${msg}`);
+      } else {
+        Alert.alert('Error', msg);
+      }
+    } finally {
+      setProcessingStatus(false);
+      setStatusOrderId(null);
+    }
+  }, [statusOrderId, fetchOrders]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -846,7 +924,6 @@ export default function OrdersScreen() {
             order={item}
             index={index}
             onPress={() => {
-              // Use _id first since that's what the API expects
               const orderId = (item as any)._id || item.id;
               console.log('📦 [ORDERS] Navigating to order detail with ID:', orderId);
               if (orderId) {
@@ -856,6 +933,7 @@ export default function OrdersScreen() {
               }
             }}
             onQuickAction={handleQuickAction}
+            onUpdateStatus={handleUpdateStatus}
           />
         )}
         keyExtractor={(item) => item.id || (item as any)._id || `order-${item.orderNumber}`}
@@ -882,6 +960,65 @@ export default function OrdersScreen() {
           </View>
         }
       />
+
+      {/* Status Update Modal */}
+      <Modal visible={showStatusModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="swap-horizontal" size={24} color={Colors.primary[500]} />
+              <Heading3 style={styles.modalTitle}>Update Status</Heading3>
+            </View>
+            <Caption style={styles.modalCurrentStatus}>
+              Current: {statusOrderCurrent.replace(/_/g, ' ')}
+            </Caption>
+            <View style={styles.modalOptions}>
+              {(STATUS_TRANSITIONS[statusOrderCurrent] || []).map((nextStatus: string) => (
+                <TouchableOpacity
+                  key={nextStatus}
+                  style={[
+                    styles.statusOption,
+                    {
+                      backgroundColor: `${statusColors[nextStatus as OrderStatus] || Colors.primary[500]}15`,
+                      borderColor: statusColors[nextStatus as OrderStatus] || Colors.primary[500],
+                    },
+                  ]}
+                  onPress={() => handleStatusSelect(nextStatus)}
+                  disabled={processingStatus}
+                  activeOpacity={0.7}
+                >
+                  {processingStatus ? (
+                    <ActivityIndicator size="small" color={Colors.primary[500]} />
+                  ) : (
+                    <>
+                      <View
+                        style={[
+                          styles.statusOptionDot,
+                          { backgroundColor: statusColors[nextStatus as OrderStatus] || Colors.primary[500] },
+                        ]}
+                      />
+                      <BodyText style={styles.statusOptionText}>
+                        {(statusLabels[nextStatus as OrderStatus] || nextStatus).replace(/_/g, ' ')}
+                      </BodyText>
+                      <Ionicons name="chevron-forward" size={18} color={Colors.text.tertiary} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => {
+                setShowStatusModal(false);
+                setStatusOrderId(null);
+              }}
+              activeOpacity={0.7}
+            >
+              <BodyText style={styles.modalCancelText}>Cancel</BodyText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1396,5 +1533,88 @@ const styles = StyleSheet.create({
   storeFilterTextActive: {
       color: Colors.text.inverse,
       fontWeight: '600',
+  },
+
+  // Update Status Button
+  updateStatusButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.primary[500],
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: Spacing.sm,
+  },
+  updateStatusButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
+  // Status Update Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.background.primary,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.lg,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontWeight: '700',
+    fontSize: 18,
+    color: Colors.text.primary,
+  },
+  modalCurrentStatus: {
+    fontSize: 13,
+    color: Colors.text.secondary,
+    marginBottom: 16,
+    textTransform: 'capitalize',
+  },
+  modalOptions: {
+    gap: 8,
+  },
+  statusOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+  },
+  statusOptionDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  statusOptionText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text.primary,
+    textTransform: 'capitalize',
+  },
+  modalCancelButton: {
+    backgroundColor: Colors.gray[100],
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  modalCancelText: {
+    fontWeight: '600',
+    color: Colors.text.secondary,
+    fontSize: 15,
   },
 });
