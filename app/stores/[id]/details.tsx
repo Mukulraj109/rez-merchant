@@ -168,7 +168,7 @@ export default function StoreDetailsScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Store Details</Text>
         <TouchableOpacity
-          onPress={() => router.push(`/stores/${store._id}`)}
+          onPress={() => router.push(`/stores/${store._id}/edit`)}
           style={styles.editButton}
         >
           <Ionicons name="pencil" size={20} color={Colors.light.primary} />
@@ -765,7 +765,7 @@ export default function StoreDetailsScreen() {
             )}
             <TouchableOpacity
               style={styles.editButtonFull}
-              onPress={() => router.push(`/stores/${store._id}`)}
+              onPress={() => router.push(`/stores/${store._id}/edit`)}
             >
               <Ionicons name="pencil" size={20} color={Colors.light.primary} />
               <Text style={styles.editButtonText}>Edit Store</Text>

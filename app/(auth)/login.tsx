@@ -35,8 +35,8 @@ export default function LoginScreen() {
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: __DEV__ ? 'mukulraj756@gmail.com' : '',
-      password: __DEV__ ? 'test123456' : '',
+      email: __DEV__ ? 'merchant@test.com' : '',
+      password: __DEV__ ? 'Merchant@123' : '',
     },
   });
 

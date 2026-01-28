@@ -203,7 +203,13 @@ class StoreService {
       
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update store');
+      const data = error.response?.data;
+      let msg = data?.message || error.message || 'Failed to update store';
+      if (data?.errors && Array.isArray(data.errors)) {
+        const details = data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
+        msg = `${msg} (${details})`;
+      }
+      throw new Error(msg);
     }
   }
 

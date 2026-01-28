@@ -284,8 +284,8 @@ export default function ProductsScreen() {
           )}
           
           <View style={styles.productMeta}>
-             <Badge variant={item.status === 'active' ? 'success' : 'default'} size="small">
-                {item.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
+             <Badge variant={(item.status === 'active' || item.isActive) ? 'success' : 'default'} size="small">
+                {(item.status === 'active' || item.isActive) ? 'ACTIVE' : 'INACTIVE'}
              </Badge>
             
             <Caption style={styles.stockText}>

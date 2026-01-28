@@ -9,6 +9,8 @@ export { uploadsService } from './api/uploads';
 export { socketService } from './api/socket';
 export { documentsService } from './api/documents';
 export { socialMediaService } from './api/socialMedia';
+export { walletService } from './api/wallet';
+export { coinsService } from './api/coins';
 
 // Storage Service
 export { storageService } from './storage';
@@ -26,6 +28,8 @@ import { uploadsService } from './api/uploads';
 import { socketService } from './api/socket';
 import { documentsService } from './api/documents';
 import { socialMediaService } from './api/socialMedia';
+import { walletService } from './api/wallet';
+import { coinsService } from './api/coins';
 import { storageService } from './storage';
 import { offlineService } from './offline';
 
@@ -40,6 +44,8 @@ export const apiServices = {
   socket: socketService,
   documents: documentsService,
   socialMedia: socialMediaService,
+  wallet: walletService,
+  coins: coinsService,
 };
 
 // Storage utilities

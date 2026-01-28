@@ -126,13 +126,21 @@ export default function StoresScreen() {
     return { text: 'Open', color: '#10B981' };
   };
 
-  // Get banners as array (support both string and array)
+  // Get banners as array (support both string and array, fallback to logo)
   const getBanners = (store: Store): string[] => {
-    if (!store.banner) return [];
-    if (Array.isArray(store.banner)) {
-      return store.banner;
+    if (store.banner) {
+      if (Array.isArray(store.banner) && store.banner.length > 0) {
+        return store.banner;
+      }
+      if (typeof store.banner === 'string' && store.banner.trim() !== '') {
+        return [store.banner];
+      }
     }
-    return [store.banner];
+    // Fallback: use logo as banner if no banner images exist
+    if (store.logo && typeof store.logo === 'string' && store.logo.trim() !== '') {
+      return [store.logo];
+    }
+    return [];
   };
 
   const handleBannerScroll = (storeId: string, event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -379,7 +387,7 @@ export default function StoresScreen() {
             style={[styles.actionButton, styles.editButton]}
             onPress={(e) => {
               e.stopPropagation();
-              router.push(`/stores/${item._id}`);
+              router.push(`/stores/${item._id}/edit`);
             }}
           >
             <Ionicons name="pencil" size={16} color="#3B82F6" />

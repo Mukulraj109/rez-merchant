@@ -227,6 +227,32 @@ export default function DashboardLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="wallet"
+        options={{
+          title: 'Wallet',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'wallet' : 'wallet-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="coins"
+        options={{
+          title: 'Coins',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'sparkles' : 'sparkles-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
