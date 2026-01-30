@@ -1,10 +1,11 @@
 /**
- * Audit Log List Screen
+ * Audit Log List Screen - Premium Redesign
  * Displays paginated list of audit logs with filtering, search, and stats
+ * Uses premium components matching dashboard design
  * Permissions required: logs:view
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,25 +15,36 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
-  Modal,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
+import { router, useLocalSearchParams } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+
+import { Colors, Spacing, Shadows, BorderRadius, Typography } from '@/constants/DesignTokens';
+import { Heading2, Heading3, BodyText, Caption } from '@/components/ui/DesignSystemComponents';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasPermission } from '@/utils/permissions';
-import { useAuditLogs, useAuditStatistics, useExportAuditLogs, useFormatAuditLog } from '@/hooks/queries/useAudit';
-import { AuditLog, AuditLogFilters, AuditSeverity, AuditAction, AuditResourceType } from '@/types/audit';
+import {
+  useInfiniteAuditLogs,
+  useAuditStatistics,
+  useExportAuditLogs,
+  useFormatAuditLog,
+} from '@/hooks/queries/useAudit';
+import { AuditLog, AuditLogFilters, AuditSeverity } from '@/types/audit';
+import { AuditLogCard } from '@/components/audit/AuditLogCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+type QuickFilter = 'all' | 'today' | 'week' | 'critical';
 
 export default function AuditLogListScreen() {
   const { user } = useAuth();
   const formatLog = useFormatAuditLog();
+  const searchParams = useLocalSearchParams<{ severity?: string }>();
 
   // Permission check
   const canView = user?.role ? hasPermission(user.role as any, 'logs:view') : false;
@@ -40,13 +52,43 @@ export default function AuditLogListScreen() {
 
   // State
   const [search, setSearch] = useState('');
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all');
+
+  // Handle query params (e.g., from statistics page linking with ?severity=critical)
+  useEffect(() => {
+    if (searchParams.severity === 'critical') {
+      setQuickFilter('critical');
+    }
+  }, [searchParams.severity]);
   const [filters, setFilters] = useState<AuditLogFilters>({
     page: 1,
     limit: 20,
     sortBy: 'timestamp',
     sortOrder: 'desc',
   });
-  const [showStatsCards, setShowStatsCards] = useState(true);
+
+  // Build filters based on quick filter selection
+  const activeFilters = useMemo(() => {
+    const base: AuditLogFilters = { ...filters };
+
+    if (search.trim()) {
+      base.search = search.trim();
+    }
+
+    switch (quickFilter) {
+      case 'today':
+        base.dateRange = 'today';
+        break;
+      case 'week':
+        base.dateRange = 'last_7_days';
+        break;
+      case 'critical':
+        base.severity = ['critical', 'error'];
+        break;
+    }
+
+    return base;
+  }, [filters, search, quickFilter]);
 
   // Queries
   const {
@@ -56,7 +98,10 @@ export default function AuditLogListScreen() {
     error,
     refetch,
     isFetching,
-  } = useAuditLogs(filters, {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteAuditLogs(activeFilters, {
     enabled: canView,
   });
 
@@ -64,27 +109,50 @@ export default function AuditLogListScreen() {
     data: statsData,
     isLoading: statsLoading,
   } = useAuditStatistics(undefined, undefined, {
-    enabled: canView && showStatsCards,
+    enabled: canView,
   });
 
   const {
     refetch: exportLogs,
     isFetching: isExporting,
   } = useExportAuditLogs(
-    { format: 'csv', ...filters },
-    {
-      enabled: false,
-    }
+    { format: 'csv', ...activeFilters },
+    { enabled: false }
   );
+
+  // Flatten paginated data
+  const allLogs = useMemo(() => {
+    if (!logsData?.pages) return [];
+    return logsData.pages.flatMap(page => page.logs || []);
+  }, [logsData]);
+
+  // Stats calculation
+  const stats = useMemo(() => {
+    if (!statsData) return null;
+
+    const totalToday = statsData.activityTrend?.find(
+      (t: any) => new Date(t.date).toDateString() === new Date().toDateString()
+    )?.count || 0;
+
+    const criticalCount = (statsData.logsBySeverity?.critical || 0) + (statsData.logsBySeverity?.error || 0);
+    const uniqueUsers = statsData.logsByUser?.length || 0;
+    const mostActiveResource = statsData.topChangedResources?.[0];
+
+    return {
+      totalToday,
+      criticalCount,
+      uniqueUsers,
+      mostActiveResource: mostActiveResource?.resourceType || 'N/A',
+    };
+  }, [statsData]);
 
   // Handlers
   const handleSearch = useCallback((text: string) => {
     setSearch(text);
-    setFilters(prev => ({
-      ...prev,
-      search: text.trim() || undefined,
-      page: 1,
-    }));
+  }, []);
+
+  const handleQuickFilter = useCallback((filter: QuickFilter) => {
+    setQuickFilter(filter);
   }, []);
 
   const handleFilterPress = useCallback(() => {
@@ -112,8 +180,7 @@ export default function AuditLogListScreen() {
             try {
               const result = await exportLogs();
               if (result.data?.downloadUrl) {
-                Alert.alert('Success', 'Audit logs exported successfully. Download will begin shortly.');
-                // In a real app, trigger download here
+                Alert.alert('Success', 'Audit logs exported successfully.');
               }
             } catch (err: any) {
               Alert.alert('Export Failed', err.message || 'Failed to export audit logs');
@@ -124,284 +191,270 @@ export default function AuditLogListScreen() {
     );
   }, [canExport, exportLogs]);
 
-  const handleSortChange = useCallback((sortBy: string) => {
-    setFilters(prev => ({
-      ...prev,
-      sortBy: sortBy as any,
-      sortOrder: prev.sortBy === sortBy && prev.sortOrder === 'desc' ? 'asc' : 'desc',
-      page: 1,
-    }));
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleNavigate = useCallback((route: string) => {
+    router.push(route as any);
   }, []);
 
-  const handlePageChange = useCallback((direction: 'next' | 'prev') => {
-    setFilters(prev => ({
-      ...prev,
-      page: direction === 'next' ? (prev.page || 1) + 1 : Math.max((prev.page || 1) - 1, 1),
-    }));
-  }, []);
-
-  // Stats calculation
-  const stats = useMemo(() => {
-    if (!statsData) return null;
-
-    const totalToday = statsData.activityTrend?.find(
-      (t: any) => new Date(t.date).toDateString() === new Date().toDateString()
-    )?.count || 0;
-
-    const criticalCount = statsData.logsBySeverity?.critical || 0;
-    const uniqueUsers = statsData.logsByUser?.length || 0;
-    const mostActiveResource = statsData.topChangedResources?.[0];
-
-    return {
-      totalToday,
-      criticalCount,
-      uniqueUsers,
-      mostActiveResource: mostActiveResource?.resourceType || 'N/A',
-    };
-  }, [statsData]);
-
-  // Render functions
-  const renderStatsCards = () => {
-    if (!showStatsCards || statsLoading || !stats) return null;
-
-    return (
-      <View style={styles.statsContainer}>
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, styles.statCardBlue]}>
-            <Ionicons name="calendar-outline" size={24} color="#3b82f6" />
-            <ThemedText style={styles.statValue}>{stats.totalToday}</ThemedText>
-            <ThemedText style={styles.statLabel}>Logs Today</ThemedText>
-          </View>
-
-          <View style={[styles.statCard, styles.statCardRed]}>
-            <Ionicons name="alert-circle-outline" size={24} color="#ef4444" />
-            <ThemedText style={styles.statValue}>{stats.criticalCount}</ThemedText>
-            <ThemedText style={styles.statLabel}>Critical Events</ThemedText>
-          </View>
-        </View>
-
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, styles.statCardGreen]}>
-            <Ionicons name="people-outline" size={24} color="#10b981" />
-            <ThemedText style={styles.statValue}>{stats.uniqueUsers}</ThemedText>
-            <ThemedText style={styles.statLabel}>Unique Users</ThemedText>
-          </View>
-
-          <View style={[styles.statCard, styles.statCardPurple]}>
-            <Ionicons name="cube-outline" size={24} color="#8b5cf6" />
-            <ThemedText style={styles.statValue}>{stats.mostActiveResource}</ThemedText>
-            <ThemedText style={styles.statLabel}>Most Active</ThemedText>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderSearchBar = () => (
-    <View style={styles.searchContainer}>
-      <View style={styles.searchBar}>
-        <Ionicons name="search-outline" size={20} color="#999" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by user, action, resource..."
-          value={search}
-          onChangeText={handleSearch}
-          placeholderTextColor="#999"
-        />
-        {search.length > 0 && (
-          <TouchableOpacity onPress={() => handleSearch('')}>
-            <Ionicons name="close-circle" size={20} color="#999" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <TouchableOpacity style={styles.filterButton} onPress={handleFilterPress}>
-        <Ionicons name="filter-outline" size={20} color="#fff" />
-      </TouchableOpacity>
-
-      {canExport && (
-        <TouchableOpacity
-          style={styles.exportButton}
-          onPress={handleExport}
-          disabled={isExporting}
+  // Render header with stats
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      {/* Glassmorphic Header */}
+      <Animated.View entering={FadeInDown.springify()} style={styles.glassHeader}>
+        <LinearGradient
+          colors={['rgba(124, 58, 237, 0.95)', 'rgba(99, 102, 241, 0.9)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.glassHeaderGradient}
         >
-          {isExporting ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Ionicons name="download-outline" size={20} color="#fff" />
-          )}
-        </TouchableOpacity>
+          <View style={styles.glassHeaderOverlay}>
+            <View style={styles.headerMainContent}>
+              <View style={styles.headerTitleSection}>
+                <Ionicons name="shield-checkmark" size={28} color="#fff" />
+                <View>
+                  <Heading3 style={styles.headerTitle}>Audit Logs</Heading3>
+                  <Caption style={styles.headerSubtitle}>
+                    Track all system activities
+                  </Caption>
+                </View>
+              </View>
+
+              <View style={styles.headerActions}>
+                {canExport && (
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={handleExport}
+                    disabled={isExporting}
+                  >
+                    {isExporting ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Ionicons name="download-outline" size={22} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={styles.headerButton}
+                  onPress={handleFilterPress}
+                >
+                  <Ionicons name="options-outline" size={22} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+      </Animated.View>
+
+      {/* Stats Cards */}
+      {!statsLoading && stats && (
+        <Animated.View entering={FadeInDown.delay(100).springify()}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statsScroll}
+          >
+            <Animated.View entering={FadeInRight.delay(150).springify()}>
+              <LinearGradient
+                colors={['#6366F1', '#4F46E5']}
+                style={styles.statCard}
+              >
+                <View style={styles.statCardIcon}>
+                  <Ionicons name="today" size={18} color="#fff" />
+                </View>
+                <Caption style={styles.statCardLabel}>Today</Caption>
+                <Heading2 style={styles.statCardValue}>{stats.totalToday}</Heading2>
+              </LinearGradient>
+            </Animated.View>
+
+            <Animated.View entering={FadeInRight.delay(200).springify()}>
+              <LinearGradient
+                colors={['#EF4444', '#DC2626']}
+                style={styles.statCard}
+              >
+                <View style={styles.statCardIcon}>
+                  <Ionicons name="alert-circle" size={18} color="#fff" />
+                </View>
+                <Caption style={styles.statCardLabel}>Critical</Caption>
+                <Heading2 style={styles.statCardValue}>{stats.criticalCount}</Heading2>
+              </LinearGradient>
+            </Animated.View>
+
+            <Animated.View entering={FadeInRight.delay(250).springify()}>
+              <LinearGradient
+                colors={['#10B981', '#059669']}
+                style={styles.statCard}
+              >
+                <View style={styles.statCardIcon}>
+                  <Ionicons name="people" size={18} color="#fff" />
+                </View>
+                <Caption style={styles.statCardLabel}>Users</Caption>
+                <Heading2 style={styles.statCardValue}>{stats.uniqueUsers}</Heading2>
+              </LinearGradient>
+            </Animated.View>
+
+            <Animated.View entering={FadeInRight.delay(300).springify()}>
+              <View style={styles.statCardLight}>
+                <View style={[styles.statCardIconLight, { backgroundColor: '#F3E8FF' }]}>
+                  <Ionicons name="cube" size={18} color="#9333EA" />
+                </View>
+                <Caption style={styles.statCardLabelDark}>Most Active</Caption>
+                <BodyText style={styles.statCardValueDark} numberOfLines={1}>
+                  {stats.mostActiveResource}
+                </BodyText>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </Animated.View>
       )}
-    </View>
-  );
 
-  const renderSortBar = () => (
-    <View style={styles.sortBar}>
-      <TouchableOpacity
-        style={styles.sortButton}
-        onPress={() => handleSortChange('timestamp')}
-      >
-        <ThemedText style={styles.sortButtonText}>Date</ThemedText>
-        {filters.sortBy === 'timestamp' && (
-          <Ionicons
-            name={filters.sortOrder === 'desc' ? 'chevron-down' : 'chevron-up'}
-            size={16}
-            color={Colors.light.primary}
+      {/* Quick Navigation */}
+      <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.quickNavSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickNavScroll}
+        >
+          <TouchableOpacity
+            style={styles.quickNavButton}
+            onPress={() => handleNavigate('/audit/statistics')}
+          >
+            <LinearGradient
+              colors={['#00C06A', '#00A85A']}
+              style={styles.quickNavIconBg}
+            >
+              <Ionicons name="bar-chart" size={18} color="#fff" />
+            </LinearGradient>
+            <BodyText style={styles.quickNavText}>Statistics</BodyText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickNavButton}
+            onPress={() => handleNavigate('/audit/timeline')}
+          >
+            <LinearGradient
+              colors={['#6366F1', '#4F46E5']}
+              style={styles.quickNavIconBg}
+            >
+              <Ionicons name="time" size={18} color="#fff" />
+            </LinearGradient>
+            <BodyText style={styles.quickNavText}>Timeline</BodyText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickNavButton}
+            onPress={() => handleNavigate('/audit/compliance')}
+          >
+            <LinearGradient
+              colors={['#F59E0B', '#D97706']}
+              style={styles.quickNavIconBg}
+            >
+              <Ionicons name="checkmark-done" size={18} color="#fff" />
+            </LinearGradient>
+            <BodyText style={styles.quickNavText}>Compliance</BodyText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickNavButton}
+            onPress={() => handleNavigate('/audit/archives')}
+          >
+            <LinearGradient
+              colors={['#8B5CF6', '#7C3AED']}
+              style={styles.quickNavIconBg}
+            >
+              <Ionicons name="archive" size={18} color="#fff" />
+            </LinearGradient>
+            <BodyText style={styles.quickNavText}>Archives</BodyText>
+          </TouchableOpacity>
+        </ScrollView>
+      </Animated.View>
+
+      {/* Search Bar */}
+      <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.searchSection}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={20} color="#9CA3AF" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by user, action, resource..."
+            value={search}
+            onChangeText={handleSearch}
+            placeholderTextColor="#9CA3AF"
           />
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.sortButton}
-        onPress={() => handleSortChange('action')}
-      >
-        <ThemedText style={styles.sortButtonText}>Action</ThemedText>
-        {filters.sortBy === 'action' && (
-          <Ionicons
-            name={filters.sortOrder === 'desc' ? 'chevron-down' : 'chevron-up'}
-            size={16}
-            color={Colors.light.primary}
-          />
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.sortButton}
-        onPress={() => handleSortChange('severity')}
-      >
-        <ThemedText style={styles.sortButtonText}>Severity</ThemedText>
-        {filters.sortBy === 'severity' && (
-          <Ionicons
-            name={filters.sortOrder === 'desc' ? 'chevron-down' : 'chevron-up'}
-            size={16}
-            color={Colors.light.primary}
-          />
-        )}
-      </TouchableOpacity>
-    </View>
-  );
-
-  const getSeverityColor = (severity: AuditSeverity): string => {
-    const colors: Record<AuditSeverity, string> = {
-      info: '#3b82f6',
-      warning: '#f59e0b',
-      error: '#ef4444',
-      critical: '#991b1b',
-    };
-    return colors[severity] || '#3b82f6';
-  };
-
-  const getSeverityIcon = (severity: AuditSeverity): string => {
-    const icons: Record<AuditSeverity, string> = {
-      info: 'information-circle',
-      warning: 'warning',
-      error: 'close-circle',
-      critical: 'alert-circle',
-    };
-    return icons[severity] || 'information-circle';
-  };
-
-  const renderLogItem = ({ item }: { item: AuditLog }) => {
-    const formatted = formatLog(item);
-    const severityColor = getSeverityColor(item.severity);
-    const severityIcon = getSeverityIcon(item.severity);
-
-    return (
-      <TouchableOpacity
-        style={styles.logItem}
-        onPress={() => handleLogPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.severityIndicator, { backgroundColor: severityColor }]} />
-
-        <View style={styles.logContent}>
-          <View style={styles.logHeader}>
-            <View style={styles.logTitleRow}>
-              <Ionicons
-                name={severityIcon as any}
-                size={18}
-                color={severityColor}
-                style={styles.severityIconStyle}
-              />
-              <ThemedText style={styles.logAction}>{formatted.displayAction}</ThemedText>
-            </View>
-            <ThemedText style={styles.logTime}>{formatted.displayTime}</ThemedText>
-          </View>
-
-          <View style={styles.logDetails}>
-            <View style={styles.logDetailRow}>
-              <Ionicons name="cube-outline" size={14} color="#666" />
-              <ThemedText style={styles.logDetailText}>
-                {formatted.displayResource}
-                {item.resourceId && ` #${item.resourceId.substring(0, 8)}`}
-              </ThemedText>
-            </View>
-
-            {item.user && (
-              <View style={styles.logDetailRow}>
-                <Ionicons name="person-outline" size={14} color="#666" />
-                <ThemedText style={styles.logDetailText}>
-                  {item.user.name || item.user.email}
-                </ThemedText>
-              </View>
-            )}
-
-            {item.ipAddress && (
-              <View style={styles.logDetailRow}>
-                <Ionicons name="location-outline" size={14} color="#666" />
-                <ThemedText style={styles.logDetailText}>{item.ipAddress}</ThemedText>
-              </View>
-            )}
-          </View>
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => handleSearch('')}>
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
         </View>
+      </Animated.View>
 
-        <Ionicons name="chevron-forward" size={20} color="#ccc" />
-      </TouchableOpacity>
-    );
-  };
+      {/* Quick Filter Chips */}
+      <Animated.View entering={FadeInDown.delay(350).springify()} style={styles.filterChipsSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterChipsScroll}
+        >
+          {(['all', 'today', 'week', 'critical'] as QuickFilter[]).map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterChip,
+                quickFilter === filter && styles.filterChipActive,
+              ]}
+              onPress={() => handleQuickFilter(filter)}
+            >
+              <BodyText
+                style={[
+                  styles.filterChipText,
+                  quickFilter === filter && styles.filterChipTextActive,
+                ]}
+              >
+                {filter === 'all' ? 'All Logs' :
+                 filter === 'today' ? 'Today' :
+                 filter === 'week' ? 'This Week' : 'Critical'}
+              </BodyText>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </Animated.View>
+    </View>
+  );
+
+  const renderLogItem = ({ item, index }: { item: AuditLog; index: number }) => (
+    <Animated.View
+      entering={FadeInDown.delay(index * 50).springify()}
+      style={styles.logItemWrapper}
+    >
+      <AuditLogCard
+        log={item}
+        onPress={() => handleLogPress(item)}
+        compact={false}
+      />
+    </Animated.View>
+  );
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="document-text-outline" size={64} color="#ccc" />
-      <ThemedText style={styles.emptyText}>No audit logs found</ThemedText>
-      <ThemedText style={styles.emptySubtext}>
+      <View style={styles.emptyIconContainer}>
+        <Ionicons name="document-text-outline" size={48} color="#9CA3AF" />
+      </View>
+      <Heading3 style={styles.emptyTitle}>No Audit Logs Found</Heading3>
+      <BodyText style={styles.emptyText}>
         {search ? 'Try adjusting your search or filters' : 'No activity has been logged yet'}
-      </ThemedText>
+      </BodyText>
     </View>
   );
 
   const renderFooter = () => {
-    if (!logsData?.pagination) return null;
-
-    const { page, totalPages, hasNext, hasPrev } = logsData.pagination;
-
+    if (!isFetchingNextPage) return null;
     return (
-      <View style={styles.paginationContainer}>
-        <TouchableOpacity
-          style={[styles.paginationButton, !hasPrev && styles.paginationButtonDisabled]}
-          onPress={() => handlePageChange('prev')}
-          disabled={!hasPrev || isFetching}
-        >
-          <Ionicons name="chevron-back" size={20} color={!hasPrev ? '#ccc' : '#fff'} />
-          <ThemedText style={[styles.paginationButtonText, !hasPrev && styles.paginationButtonTextDisabled]}>
-            Previous
-          </ThemedText>
-        </TouchableOpacity>
-
-        <ThemedText style={styles.paginationText}>
-          Page {page} of {totalPages}
-        </ThemedText>
-
-        <TouchableOpacity
-          style={[styles.paginationButton, !hasNext && styles.paginationButtonDisabled]}
-          onPress={() => handlePageChange('next')}
-          disabled={!hasNext || isFetching}
-        >
-          <ThemedText style={[styles.paginationButtonText, !hasNext && styles.paginationButtonTextDisabled]}>
-            Next
-          </ThemedText>
-          <Ionicons name="chevron-forward" size={20} color={!hasNext ? '#ccc' : '#fff'} />
-        </TouchableOpacity>
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={Colors.primary[500]} />
       </View>
     );
   };
@@ -411,10 +464,13 @@ export default function AuditLogListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.permissionDenied}>
-          <Ionicons name="lock-closed-outline" size={64} color="#ccc" />
-          <ThemedText style={styles.permissionDeniedText}>
+          <View style={styles.permissionIconContainer}>
+            <Ionicons name="lock-closed" size={48} color="#9CA3AF" />
+          </View>
+          <Heading3 style={styles.permissionTitle}>Access Restricted</Heading3>
+          <BodyText style={styles.permissionText}>
             You don't have permission to view audit logs
-          </ThemedText>
+          </BodyText>
         </View>
       </SafeAreaView>
     );
@@ -425,13 +481,15 @@ export default function AuditLogListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#ef4444" />
-          <ThemedText style={styles.errorText}>Failed to load audit logs</ThemedText>
-          <ThemedText style={styles.errorSubtext}>
+          <View style={styles.errorIconContainer}>
+            <Ionicons name="alert-circle" size={48} color="#EF4444" />
+          </View>
+          <Heading3 style={styles.errorTitle}>Failed to Load</Heading3>
+          <BodyText style={styles.errorText}>
             {error?.message || 'An unexpected error occurred'}
-          </ThemedText>
+          </BodyText>
           <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-            <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
+            <BodyText style={styles.retryButtonText}>Try Again</BodyText>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -439,223 +497,288 @@ export default function AuditLogListScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.content}>
-        {renderSearchBar()}
-        {renderStatsCards()}
-        {renderSortBar()}
-
-        <FlatList
-          data={logsData?.logs || []}
-          renderItem={renderLogItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={isFetching && !isLoading}
-              onRefresh={refetch}
-              tintColor={Colors.light.primary}
-            />
-          }
-          ListEmptyComponent={isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.light.primary} />
-              <ThemedText style={styles.loadingText}>Loading audit logs...</ThemedText>
-            </View>
-          ) : renderEmpty()}
-          ListFooterComponent={renderFooter()}
-        />
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[Colors.primary[100], Colors.primary[50], '#F8F9FE']}
+        style={styles.backgroundGradient}
+      />
+      <FlatList
+        data={allLogs}
+        renderItem={renderLogItem}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary[500]} />
+            <BodyText style={styles.loadingText}>Loading audit logs...</BodyText>
+          </View>
+        ) : renderEmpty()}
+        ListFooterComponent={renderFooter}
+        contentContainerStyle={styles.listContent}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !isLoading && !isFetchingNextPage}
+            onRefresh={refetch}
+            tintColor={Colors.primary[500]}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FE',
   },
-  content: {
-    flex: 1,
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 300,
   },
-  searchContainer: {
+  listContent: {
+    paddingBottom: 100,
+  },
+  headerContainer: {
+    marginBottom: Spacing.md,
+  },
+
+  // Glassmorphic Header
+  glassHeader: {
+    margin: Spacing.base,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius['2xl'],
+    overflow: 'hidden',
+    ...Shadows.lg,
+  },
+  glassHeaderGradient: {
+    padding: 0,
+  },
+  glassHeaderOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    padding: Spacing.lg,
+  },
+  headerMainContent: {
     flexDirection: 'row',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  searchBar: {
-    flex: 1,
+  headerTitleSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    gap: 8,
+    gap: Spacing.md,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 14,
-    color: '#000',
+  headerTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
   },
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: Colors.light.primary,
-    alignItems: 'center',
+  headerSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 13,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
-  },
-  exportButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#10b981',
     alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  statsContainer: {
-    padding: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-    gap: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
+
+  // Stats Cards
+  statsScroll: {
+    paddingHorizontal: Spacing.base,
     gap: 12,
   },
   statCard: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    gap: 4,
-  },
-  statCardBlue: {
-    backgroundColor: '#eff6ff',
-  },
-  statCardRed: {
-    backgroundColor: '#fef2f2',
-  },
-  statCardGreen: {
-    backgroundColor: '#f0fdf4',
-  },
-  statCardPurple: {
-    backgroundColor: '#faf5ff',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'center',
-  },
-  sortBar: {
-    flexDirection: 'row',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-    gap: 12,
-  },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  sortButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
-  },
-  listContent: {
-    padding: 12,
-    gap: 8,
-  },
-  logItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  severityIndicator: {
-    width: 4,
-    height: '100%',
-    borderRadius: 2,
-    position: 'absolute',
-    left: 0,
-  },
-  logContent: {
-    flex: 1,
-    marginLeft: 8,
-    gap: 8,
-  },
-  logHeader: {
-    flexDirection: 'row',
+    width: 130,
+    borderRadius: 16,
+    padding: 14,
+    minHeight: 100,
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    ...Shadows.md,
   },
-  logTitleRow: {
-    flexDirection: 'row',
+  statCardLight: {
+    width: 130,
+    borderRadius: 16,
+    padding: 14,
+    minHeight: 100,
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    ...Shadows.sm,
+  },
+  statCardIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
-    gap: 6,
-    flex: 1,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
-  severityIconStyle: {
-    marginTop: 2,
+  statCardIconLight: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
-  logAction: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#000',
-    flex: 1,
-  },
-  logTime: {
+  statCardLabel: {
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 12,
-    color: '#999',
+    fontWeight: '500',
+    marginBottom: 2,
   },
-  logDetails: {
-    gap: 4,
+  statCardLabelDark: {
+    color: Colors.text.secondary,
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 2,
   },
-  logDetailRow: {
+  statCardValue: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  statCardValueDark: {
+    color: Colors.text.primary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  // Quick Navigation
+  quickNavSection: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  quickNavScroll: {
+    paddingHorizontal: Spacing.base,
+    gap: 12,
+  },
+  quickNavButton: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickNavIconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  quickNavText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+
+  // Search
+  searchSection: {
+    paddingHorizontal: Spacing.base,
+    marginTop: Spacing.md,
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 50,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    ...Shadows.sm,
   },
-  logDetailText: {
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text.primary,
+  },
+
+  // Filter Chips
+  filterChipsSection: {
+    marginTop: Spacing.md,
+  },
+  filterChipsScroll: {
+    paddingHorizontal: Spacing.base,
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    ...Shadows.sm,
+  },
+  filterChipActive: {
+    backgroundColor: Colors.primary[500],
+    borderColor: Colors.primary[500],
+  },
+  filterChipText: {
     fontSize: 13,
-    color: '#666',
+    fontWeight: '600',
+    color: Colors.text.secondary,
   },
+  filterChipTextActive: {
+    color: '#fff',
+  },
+
+  // Log Items
+  logItemWrapper: {
+    paddingHorizontal: Spacing.base,
+    marginTop: Spacing.sm,
+  },
+
+  // Empty State
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    gap: 12,
+    paddingHorizontal: Spacing.xl,
   },
-  emptyText: {
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.primary,
+    marginBottom: 8,
   },
-  emptySubtext: {
+  emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.secondary,
     textAlign: 'center',
   },
+
+  // Loading
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -664,80 +787,78 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.secondary,
   },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+
+  // Error State
   errorContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
-    gap: 12,
+    padding: Spacing.xl,
   },
-  errorText: {
+  errorIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  errorTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ef4444',
+    color: '#EF4444',
+    marginBottom: 8,
   },
-  errorSubtext: {
+  errorText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.secondary,
     textAlign: 'center',
+    marginBottom: Spacing.lg,
   },
   retryButton: {
-    marginTop: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 8,
+    backgroundColor: Colors.primary[500],
+    borderRadius: 12,
   },
   retryButtonText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 15,
   },
+
+  // Permission Denied
   permissionDenied: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
-    gap: 12,
+    padding: Spacing.xl,
   },
-  permissionDeniedText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  permissionIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginTop: 8,
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
   },
-  paginationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 6,
-  },
-  paginationButtonDisabled: {
-    backgroundColor: '#e5e5e5',
-  },
-  paginationButtonText: {
-    color: '#fff',
+  permissionTitle: {
+    fontSize: 18,
     fontWeight: '600',
-    fontSize: 14,
+    color: Colors.text.primary,
+    marginBottom: 8,
   },
-  paginationButtonTextDisabled: {
-    color: '#ccc',
-  },
-  paginationText: {
+  permissionText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
+    color: Colors.text.secondary,
+    textAlign: 'center',
   },
 });

@@ -154,13 +154,14 @@ class NotificationsService {
     try {
       console.log(`📬 Fetching notification ${notificationId}...`);
 
-      const response = await apiClient.get<Notification>(
+      const response = await apiClient.get<{ notification: Notification }>(
         `/api/merchant/notifications/${notificationId}`
       );
 
       if (response.success && response.data) {
         console.log('✅ Notification fetched:', notificationId);
-        return response.data;
+        // Backend returns { notification: ... }, extract the notification
+        return response.data.notification || response.data as unknown as Notification;
       } else {
         throw new Error(response.message || 'Failed to fetch notification');
       }

@@ -6,7 +6,13 @@ export interface DateRange {
   endDate: string;   // ISO 8601 format (YYYY-MM-DD)
 }
 
-export interface DateRangeFilter extends DateRange {
+// DateRangeFilter can be either:
+// 1. A preset only: { preset: '30d' }
+// 2. Custom dates: { startDate: '...', endDate: '...' }
+// 3. Both: { preset: 'custom', startDate: '...', endDate: '...' }
+export interface DateRangeFilter {
+  startDate?: string; // ISO 8601 format (YYYY-MM-DD) - optional when using preset
+  endDate?: string;   // ISO 8601 format (YYYY-MM-DD) - optional when using preset
   preset?: DateRangePreset;
 }
 
@@ -38,6 +44,7 @@ export interface SalesForecastResponse {
     seasonalityDetected: boolean;
     volatility: 'low' | 'medium' | 'high';
     dataPoints: number;
+    isSampleData?: boolean; // Flag indicating demo data when no historical orders
   };
 }
 
@@ -105,7 +112,7 @@ export interface ChurnPrediction {
   lastPurchaseDate: string;
   daysSinceLastPurchase: number;
   churnProbability: number;  // 0-100
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
   reasons: string[];         // Factors contributing to churn risk
   recommendedActions: string[]; // Suggested retention strategies
 }
@@ -453,6 +460,7 @@ export interface RealTimeMetrics {
   lastUpdated: string;
   onlineCustomers: number;
   ordersInProgress: number;
+  ordersCompletedToday?: number;
   avgResponseTime: number;
   systemHealth: 'healthy' | 'degraded' | 'offline';
   recentTransactions: Array<{
@@ -461,6 +469,122 @@ export interface RealTimeMetrics {
     timestamp: string;
     status: string;
   }>;
+}
+
+// Daily Performance Data
+export interface DailyPerformanceData {
+  date: string;
+  dayOfWeek: string;
+  revenue: number;
+  orders: number;
+  customers: number;
+}
+
+export interface SalesByDayResponse {
+  timeRange: DateRange;
+  data: DailyPerformanceData[];
+  summary: {
+    totalRevenue: number;
+    totalOrders: number;
+    totalCustomers: number;
+    avgDailyRevenue: number;
+    avgDailyOrders: number;
+    bestDay: string;
+    worstDay: string;
+  };
+}
+
+// Peak Hours Data
+export interface HourlyPerformanceData {
+  hour: number;
+  hourLabel: string;
+  revenue: number;
+  orders: number;
+  avgOrderValue: number;
+}
+
+export interface SalesByTimeResponse {
+  timeRange: DateRange;
+  data: HourlyPerformanceData[];
+  peakHours: {
+    start: number;
+    end: number;
+    label: string;
+    ordersPercentage: number;
+    revenuePercentage: number;
+  }[];
+  summary: {
+    busiestHour: number;
+    quietestHour: number;
+    avgOrdersPerHour: number;
+    avgRevenuePerHour: number;
+  };
+}
+
+// Top Selling Products
+export interface TopSellingProduct {
+  productId: string;
+  productName: string;
+  sku: string;
+  imageUrl?: string;
+  quantitySold: number;
+  revenue: number;
+  orderCount: number;
+  trend: number;
+  rank: number;
+}
+
+export interface TopSellingProductsResponse {
+  timeRange: DateRange;
+  products: TopSellingProduct[];
+  summary: {
+    totalProductsSold: number;
+    totalRevenue: number;
+    topCategoryName: string;
+  };
+}
+
+// Customer Segments for Dashboard
+export interface CustomerSegmentData {
+  segment: string;
+  count: number;
+  percentage: number;
+  revenue: number;
+  avgOrderValue: number;
+  color: string;
+}
+
+export interface CustomerSegmentsResponse {
+  timeRange: DateRange;
+  segments: CustomerSegmentData[];
+  totalCustomers: number;
+  summary: {
+    highValuePercentage: number;
+    newCustomerPercentage: number;
+    atRiskPercentage: number;
+  };
+}
+
+// Top Offers
+export interface TopOffer {
+  offerId: string;
+  offerName: string;
+  discountType: 'percentage' | 'fixed' | 'bogo';
+  discountValue: number;
+  redemptions: number;
+  revenue: number;
+  avgOrderValue: number;
+  conversionRate: number;
+}
+
+export interface TopOffersResponse {
+  timeRange: DateRange;
+  offers: TopOffer[];
+  summary: {
+    totalRedemptions: number;
+    totalRevenue: number;
+    avgConversionRate: number;
+  };
 }
 
 // Helper type for common analytics response

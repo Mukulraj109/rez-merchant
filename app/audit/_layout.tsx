@@ -30,7 +30,7 @@ export default function AuditLayout() {
       <Stack.Screen
         name="[logId]"
         options={{
-          title: 'Audit Log Details',
+          title: 'Log Details',
           headerShown: true,
         }}
       />
@@ -39,6 +39,34 @@ export default function AuditLayout() {
         options={{
           title: 'Filter Audit Logs',
           presentation: 'modal',
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="statistics"
+        options={{
+          title: 'Audit Statistics',
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="timeline"
+        options={{
+          title: 'Activity Timeline',
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="compliance"
+        options={{
+          title: 'Compliance Report',
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="archives"
+        options={{
+          title: 'Archived Logs',
           headerShown: true,
         }}
       />

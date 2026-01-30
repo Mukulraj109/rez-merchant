@@ -153,19 +153,19 @@ function TeamLayoutContent() {
 
         {/* Team Member Detail Screen */}
         <Stack.Screen
-          name="[memberId]"
+          name="[userId]"
           options={{
             title: 'Team Member',
             headerBackTitle: 'Team',
           }}
         />
 
-        {/* Edit Member Screen */}
+        {/* Roles Overview Screen */}
         <Stack.Screen
-          name="edit/[memberId]"
+          name="roles"
           options={{
-            title: 'Edit Team Member',
-            presentation: 'modal',
+            title: 'Team Roles',
+            headerBackTitle: 'Team',
           }}
         />
 

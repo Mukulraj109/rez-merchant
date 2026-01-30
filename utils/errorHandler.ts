@@ -40,15 +40,16 @@ export const parseError = (error: unknown): AppError => {
 
   if (error instanceof Error) {
     let errorType = ErrorType.UNKNOWN;
+    const message = error.message || 'An unexpected error occurred';
 
     // Detect error type from error message
-    if (error.message.includes('Network') || error.message.includes('fetch')) {
+    if (message.includes('Network') || message.includes('fetch')) {
       errorType = ErrorType.NETWORK;
-    } else if (error.message.includes('timeout')) {
+    } else if (message.includes('timeout')) {
       errorType = ErrorType.TIMEOUT;
     }
 
-    return createAppError(error.message, errorType, error);
+    return createAppError(message, errorType, error);
   }
 
   if (typeof error === 'string') {

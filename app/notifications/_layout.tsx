@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -23,12 +23,20 @@ export default function NotificationsLayout() {
           title: 'Notifications',
           headerLargeTitle: false,
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push('/notifications/settings')}
-              style={{ marginRight: 4 }}
-            >
-              <Ionicons name="settings-outline" size={24} color="#111827" />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => router.push('/notifications/preferences')}
+                style={{ padding: 4 }}
+              >
+                <Ionicons name="options-outline" size={22} color="#111827" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/notifications/settings')}
+                style={{ padding: 4, marginRight: 4 }}
+              >
+                <Ionicons name="settings-outline" size={22} color="#111827" />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />

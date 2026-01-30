@@ -7,12 +7,16 @@ import {
   Modal,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useDashboardRealTime } from '@/hooks/useRealTimeUpdates';
+import { useNotifications, useMarkAsRead, useDeleteNotification } from '@/hooks/queries/useNotifications';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { Notification, NotificationStatus } from '@/types/notifications';
 
 const { width, height } = Dimensions.get('window');
 
@@ -39,10 +43,28 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   onClose,
 }) => {
   const realTime = useDashboardRealTime();
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [unreadCount, setUnreadCount] = useState(0);
   const slideAnim = new Animated.Value(width);
+
+  // Use real notification data from API
+  const { data: apiNotifications, isLoading, refetch } = useNotifications({ limit: 50 });
+  const { unreadCount } = useNotificationContext();
+  const markAsReadMutation = useMarkAsRead();
+  const deleteNotificationMutation = useDeleteNotification();
+
+  // Convert API notifications to local format
+  const notifications: NotificationItem[] = (apiNotifications || []).map((n: Notification) => ({
+    id: n.id,
+    type: n.priority === 'urgent' ? 'error' : n.priority === 'high' ? 'warning' : n.type === 'order' ? 'info' : 'info',
+    title: n.title,
+    message: n.message,
+    timestamp: new Date(n.createdAt),
+    isRead: n.status === NotificationStatus.READ || n.status === 'read',
+    actionType: n.type as any,
+    actionId: n.relatedEntityId,
+    priority: n.priority || 'medium',
+    category: (n.type === 'order' ? 'orders' : n.type === 'product' ? 'products' : n.type === 'cashback' ? 'cashback' : 'system') as any,
+  }));
 
   const categories = [
     { key: 'all', label: 'All', icon: 'notifications' },
@@ -53,72 +75,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     { key: 'security', label: 'Security', icon: 'shield' },
   ];
 
-  // Mock notifications - in real app, these would come from backend
-  const mockNotifications: NotificationItem[] = [
-    {
-      id: '1',
-      type: 'warning',
-      title: 'Low Stock Alert',
-      message: '5 products are running low on stock and need restocking',
-      timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-      isRead: false,
-      actionType: 'product',
-      priority: 'high',
-      category: 'products',
-    },
-    {
-      id: '2',
-      type: 'info',
-      title: 'New Order Received',
-      message: 'Order #12345 from John Doe for ₹150.00',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-      isRead: false,
-      actionType: 'order',
-      actionId: '12345',
-      priority: 'medium',
-      category: 'orders',
-    },
-    {
-      id: '3',
-      type: 'error',
-      title: 'High-Risk Cashback',
-      message: 'Cashback request #67890 flagged for manual review',
-      timestamp: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
-      isRead: true,
-      actionType: 'cashback',
-      actionId: '67890',
-      priority: 'urgent',
-      category: 'cashback',
-    },
-    {
-      id: '4',
-      type: 'success',
-      title: 'Weekly Report Generated',
-      message: 'Your weekly performance report is ready for download',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      isRead: true,
-      priority: 'low',
-      category: 'system',
-    },
-    {
-      id: '5',
-      type: 'warning',
-      title: 'Payment Failed',
-      message: 'Order #12344 payment failed - customer needs to retry',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-      isRead: false,
-      actionType: 'order',
-      actionId: '12344',
-      priority: 'high',
-      category: 'orders',
-    },
-  ];
-
-  useEffect(() => {
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
-  }, []);
-
   useEffect(() => {
     if (isVisible) {
       Animated.timing(slideAnim, {
@@ -126,6 +82,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         duration: 300,
         useNativeDriver: true,
       }).start();
+      // Refetch notifications when panel opens
+      refetch();
     } else {
       Animated.timing(slideAnim, {
         toValue: width,
@@ -135,22 +93,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     }
   }, [isVisible, slideAnim]);
 
-  // Handle real-time notifications
+  // Handle real-time notifications - refetch when new notifications arrive
   useEffect(() => {
     if (realTime.notifications.length > 0) {
-      const newNotifications = realTime.notifications.map((notification, index) => ({
-        id: `realtime_${Date.now()}_${index}`,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        timestamp: notification.timestamp,
-        isRead: false,
-        priority: 'medium' as const,
-        category: 'system' as const,
-      }));
-
-      setNotifications(prev => [...newNotifications, ...prev]);
-      setUnreadCount(prev => prev + newNotifications.length);
+      refetch();
     }
   }, [realTime.notifications]);
 
@@ -203,23 +149,18 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   );
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    markAsReadMutation.mutate(notificationId);
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    setUnreadCount(0);
+    // Mark all visible notifications as read
+    notifications.filter(n => !n.isRead).forEach(n => {
+      markAsReadMutation.mutate(n.id);
+    });
   };
 
   const deleteNotification = (notificationId: string) => {
-    const notification = notifications.find(n => n.id === notificationId);
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    if (notification && !notification.isRead) {
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
+    deleteNotificationMutation.mutate(notificationId);
   };
 
   const handleNotificationPress = (notification: NotificationItem) => {
@@ -394,7 +335,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
             {/* Notifications List */}
             <ScrollView style={styles.notificationsList}>
-              {filteredNotifications.length === 0 ? (
+              {isLoading ? (
+                <View style={styles.emptyState}>
+                  <ActivityIndicator size="large" color={Colors.light.primary} />
+                  <ThemedText style={styles.emptyStateMessage}>Loading notifications...</ThemedText>
+                </View>
+              ) : filteredNotifications.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Ionicons name="notifications-off" size={48} color={Colors.light.textMuted} />
                   <ThemedText style={styles.emptyStateTitle}>No notifications</ThemedText>

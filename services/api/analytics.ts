@@ -17,9 +17,31 @@ import {
   AnalyticsResponse,
   DateRangePreset,
   DateRange,
+  SalesByDayResponse,
+  SalesByTimeResponse,
+  TopSellingProductsResponse,
+  CustomerSegmentsResponse,
+  TopOffersResponse,
 } from '../../types/analytics';
 
 class AnalyticsService {
+  // Store the active store ID for API calls
+  private activeStoreId: string | null = null;
+
+  /**
+   * Set the active store ID for filtering analytics
+   */
+  setActiveStore(storeId: string | null) {
+    this.activeStoreId = storeId;
+  }
+
+  /**
+   * Get the active store ID
+   */
+  getActiveStore(): string | null {
+    return this.activeStoreId;
+  }
+
   /**
    * Get analytics overview for dashboard
    * @param dateRange Date range filter
@@ -28,7 +50,8 @@ class AnalyticsService {
   async getAnalyticsOverview(dateRange?: DateRangeFilter): Promise<AnalyticsOverview> {
     try {
       const params = this.buildQueryParams({ timeRange: dateRange });
-      const response = await fetch(getApiUrl(`merchant/analytics/overview?${params}`), {
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/overview?${params}${storeParam}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -65,6 +88,8 @@ class AnalyticsService {
   ): Promise<SalesForecastResponse> {
     try {
       const params = new URLSearchParams();
+      // Send both parameter names for compatibility
+      params.append('days', forecastDays.toString());
       params.append('forecastDays', forecastDays.toString());
 
       if (dateRange) {
@@ -73,7 +98,11 @@ class AnalyticsService {
         if (dateRange.preset) params.append('preset', dateRange.preset);
       }
 
-      const response = await fetch(getApiUrl(`merchant/analytics/sales/forecast?${params}`), {
+      if (this.activeStoreId) {
+        params.append('storeId', this.activeStoreId);
+      }
+
+      const response = await fetch(getApiUrl(`merchant/analytics/forecast/sales?${params}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -88,6 +117,7 @@ class AnalyticsService {
       const data = await response.json();
 
       if (data.success && data.data) {
+        // Backend now returns properly formatted SalesForecastResponse
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get sales forecast');
@@ -108,7 +138,8 @@ class AnalyticsService {
   ): Promise<InventoryStockoutResponse> {
     try {
       const params = this.buildQueryParams({ timeRange: dateRange });
-      const response = await fetch(getApiUrl(`merchant/analytics/inventory/stockout-prediction?${params}`), {
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/inventory/stockout-prediction?${params}${storeParam}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +174,8 @@ class AnalyticsService {
   ): Promise<CustomerInsights> {
     try {
       const params = this.buildQueryParams({ timeRange: dateRange });
-      const response = await fetch(getApiUrl(`merchant/analytics/customers/insights?${params}`), {
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/customers/insights?${params}${storeParam}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -188,6 +220,10 @@ class AnalyticsService {
         if (dateRange.preset) params.append('preset', dateRange.preset);
       }
 
+      if (this.activeStoreId) {
+        params.append('storeId', this.activeStoreId);
+      }
+
       const response = await fetch(getApiUrl(`merchant/analytics/trends/seasonal?${params}`), {
         method: 'GET',
         headers: {
@@ -223,7 +259,8 @@ class AnalyticsService {
   ): Promise<ProductPerformanceResponse> {
     try {
       const params = this.buildQueryParams(options);
-      const response = await fetch(getApiUrl(`merchant/analytics/products/performance?${params}`), {
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/products/performance?${params}${storeParam}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +275,131 @@ class AnalyticsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        return data.data;
+        // Transform flat array from backend into ProductPerformanceResponse structure
+        const products = Array.isArray(data.data) ? data.data : [];
+
+        // Debug: Log the raw data from backend
+        console.log('[Analytics] Raw product data from backend:', products.slice(0, 2));
+
+        // Transform backend products to ProductPerformance type
+        // Backend now returns: productId, productName, totalQuantity, totalRevenue, orderCount, averagePrice,
+        // sku, category, currentStock, avgRating, reviewCount, imageUrl
+        const transformedProducts = products.map((p: any, index: number) => {
+          const revenue = p.totalRevenue || p.revenue || 0;
+          const quantity = p.totalQuantity || p.quantity || 0;
+          const growthPercent = p.growthPercent || p.trend || 0;
+
+          // Calculate estimated profit (20% margin estimate if not provided)
+          const estimatedMargin = p.profitMargin || 20;
+          const estimatedNetProfit = revenue * (estimatedMargin / 100);
+
+          // Determine health based on multiple factors
+          const hasStock = p.currentStock === null || p.currentStock > 0;
+          const hasGoodRating = (p.avgRating || 0) >= 3.5;
+          const hasGrowth = growthPercent >= 0;
+
+          let health: 'excellent' | 'good' | 'fair' | 'poor' = 'fair';
+          if (hasStock && hasGoodRating && growthPercent > 10) health = 'excellent';
+          else if (hasStock && hasGrowth) health = 'good';
+          else if (!hasStock || growthPercent < -10) health = 'poor';
+
+          return {
+            productId: p.productId || p._id || `product-${index}`,
+            productName: p.productName || p.name || 'Unknown Product',
+            sku: p.sku || 'N/A',
+            category: p.category || 'General',
+            imageUrl: p.imageUrl || null,
+            sales: {
+              quantity: quantity,
+              revenue: revenue,
+              trend: growthPercent,
+              avgUnitPrice: p.averagePrice || (quantity > 0 ? revenue / quantity : 0),
+            },
+            inventory: {
+              currentStock: p.currentStock,
+              isAvailable: p.isAvailable ?? true,
+              stockTurnovers: p.stockTurnovers || (quantity > 0 ? 1 : 0),
+              avgDaysToSell: p.avgDaysToSell || 0,
+              outOfStockDays: p.outOfStockDays || 0,
+            },
+            customer: {
+              uniqueBuyers: p.uniqueBuyers || p.orderCount || 0,
+              repeatBuyerRate: p.repeatBuyerRate || 0,
+              avgRating: p.avgRating || 0,
+              reviewCount: p.reviewCount || 0,
+            },
+            profitability: {
+              grossProfit: p.grossProfit || revenue * 0.3,
+              netProfit: p.netProfit || estimatedNetProfit,
+              marginPercentage: estimatedMargin,
+              roas: p.roas || 0,
+            },
+            performance: {
+              rank: index + 1,
+              ranking: index < Math.ceil(products.length * 0.3) ? 'top_tier' :
+                       index < Math.ceil(products.length * 0.7) ? 'mid_tier' : 'low_tier',
+              health: health,
+            },
+          };
+        });
+
+        // Categorize products by performance
+        const totalProducts = transformedProducts.length;
+        const topCount = Math.ceil(totalProducts * 0.3);
+        const middleCount = Math.ceil(totalProducts * 0.4);
+
+        const topPerformers = transformedProducts.slice(0, topCount);
+        const middlePerformers = transformedProducts.slice(topCount, topCount + middleCount);
+        const underperformers = transformedProducts.slice(topCount + middleCount);
+
+        // Group by category
+        const categoryMap = new Map<string, any[]>();
+        transformedProducts.forEach((p: any) => {
+          const cat = p.category || 'General';
+          if (!categoryMap.has(cat)) categoryMap.set(cat, []);
+          categoryMap.get(cat)!.push(p);
+        });
+
+        const byCategory = Array.from(categoryMap.entries())
+          .map(([category, prods]) => ({
+            category,
+            productCount: prods.length,
+            totalSales: prods.reduce((sum: number, p: any) => sum + (p.sales?.quantity || 0), 0),
+            totalRevenue: prods.reduce((sum: number, p: any) => sum + (p.sales?.revenue || 0), 0),
+            topProduct: prods.sort((a: any, b: any) => (b.sales?.revenue || 0) - (a.sales?.revenue || 0))[0],
+          }))
+          .sort((a, b) => b.totalRevenue - a.totalRevenue); // Sort by revenue descending
+
+        // Calculate summary
+        const totalRevenue = transformedProducts.reduce((sum: number, p: any) => sum + (p.sales?.revenue || 0), 0);
+        const totalSalesQty = transformedProducts.reduce((sum: number, p: any) => sum + (p.sales?.quantity || 0), 0);
+        const avgMargin = transformedProducts.length > 0
+          ? transformedProducts.reduce((sum: number, p: any) => sum + (p.profitability?.marginPercentage || 0), 0) / transformedProducts.length
+          : 0;
+
+        return {
+          timeRange: {
+            startDate: this.getDateNDaysAgo(30),
+            endDate: this.getTodayDate(),
+          },
+          totalProducts,
+          analyzedProducts: totalProducts,
+          byPerformance: {
+            topPerformers,
+            middlePerformers,
+            underperformers,
+          },
+          byCategory,
+          summary: {
+            totalSalesQty,
+            totalRevenue,
+            avgProductRevenue: totalProducts > 0 ? totalRevenue / totalProducts : 0,
+            avgMargin,
+            topCategory: byCategory.length > 0
+              ? byCategory.sort((a, b) => b.totalRevenue - a.totalRevenue)[0].category
+              : 'N/A',
+          },
+        };
       } else {
         throw new Error(data.message || 'Failed to get product performance');
       }
@@ -258,7 +419,8 @@ class AnalyticsService {
   ): Promise<RevenueBreakdownResponse> {
     try {
       const params = this.buildQueryParams({ timeRange: dateRange });
-      const response = await fetch(getApiUrl(`merchant/analytics/revenue/breakdown?${params}`), {
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/revenue/breakdown?${params}${storeParam}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -300,6 +462,10 @@ class AnalyticsService {
       params.append('previousStart', previousDateRange.startDate);
       params.append('previousEnd', previousDateRange.endDate);
 
+      if (this.activeStoreId) {
+        params.append('storeId', this.activeStoreId);
+      }
+
       const response = await fetch(getApiUrl(`merchant/analytics/comparison?${params}`), {
         method: 'GET',
         headers: {
@@ -326,12 +492,316 @@ class AnalyticsService {
   }
 
   /**
+   * Get sales trends by day of week
+   * @param dateRange Date range filter
+   * @returns SalesByDayResponse with daily performance data
+   */
+  async getSalesByDay(
+    dateRange?: DateRangeFilter
+  ): Promise<SalesByDayResponse> {
+    try {
+      const params = this.buildQueryParams({ timeRange: dateRange });
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/sales/trends?${params}${storeParam}`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Transform backend data to frontend expected format
+        const rawData = Array.isArray(result.data) ? result.data : [];
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        const transformedData = rawData.map((item: any) => {
+          const date = new Date(item.date);
+          return {
+            date: item.date,
+            dayOfWeek: dayNames[date.getDay()] || 'Unknown',
+            revenue: item.revenue || 0,
+            orders: item.orders || 0,
+            customers: item.orders || 0, // Approximate customers by orders
+          };
+        });
+
+        // Calculate summary
+        const totalRevenue = transformedData.reduce((sum: number, d: any) => sum + d.revenue, 0);
+        const totalOrders = transformedData.reduce((sum: number, d: any) => sum + d.orders, 0);
+        const totalCustomers = transformedData.reduce((sum: number, d: any) => sum + d.customers, 0);
+
+        // Find best and worst days
+        const sortedByRevenue = [...transformedData].sort((a: any, b: any) => b.revenue - a.revenue);
+        const bestDay = sortedByRevenue[0]?.dayOfWeek || 'N/A';
+        const worstDay = sortedByRevenue[sortedByRevenue.length - 1]?.dayOfWeek || 'N/A';
+
+        return {
+          timeRange: { startDate: '', endDate: '' },
+          data: transformedData,
+          summary: {
+            totalRevenue,
+            totalOrders,
+            totalCustomers,
+            avgDailyRevenue: transformedData.length > 0 ? totalRevenue / transformedData.length : 0,
+            avgDailyOrders: transformedData.length > 0 ? totalOrders / transformedData.length : 0,
+            bestDay,
+            worstDay,
+          },
+        };
+      } else {
+        throw new Error(result.message || 'Failed to get sales by day');
+      }
+    } catch (error: any) {
+      console.error('Get sales by day error:', error);
+      throw new Error(error.message || 'Failed to get sales by day');
+    }
+  }
+
+  /**
+   * Get sales by time of day (hourly breakdown)
+   * @param dateRange Date range filter
+   * @returns SalesByTimeResponse with hourly performance data
+   */
+  async getSalesByTime(
+    dateRange?: DateRangeFilter
+  ): Promise<SalesByTimeResponse> {
+    try {
+      const params = this.buildQueryParams({ timeRange: dateRange });
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/sales/by-time?${params}${storeParam}`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Transform backend data to frontend expected format
+        const rawData = Array.isArray(result.data) ? result.data : [];
+
+        const formatHour = (hour: number): string => {
+          if (hour === 0) return '12 AM';
+          if (hour === 12) return '12 PM';
+          if (hour < 12) return `${hour} AM`;
+          return `${hour - 12} PM`;
+        };
+
+        const transformedData = rawData.map((item: any) => ({
+          hour: item.hour,
+          hourLabel: formatHour(item.hour),
+          revenue: item.revenue || 0,
+          orders: item.orders || 0,
+          avgOrderValue: item.orders > 0 ? item.revenue / item.orders : 0,
+        }));
+
+        // Calculate totals for peak hour detection
+        const totalOrders = transformedData.reduce((sum: number, d: any) => sum + d.orders, 0);
+        const totalRevenue = transformedData.reduce((sum: number, d: any) => sum + d.revenue, 0);
+
+        // Find peak hours (hours with > 15% of total orders)
+        const peakHours = [];
+        const sortedByOrders = [...transformedData].sort((a: any, b: any) => b.orders - a.orders);
+        const topHours = sortedByOrders.slice(0, 3);
+
+        if (topHours.length > 0) {
+          const peakStart = Math.min(...topHours.map((h: any) => h.hour));
+          const peakEnd = Math.max(...topHours.map((h: any) => h.hour));
+          const peakOrders = topHours.reduce((sum: number, h: any) => sum + h.orders, 0);
+          const peakRevenue = topHours.reduce((sum: number, h: any) => sum + h.revenue, 0);
+
+          peakHours.push({
+            start: peakStart,
+            end: peakEnd,
+            label: `${formatHour(peakStart)} - ${formatHour(peakEnd)}`,
+            ordersPercentage: totalOrders > 0 ? (peakOrders / totalOrders) * 100 : 0,
+            revenuePercentage: totalRevenue > 0 ? (peakRevenue / totalRevenue) * 100 : 0,
+          });
+        }
+
+        // Find busiest and quietest hours
+        const busiestHour = sortedByOrders[0]?.hour || 0;
+        const quietestHour = sortedByOrders[sortedByOrders.length - 1]?.hour || 0;
+
+        return {
+          timeRange: { startDate: '', endDate: '' },
+          data: transformedData,
+          peakHours,
+          summary: {
+            busiestHour,
+            quietestHour,
+            avgOrdersPerHour: transformedData.length > 0 ? totalOrders / transformedData.length : 0,
+            avgRevenuePerHour: transformedData.length > 0 ? totalRevenue / transformedData.length : 0,
+          },
+        };
+      } else {
+        throw new Error(result.message || 'Failed to get sales by time');
+      }
+    } catch (error: any) {
+      console.error('Get sales by time error:', error);
+      throw new Error(error.message || 'Failed to get sales by time');
+    }
+  }
+
+  /**
+   * Get top selling products
+   * @param dateRange Date range filter
+   * @param limit Number of products to return (default 10)
+   * @returns TopSellingProductsResponse with top products
+   */
+  async getTopSellingProducts(
+    dateRange?: DateRangeFilter,
+    limit: number = 10
+  ): Promise<TopSellingProductsResponse> {
+    try {
+      const params = this.buildQueryParams({ timeRange: dateRange, limit });
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/products/top-selling?${params}${storeParam}`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Transform backend data to frontend expected format
+        const rawData = Array.isArray(result.data) ? result.data : [];
+
+        const products = rawData.map((item: any, index: number) => ({
+          productId: item.productId || item._id || `product-${index}`,
+          productName: item.productName || item.name || 'Unknown Product',
+          sku: item.sku || '',
+          imageUrl: item.imageUrl || item.image,
+          quantitySold: item.totalQuantity || item.quantitySold || 0,
+          revenue: item.totalRevenue || item.revenue || 0,
+          orderCount: item.orderCount || 0,
+          trend: item.trend ?? 0, // Default to 0 if trend not provided
+          rank: index + 1,
+        }));
+
+        const totalProductsSold = products.reduce((sum: number, p: any) => sum + p.quantitySold, 0);
+        const totalRevenue = products.reduce((sum: number, p: any) => sum + p.revenue, 0);
+
+        return {
+          timeRange: { startDate: '', endDate: '' },
+          products,
+          summary: {
+            totalProductsSold,
+            totalRevenue,
+            topCategoryName: 'All Products',
+          },
+        };
+      } else {
+        throw new Error(result.message || 'Failed to get top selling products');
+      }
+    } catch (error: any) {
+      console.error('Get top selling products error:', error);
+      throw new Error(error.message || 'Failed to get top selling products');
+    }
+  }
+
+  /**
+   * Get customer segments breakdown
+   * @param dateRange Date range filter
+   * @returns CustomerSegmentsResponse with segment data
+   */
+  async getCustomerSegments(
+    dateRange?: DateRangeFilter
+  ): Promise<CustomerSegmentsResponse> {
+    try {
+      const params = this.buildQueryParams({ timeRange: dateRange });
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/customers/segments?${params}${storeParam}`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        return data.data;
+      } else {
+        throw new Error(data.message || 'Failed to get customer segments');
+      }
+    } catch (error: any) {
+      console.error('Get customer segments error:', error);
+      throw new Error(error.message || 'Failed to get customer segments');
+    }
+  }
+
+  /**
+   * Get top performing offers
+   * @param dateRange Date range filter
+   * @param limit Number of offers to return (default 5)
+   * @returns TopOffersResponse with top offers
+   */
+  async getTopOffers(
+    dateRange?: DateRangeFilter,
+    limit: number = 5
+  ): Promise<TopOffersResponse> {
+    try {
+      const params = this.buildQueryParams({ timeRange: dateRange, limit });
+      const storeParam = this.activeStoreId ? `&storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/offers/top?${params}${storeParam}`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        return data.data;
+      } else {
+        throw new Error(data.message || 'Failed to get top offers');
+      }
+    } catch (error: any) {
+      console.error('Get top offers error:', error);
+      throw new Error(error.message || 'Failed to get top offers');
+    }
+  }
+
+  /**
    * Get real-time analytics metrics
    * @returns RealTimeMetrics with live data
    */
   async getRealTimeMetrics(): Promise<RealTimeMetrics> {
     try {
-      const response = await fetch(getApiUrl('merchant/analytics/realtime'), {
+      const storeParam = this.activeStoreId ? `?storeId=${this.activeStoreId}` : '';
+      const response = await fetch(getApiUrl(`merchant/analytics/realtime${storeParam}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -365,13 +835,17 @@ class AnalyticsService {
     exportRequest: ExportRequest
   ): Promise<ExportResponse> {
     try {
+      const requestBody = {
+        ...exportRequest,
+        ...(this.activeStoreId && { storeId: this.activeStoreId })
+      };
       const response = await fetch(getApiUrl('merchant/analytics/export'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
-        body: JSON.stringify(exportRequest)
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {

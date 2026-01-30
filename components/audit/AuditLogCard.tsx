@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ViewStyle, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuditLog } from '../../types/audit';
-import { useThemedStyles } from '../ui/ThemeProvider';
+import { useTheme, useThemedStyles } from '../ui/ThemeProvider';
 import { Avatar } from '../ui/DesignSystemComponents';
 import { ActionTypeBadge } from './ActionTypeBadge';
 import { SeverityBadge } from './SeverityBadge';
@@ -21,6 +21,7 @@ export const AuditLogCard: React.FC<AuditLogCardProps> = ({
   testID,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const { theme } = useTheme();
 
   const styles = useThemedStyles((theme) => ({
     card: {
@@ -189,7 +190,7 @@ export const AuditLogCard: React.FC<AuditLogCardProps> = ({
           <Avatar
             size="small"
             initials={getInitials(log.user?.name)}
-            backgroundColor={theme => theme.colors.primary}
+            backgroundColor={theme.colors.primary}
             textColor="#FFFFFF"
           />
         </View>

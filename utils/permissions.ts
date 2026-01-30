@@ -606,7 +606,11 @@ export const ROLE_PERMISSIONS: Record<MerchantRole, Permission[]> = {
  * Check if a role has a specific permission
  */
 export const hasPermission = (role: MerchantRole, permission: Permission): boolean => {
-  return ROLE_PERMISSIONS[role].includes(permission);
+  const rolePermissions = ROLE_PERMISSIONS[role];
+  if (!rolePermissions) {
+    return false;
+  }
+  return rolePermissions.includes(permission);
 };
 
 /**
@@ -627,14 +631,14 @@ export const hasAllPermissions = (role: MerchantRole, permissions: Permission[])
  * Get all permissions for a role
  */
 export const getRolePermissions = (role: MerchantRole): Permission[] => {
-  return ROLE_PERMISSIONS[role];
+  return ROLE_PERMISSIONS[role] || [];
 };
 
 /**
  * Get permissions grouped by category
  */
 export const getPermissionsByCategory = (role: MerchantRole): Record<string, PermissionDefinition[]> => {
-  const permissions = ROLE_PERMISSIONS[role];
+  const permissions = ROLE_PERMISSIONS[role] || [];
   const permissionDefs = PERMISSION_DEFINITIONS.filter(def => permissions.includes(def.permission));
 
   const grouped: Record<string, PermissionDefinition[]> = {};

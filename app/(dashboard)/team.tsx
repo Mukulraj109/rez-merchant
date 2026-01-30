@@ -1,9 +1,10 @@
 /**
- * Team Dashboard Overview Screen
- * Shows team statistics, recent activities, and quick actions
+ * Team Dashboard Screen
+ * Production-ready team management with ReZ Design System
+ * Features: Overview, Members list, Quick Actions with search/filter
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,67 +13,118 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert
+  TextInput,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 import { teamService } from '@/services/api/team';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { TeamMemberSummary } from '@/types/team';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useTeamPermissions } from '@/hooks/usePermissions';
+import { TeamMemberSummary, MerchantRole, TeamMemberStatus } from '@/types/team';
 import {
-  canInviteMembers,
-  canViewTeam,
   getTeamStats,
   formatRoleName,
   getRoleColor,
+  getRoleIcon,
   formatStatusName,
   getStatusColor,
   getRelativeTime,
   getInitials,
-  getAvatarColor
+  getAvatarColor,
 } from '@/utils/teamHelpers';
 
+// ReZ Design System Colors
+const REZ_COLORS = {
+  primary: '#00C06A',
+  navy: '#0B2240',
+  gold: '#FFC857',
+  white: '#FFFFFF',
+  background: '#F8FAFC',
+  cardBg: '#FFFFFF',
+  textPrimary: '#0B2240',
+  textSecondary: '#64748B',
+  textMuted: '#94A3B8',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
+  border: '#E2E8F0',
+};
+
+type ViewTab = 'overview' | 'members' | 'actions';
+type RoleFilter = 'all' | MerchantRole;
+type StatusFilter = 'all' | TeamMemberStatus;
+
 export default function TeamScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const { permissions, role } = useAuth();
+  const [activeTab, setActiveTab] = useState<ViewTab>('overview');
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const [teamMembers, setTeamMembers] = useState<TeamMemberSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { isDesktop, isTablet } = useResponsiveLayout();
+  const {
+    canViewTeam,
+    canInviteMembers,
+    canRemoveMembers,
+    canChangeRoles,
+    canChangeStatus,
+    currentRole,
+  } = useTeamPermissions();
 
-  // Check permissions
-  const hasTeamViewPermission = canViewTeam(permissions);
-  const canInvite = role ? canInviteMembers(role, permissions) : false;
+  // Fetch team members with React Query
+  const {
+    data: teamData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['team-members'],
+    queryFn: () => teamService.getTeamMembers(),
+    enabled: canViewTeam,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  useEffect(() => {
-    if (hasTeamViewPermission) {
-      loadTeamMembers();
-    } else {
-      setIsLoading(false);
-    }
-  }, [hasTeamViewPermission]);
+  // Safe extraction of team members - handles multiple response structures
+  const teamMembers: TeamMemberSummary[] = useMemo(() => {
+    if (!teamData) return [];
+    // Handle nested structure: { success, data: { teamMembers, total } }
+    if (teamData.data?.teamMembers) return teamData.data.teamMembers;
+    // Handle flat structure: { teamMembers, total }
+    if ((teamData as any).teamMembers) return (teamData as any).teamMembers;
+    return [];
+  }, [teamData]);
 
-  const loadTeamMembers = async () => {
-    try {
-      setError(null);
-      const response = await teamService.getTeamMembers();
-      setTeamMembers(response.data.teamMembers);
-    } catch (err: any) {
-      console.error('Failed to load team members:', err);
-      setError(err.message || 'Failed to load team members');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
+  // Check if this is sample/demo data
+  const isSampleData = (teamData as any)?.isSampleData || teamMembers.length === 0;
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    loadTeamMembers();
+  // Calculate stats
+  const stats = useMemo(() => getTeamStats(teamMembers), [teamMembers]);
+
+  // Filtered members for Members tab
+  const filteredMembers = useMemo(() => {
+    return teamMembers.filter(member => {
+      const matchesSearch = !search ||
+        member.name.toLowerCase().includes(search.toLowerCase()) ||
+        member.email.toLowerCase().includes(search.toLowerCase());
+      const matchesRole = roleFilter === 'all' || member.role === roleFilter;
+      const matchesStatus = statusFilter === 'all' || member.status === statusFilter;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [teamMembers, search, roleFilter, statusFilter]);
+
+  // Recent members for Overview tab
+  const recentMembers = useMemo(() => teamMembers.slice(0, 5), [teamMembers]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
   };
 
   const handleInviteMember = () => {
@@ -80,439 +132,758 @@ export default function TeamScreen() {
   };
 
   const handleViewAllMembers = () => {
-    router.push('/team/list');
+    setActiveTab('members');
   };
 
   const handleViewMember = (memberId: string) => {
     router.push(`/team/${memberId}`);
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading team...
-          </Text>
-        </View>
+  // Responsive widths
+  const contentMaxWidth = isDesktop ? 1200 : isTablet ? 900 : undefined;
+  const kpiCardMaxWidth = isDesktop ? 280 : isTablet ? 220 : undefined;
+  const memberCardMaxWidth = isDesktop ? 580 : isTablet ? 440 : undefined;
+
+  // Tab Button Component
+  const TabButton = ({ tab, label, icon }: { tab: ViewTab; label: string; icon: string }) => (
+    <TouchableOpacity
+      style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
+      onPress={() => setActiveTab(tab)}
+    >
+      <Ionicons
+        name={icon as any}
+        size={18}
+        color={activeTab === tab ? REZ_COLORS.white : REZ_COLORS.textSecondary}
+      />
+      <ThemedText style={[styles.tabButtonText, activeTab === tab && styles.tabButtonTextActive]}>
+        {label}
+      </ThemedText>
+    </TouchableOpacity>
+  );
+
+  // KPI Card Component
+  const KPICard = ({ label, value, subtext, icon, color }: {
+    label: string;
+    value: string | number;
+    subtext: string;
+    icon: string;
+    color: string;
+  }) => (
+    <View style={[styles.kpiCard, Platform.OS === 'web' && { maxWidth: kpiCardMaxWidth }]}>
+      <View style={[styles.kpiIconContainer, { backgroundColor: `${color}15` }]}>
+        <Ionicons name={icon as any} size={20} color={color} />
       </View>
+      <View style={styles.kpiContent}>
+        <ThemedText style={styles.kpiLabel} numberOfLines={1}>{label}</ThemedText>
+        <ThemedText style={[styles.kpiValue, { color }]} numberOfLines={1}>
+          {value}
+        </ThemedText>
+        <ThemedText style={styles.kpiSubtext} numberOfLines={1}>{subtext}</ThemedText>
+      </View>
+    </View>
+  );
+
+  // Filter Chip Component
+  const FilterChip = ({ filterKey, label, count, color, type }: {
+    filterKey: string;
+    label: string;
+    count?: number;
+    color: string;
+    type: 'role' | 'status';
+  }) => {
+    const isActive = type === 'role' ? roleFilter === filterKey : statusFilter === filterKey;
+    const onPress = () => {
+      if (type === 'role') {
+        setRoleFilter(filterKey as RoleFilter);
+      } else {
+        setStatusFilter(filterKey as StatusFilter);
+      }
+    };
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.filterChip,
+          isActive && styles.filterChipActive,
+          isActive && { backgroundColor: color },
+        ]}
+        onPress={onPress}
+      >
+        <ThemedText style={[
+          styles.filterChipText,
+          isActive && styles.filterChipTextActive,
+        ]}>
+          {label}
+        </ThemedText>
+        {count !== undefined && (
+          <View style={[
+            styles.filterChipBadge,
+            isActive && styles.filterChipBadgeActive,
+          ]}>
+            <ThemedText style={[
+              styles.filterChipBadgeText,
+              isActive && styles.filterChipBadgeTextActive,
+            ]}>
+              {count}
+            </ThemedText>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  // Member Card Component
+  const MemberCard = ({ member }: { member: TeamMemberSummary }) => {
+    const roleColor = getRoleColor(member.role);
+    const statusColor = getStatusColor(member.status);
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.memberCard,
+          Platform.OS === 'web' && { maxWidth: memberCardMaxWidth, cursor: 'pointer' as any },
+        ]}
+        onPress={() => handleViewMember(member.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.memberCardLeft}>
+          <View style={[styles.memberAvatar, { backgroundColor: getAvatarColor(member.name) }]}>
+            <Text style={styles.avatarText}>{getInitials(member.name)}</Text>
+          </View>
+          <View style={styles.memberInfo}>
+            <ThemedText style={styles.memberName} numberOfLines={1}>
+              {member.name}
+            </ThemedText>
+            <ThemedText style={styles.memberEmail} numberOfLines={1}>
+              {member.email}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.memberCardRight}>
+          <View style={[styles.roleBadge, { backgroundColor: `${roleColor}15` }]}>
+            <Ionicons name={getRoleIcon(member.role) as any} size={12} color={roleColor} />
+            <ThemedText style={[styles.roleBadgeText, { color: roleColor }]}>
+              {formatRoleName(member.role)}
+            </ThemedText>
+          </View>
+
+          <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15` }]}>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <ThemedText style={[styles.statusText, { color: statusColor }]}>
+              {formatStatusName(member.status)}
+            </ThemedText>
+          </View>
+
+          {member.lastLoginAt && (
+            <ThemedText style={styles.lastLogin}>
+              {getRelativeTime(member.lastLoginAt)}
+            </ThemedText>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  // Action Card Component
+  const ActionCard = ({ title, description, icon, color, onPress, disabled }: {
+    title: string;
+    description: string;
+    icon: string;
+    color: string;
+    onPress?: () => void;
+    disabled?: boolean;
+  }) => (
+    <TouchableOpacity
+      style={[styles.actionCard, disabled && styles.actionCardDisabled]}
+      onPress={onPress}
+      disabled={disabled || !onPress}
+    >
+      <View style={[styles.actionIconContainer, { backgroundColor: `${color}15` }]}>
+        <Ionicons name={icon as any} size={24} color={disabled ? REZ_COLORS.textMuted : color} />
+      </View>
+      <View style={styles.actionContent}>
+        <ThemedText style={[styles.actionTitle, disabled && styles.actionTitleDisabled]}>
+          {title}
+        </ThemedText>
+        <ThemedText style={styles.actionDescription}>{description}</ThemedText>
+      </View>
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={disabled ? REZ_COLORS.textMuted : REZ_COLORS.textSecondary}
+      />
+    </TouchableOpacity>
+  );
+
+  // Access Denied State
+  if (!canViewTeam) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <View style={styles.errorIconContainer}>
+          <Ionicons name="lock-closed" size={48} color={REZ_COLORS.error} />
+        </View>
+        <ThemedText style={styles.errorTitle}>Access Denied</ThemedText>
+        <ThemedText style={styles.errorText}>
+          You don't have permission to view team members.
+        </ThemedText>
+      </ThemedView>
     );
   }
 
-  // Show permission error
-  if (!hasTeamViewPermission) {
+  // Loading State
+  if (isLoading && !teamData) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="lock-closed" size={64} color={colors.textMuted} />
-          <Text style={[styles.errorTitle, { color: colors.text }]}>
-            Access Denied
-          </Text>
-          <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
-            You don't have permission to view team members.
-          </Text>
-        </View>
-      </View>
+      <ThemedView style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={REZ_COLORS.primary} />
+        <ThemedText style={styles.loadingText}>Loading team...</ThemedText>
+        <ThemedText style={styles.loadingSubtext}>Fetching team members</ThemedText>
+      </ThemedView>
     );
   }
 
-  const stats = getTeamStats(teamMembers);
-  const recentMembers = teamMembers.slice(0, 5); // Show 5 most recent
+  // Error State
+  if (error && !teamData) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <View style={styles.errorIconContainer}>
+          <Ionicons name="alert-circle" size={48} color={REZ_COLORS.error} />
+        </View>
+        <ThemedText style={styles.errorTitle}>Failed to Load</ThemedText>
+        <ThemedText style={styles.errorText}>
+          {error instanceof Error ? error.message : 'Unable to load team data'}
+        </ThemedText>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <Ionicons name="refresh" size={20} color={REZ_COLORS.white} />
+          <ThemedText style={styles.retryButtonText}>Try Again</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    );
+  }
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={styles.container}
+      contentContainerStyle={[
+        styles.scrollContent,
+        Platform.OS === 'web' && { alignItems: 'center' },
+      ]}
       refreshControl={
         <RefreshControl
-          refreshing={isRefreshing}
+          refreshing={refreshing}
           onRefresh={handleRefresh}
-          tintColor={colors.primary}
+          colors={[REZ_COLORS.primary]}
+          tintColor={REZ_COLORS.primary}
         />
       }
     >
-      {/* Header with Quick Actions */}
-      <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Team Overview</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {stats.total} member{stats.total !== 1 ? 's' : ''}
-          </Text>
-        </View>
-
-        {canInvite && (
-          <TouchableOpacity
-            style={[styles.inviteButton, { backgroundColor: colors.primary }]}
-            onPress={handleInviteMember}
-          >
-            <Ionicons name="person-add" size={20} color="white" />
-            <Text style={styles.inviteButtonText}>Invite</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Error Message */}
-      {error && (
-        <View style={[styles.errorBanner, { backgroundColor: colors.error + '20' }]}>
-          <Ionicons name="alert-circle" size={20} color={colors.error} />
-          <Text style={[styles.errorBannerText, { color: colors.error }]}>{error}</Text>
-        </View>
-      )}
-
-      {/* Statistics Cards */}
-      <View style={styles.statsContainer}>
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-          <Ionicons name="people" size={32} color={colors.primary} />
-          <Text style={[styles.statValue, { color: colors.text }]}>{stats.total}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
-        </View>
-
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-          <Ionicons name="checkmark-circle" size={32} color={colors.success} />
-          <Text style={[styles.statValue, { color: colors.text }]}>{stats.active}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Active</Text>
-        </View>
-
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-          <Ionicons name="time" size={32} color={colors.pending} />
-          <Text style={[styles.statValue, { color: colors.text }]}>{stats.pending}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Pending</Text>
-        </View>
-
-        {stats.suspended > 0 && (
-          <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="ban" size={32} color={colors.error} />
-            <Text style={[styles.statValue, { color: colors.text }]}>{stats.suspended}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Suspended</Text>
+      <ThemedView style={[styles.content, Platform.OS === 'web' && { maxWidth: contentMaxWidth }]}>
+        {/* Sample Data Banner */}
+        {isSampleData && (
+          <View style={styles.sampleDataBanner}>
+            <Ionicons name="information-circle" size={20} color={REZ_COLORS.info} />
+            <View style={styles.sampleDataContent}>
+              <ThemedText style={styles.sampleDataTitle}>No Team Members Yet</ThemedText>
+              <ThemedText style={styles.sampleDataText}>
+                {canInviteMembers
+                  ? 'Start building your team by inviting your first member.'
+                  : 'Contact an admin to invite team members.'}
+              </ThemedText>
+            </View>
           </View>
         )}
-      </View>
 
-      {/* Role Breakdown */}
-      <View style={[styles.section, { backgroundColor: colors.card }]}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Team by Role</Text>
-        </View>
-
-        <View style={styles.roleBreakdown}>
-          {stats.roleBreakdown.owner > 0 && (
-            <View style={styles.roleItem}>
-              <View style={styles.roleLeft}>
-                <View style={[styles.roleIcon, { backgroundColor: getRoleColor('owner') + '20' }]}>
-                  <Ionicons name="shield-checkmark" size={20} color={getRoleColor('owner')} />
-                </View>
-                <Text style={[styles.roleLabel, { color: colors.text }]}>
-                  {formatRoleName('owner')}
-                </Text>
-              </View>
-              <Text style={[styles.roleCount, { color: colors.textSecondary }]}>
-                {stats.roleBreakdown.owner}
-              </Text>
-            </View>
-          )}
-
-          {stats.roleBreakdown.admin > 0 && (
-            <View style={styles.roleItem}>
-              <View style={styles.roleLeft}>
-                <View style={[styles.roleIcon, { backgroundColor: getRoleColor('admin') + '20' }]}>
-                  <Ionicons name="key" size={20} color={getRoleColor('admin')} />
-                </View>
-                <Text style={[styles.roleLabel, { color: colors.text }]}>
-                  {formatRoleName('admin')}
-                </Text>
-              </View>
-              <Text style={[styles.roleCount, { color: colors.textSecondary }]}>
-                {stats.roleBreakdown.admin}
-              </Text>
-            </View>
-          )}
-
-          {stats.roleBreakdown.manager > 0 && (
-            <View style={styles.roleItem}>
-              <View style={styles.roleLeft}>
-                <View style={[styles.roleIcon, { backgroundColor: getRoleColor('manager') + '20' }]}>
-                  <Ionicons name="briefcase" size={20} color={getRoleColor('manager')} />
-                </View>
-                <Text style={[styles.roleLabel, { color: colors.text }]}>
-                  {formatRoleName('manager')}
-                </Text>
-              </View>
-              <Text style={[styles.roleCount, { color: colors.textSecondary }]}>
-                {stats.roleBreakdown.manager}
-              </Text>
-            </View>
-          )}
-
-          {stats.roleBreakdown.staff > 0 && (
-            <View style={styles.roleItem}>
-              <View style={styles.roleLeft}>
-                <View style={[styles.roleIcon, { backgroundColor: getRoleColor('staff') + '20' }]}>
-                  <Ionicons name="person" size={20} color={getRoleColor('staff')} />
-                </View>
-                <Text style={[styles.roleLabel, { color: colors.text }]}>
-                  {formatRoleName('staff')}
-                </Text>
-              </View>
-              <Text style={[styles.roleCount, { color: colors.textSecondary }]}>
-                {stats.roleBreakdown.staff}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* Recent Team Members */}
-      <View style={[styles.section, { backgroundColor: colors.card }]}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Members</Text>
-          {teamMembers.length > 5 && (
-            <TouchableOpacity onPress={handleViewAllMembers}>
-              <Text style={[styles.viewAllButton, { color: colors.primary }]}>View All</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {recentMembers.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={48} color={colors.textMuted} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No team members yet
-            </Text>
-            {canInvite && (
-              <TouchableOpacity
-                style={[styles.emptyActionButton, { borderColor: colors.primary }]}
-                onPress={handleInviteMember}
-              >
-                <Text style={[styles.emptyActionText, { color: colors.primary }]}>
-                  Invite Your First Member
-                </Text>
-              </TouchableOpacity>
-            )}
+        {/* Header with Invite Button */}
+        <View style={styles.header}>
+          <View>
+            <ThemedText style={styles.headerTitle}>Team Management</ThemedText>
+            <ThemedText style={styles.headerSubtitle}>
+              {stats.total} member{stats.total !== 1 ? 's' : ''} in your team
+            </ThemedText>
           </View>
-        ) : (
-          <View style={styles.membersList}>
-            {recentMembers.map((member) => (
-              <TouchableOpacity
-                key={member.id}
-                style={styles.memberItem}
-                onPress={() => handleViewMember(member.id)}
-              >
-                <View style={styles.memberLeft}>
-                  <View
-                    style={[
-                      styles.memberAvatar,
-                      { backgroundColor: getAvatarColor(member.name) }
-                    ]}
-                  >
-                    <Text style={styles.avatarText}>{getInitials(member.name)}</Text>
-                  </View>
-
-                  <View style={styles.memberInfo}>
-                    <Text style={[styles.memberName, { color: colors.text }]}>
-                      {member.name}
-                    </Text>
-                    <Text style={[styles.memberEmail, { color: colors.textSecondary }]}>
-                      {member.email}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.memberRight}>
-                  <View
-                    style={[
-                      styles.roleBadge,
-                      { backgroundColor: getRoleColor(member.role) + '20' }
-                    ]}
-                  >
-                    <Text style={[styles.roleBadgeText, { color: getRoleColor(member.role) }]}>
-                      {formatRoleName(member.role)}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusColor(member.status) + '20' }
-                    ]}
-                  >
-                    <View
-                      style={[styles.statusDot, { backgroundColor: getStatusColor(member.status) }]}
-                    />
-                    <Text style={[styles.statusText, { color: getStatusColor(member.status) }]}>
-                      {formatStatusName(member.status)}
-                    </Text>
-                  </View>
-
-                  {member.lastLoginAt && (
-                    <Text style={[styles.lastLogin, { color: colors.textMuted }]}>
-                      {getRelativeTime(member.lastLoginAt)}
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* Quick Actions */}
-      <View style={[styles.section, { backgroundColor: colors.card }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
-
-        <View style={styles.actionsGrid}>
-          <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
-            onPress={handleViewAllMembers}
-          >
-            <Ionicons name="list" size={24} color={colors.primary} />
-            <Text style={[styles.actionText, { color: colors.text }]}>View All</Text>
-          </TouchableOpacity>
-
-          {canInvite && (
+          {canInviteMembers && (
             <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={styles.inviteButton}
               onPress={handleInviteMember}
             >
-              <Ionicons name="person-add" size={24} color={colors.primary} />
-              <Text style={[styles.actionText, { color: colors.text }]}>Invite</Text>
+              <Ionicons name="person-add" size={18} color={REZ_COLORS.white} />
+              <ThemedText style={styles.inviteButtonText}>Invite</ThemedText>
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
-            onPress={() => router.push('/team/roles')}
-          >
-            <Ionicons name="key" size={24} color={colors.primary} />
-            <Text style={[styles.actionText, { color: colors.text }]}>Roles</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
-            onPress={() => router.push('/team/activity')}
-          >
-            <Ionicons name="time" size={24} color={colors.primary} />
-            <Text style={[styles.actionText, { color: colors.text }]}>Activity</Text>
-          </TouchableOpacity>
         </View>
-      </View>
+
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          <TabButton tab="overview" label="Overview" icon="grid-outline" />
+          <TabButton tab="members" label="Members" icon="people-outline" />
+          <TabButton tab="actions" label="Actions" icon="flash-outline" />
+        </View>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <>
+            {/* KPI Cards */}
+            <View style={styles.kpiGrid}>
+              <KPICard
+                label="Total Members"
+                value={stats.total}
+                subtext="In your team"
+                icon="people"
+                color={REZ_COLORS.info}
+              />
+              <KPICard
+                label="Active"
+                value={stats.active}
+                subtext={stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% of team` : 'Ready to work'}
+                icon="checkmark-circle"
+                color={REZ_COLORS.success}
+              />
+              <KPICard
+                label="Pending"
+                value={stats.pending}
+                subtext="Awaiting acceptance"
+                icon="time"
+                color={REZ_COLORS.warning}
+              />
+              <KPICard
+                label="Roles"
+                value={Object.values(stats.roleBreakdown).filter(v => v > 0).length}
+                subtext="Different roles"
+                icon="key"
+                color={REZ_COLORS.primary}
+              />
+            </View>
+
+            {/* Role Distribution */}
+            {stats.total > 0 && (
+              <View style={styles.section}>
+                <ThemedText style={styles.sectionTitle}>Team by Role</ThemedText>
+                <View style={styles.roleBreakdown}>
+                  {stats.roleBreakdown.owner > 0 && (
+                    <RoleItem role="owner" count={stats.roleBreakdown.owner} />
+                  )}
+                  {stats.roleBreakdown.admin > 0 && (
+                    <RoleItem role="admin" count={stats.roleBreakdown.admin} />
+                  )}
+                  {stats.roleBreakdown.manager > 0 && (
+                    <RoleItem role="manager" count={stats.roleBreakdown.manager} />
+                  )}
+                  {stats.roleBreakdown.staff > 0 && (
+                    <RoleItem role="staff" count={stats.roleBreakdown.staff} />
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Recent Members */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText style={styles.sectionTitle}>Recent Members</ThemedText>
+                {teamMembers.length > 5 && (
+                  <TouchableOpacity onPress={handleViewAllMembers}>
+                    <ThemedText style={styles.viewAllLink}>View All</ThemedText>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {recentMembers.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <View style={styles.emptyIcon}>
+                    <Ionicons name="people-outline" size={48} color={REZ_COLORS.textMuted} />
+                  </View>
+                  <ThemedText style={styles.emptyTitle}>No Team Members</ThemedText>
+                  <ThemedText style={styles.emptyText}>
+                    Your team is empty. Start by inviting your first member.
+                  </ThemedText>
+                  {canInviteMembers && (
+                    <TouchableOpacity style={styles.emptyButton} onPress={handleInviteMember}>
+                      <ThemedText style={styles.emptyButtonText}>Invite First Member</ThemedText>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.membersList}>
+                  {recentMembers.map((member) => (
+                    <MemberCard key={member.id} member={member} />
+                  ))}
+                </View>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Members Tab */}
+        {activeTab === 'members' && (
+          <>
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color={REZ_COLORS.textMuted} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by name or email..."
+                placeholderTextColor={REZ_COLORS.textMuted}
+                value={search}
+                onChangeText={setSearch}
+              />
+              {search.length > 0 && (
+                <TouchableOpacity onPress={() => setSearch('')}>
+                  <Ionicons name="close-circle" size={20} color={REZ_COLORS.textMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Role Filters */}
+            <View style={styles.filterSection}>
+              <ThemedText style={styles.filterLabel}>Role</ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterChipsRow}
+              >
+                <FilterChip filterKey="all" label="All" count={stats.total} color={REZ_COLORS.primary} type="role" />
+                <FilterChip filterKey="owner" label="Owner" count={stats.roleBreakdown.owner} color={getRoleColor('owner')} type="role" />
+                <FilterChip filterKey="admin" label="Admin" count={stats.roleBreakdown.admin} color={getRoleColor('admin')} type="role" />
+                <FilterChip filterKey="manager" label="Manager" count={stats.roleBreakdown.manager} color={getRoleColor('manager')} type="role" />
+                <FilterChip filterKey="staff" label="Staff" count={stats.roleBreakdown.staff} color={getRoleColor('staff')} type="role" />
+              </ScrollView>
+            </View>
+
+            {/* Status Filters */}
+            <View style={styles.filterSection}>
+              <ThemedText style={styles.filterLabel}>Status</ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterChipsRow}
+              >
+                <FilterChip filterKey="all" label="All" count={stats.total} color={REZ_COLORS.primary} type="status" />
+                <FilterChip filterKey="active" label="Active" count={stats.active} color={REZ_COLORS.success} type="status" />
+                <FilterChip filterKey="inactive" label="Pending" count={stats.pending} color={REZ_COLORS.warning} type="status" />
+                <FilterChip filterKey="suspended" label="Suspended" count={stats.suspended} color={REZ_COLORS.error} type="status" />
+              </ScrollView>
+            </View>
+
+            {/* Members List */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText style={styles.sectionTitle}>Team Members</ThemedText>
+                <ThemedText style={styles.sectionCount}>{filteredMembers.length} members</ThemedText>
+              </View>
+
+              {filteredMembers.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <View style={styles.emptyIcon}>
+                    <Ionicons name="search" size={48} color={REZ_COLORS.textMuted} />
+                  </View>
+                  <ThemedText style={styles.emptyTitle}>No Results</ThemedText>
+                  <ThemedText style={styles.emptyText}>
+                    {search
+                      ? `No members match "${search}"`
+                      : 'No members match the selected filters'}
+                  </ThemedText>
+                  <TouchableOpacity
+                    style={styles.emptyButton}
+                    onPress={() => {
+                      setSearch('');
+                      setRoleFilter('all');
+                      setStatusFilter('all');
+                    }}
+                  >
+                    <ThemedText style={styles.emptyButtonText}>Clear Filters</ThemedText>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.membersGrid}>
+                  {filteredMembers.map((member) => (
+                    <MemberCard key={member.id} member={member} />
+                  ))}
+                </View>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Actions Tab */}
+        {activeTab === 'actions' && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Team Actions</ThemedText>
+            <View style={styles.actionsGrid}>
+              <ActionCard
+                title="Invite Member"
+                description="Send an invitation to add a new team member"
+                icon="person-add"
+                color={REZ_COLORS.primary}
+                onPress={canInviteMembers ? handleInviteMember : undefined}
+                disabled={!canInviteMembers}
+              />
+              <ActionCard
+                title="View All Members"
+                description="See the full list of team members"
+                icon="people"
+                color={REZ_COLORS.info}
+                onPress={() => setActiveTab('members')}
+              />
+              <ActionCard
+                title="Manage Roles"
+                description="Update team member roles and permissions"
+                icon="key"
+                color={REZ_COLORS.warning}
+                onPress={canChangeRoles ? () => router.push('/team/roles') : undefined}
+                disabled={!canChangeRoles}
+              />
+              <ActionCard
+                title="Activity Log"
+                description="View recent team activity and changes"
+                icon="time"
+                color={REZ_COLORS.textSecondary}
+                onPress={() => router.push('/team/activity')}
+              />
+            </View>
+
+            {/* Permissions Summary */}
+            <View style={styles.permissionsSummary}>
+              <ThemedText style={styles.permissionsTitle}>
+                <Ionicons name="shield-checkmark" size={16} color={REZ_COLORS.primary} /> Your Permissions
+              </ThemedText>
+              <View style={styles.permissionsList}>
+                <PermissionItem label="View Team" allowed={canViewTeam} />
+                <PermissionItem label="Invite Members" allowed={canInviteMembers} />
+                <PermissionItem label="Remove Members" allowed={canRemoveMembers} />
+                <PermissionItem label="Change Roles" allowed={canChangeRoles} />
+                <PermissionItem label="Change Status" allowed={canChangeStatus} />
+              </View>
+              <ThemedText style={styles.currentRoleText}>
+                Your role: <ThemedText style={styles.currentRoleBadge}>{formatRoleName(currentRole)}</ThemedText>
+              </ThemedText>
+            </View>
+          </View>
+        )}
+      </ThemedView>
     </ScrollView>
   );
 }
 
+// Role Item Component for Overview
+const RoleItem = ({ role, count }: { role: MerchantRole; count: number }) => {
+  const color = getRoleColor(role);
+  const icon = getRoleIcon(role);
+
+  return (
+    <View style={styles.roleItem}>
+      <View style={styles.roleItemLeft}>
+        <View style={[styles.roleIcon, { backgroundColor: `${color}15` }]}>
+          <Ionicons name={icon as any} size={18} color={color} />
+        </View>
+        <ThemedText style={styles.roleItemLabel}>{formatRoleName(role)}</ThemedText>
+      </View>
+      <ThemedText style={styles.roleItemCount}>{count}</ThemedText>
+    </View>
+  );
+};
+
+// Permission Item Component for Actions Tab
+const PermissionItem = ({ label, allowed }: { label: string; allowed: boolean }) => (
+  <View style={styles.permissionItem}>
+    <Ionicons
+      name={allowed ? 'checkmark-circle' : 'close-circle'}
+      size={16}
+      color={allowed ? REZ_COLORS.success : REZ_COLORS.error}
+    />
+    <ThemedText style={[styles.permissionLabel, !allowed && styles.permissionLabelDisabled]}>
+      {label}
+    </ThemedText>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: REZ_COLORS.background,
   },
-  loadingContainer: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 32,
+  },
+  centered: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    padding: 24,
   },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  errorContainer: {
+  content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
+    padding: 16,
+    gap: 16,
+    width: '100%',
   },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
+
+  // Sample Data Banner
+  sampleDataBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: `${REZ_COLORS.info}10`,
+    borderRadius: 12,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: `${REZ_COLORS.info}30`,
   },
-  errorMessage: {
-    fontSize: 16,
-    textAlign: 'center',
+  sampleDataContent: {
+    flex: 1,
   },
+  sampleDataTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: REZ_COLORS.info,
+    marginBottom: 2,
+  },
+  sampleDataText: {
+    fontSize: 12,
+    color: REZ_COLORS.textSecondary,
+    lineHeight: 18,
+  },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: REZ_COLORS.white,
+    borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
   },
   headerSubtitle: {
     fontSize: 14,
+    color: REZ_COLORS.textSecondary,
     marginTop: 4,
   },
   inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
     gap: 8,
+    backgroundColor: REZ_COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    ...Platform.select({ web: { cursor: 'pointer' }, default: {} }),
   },
   inviteButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: REZ_COLORS.white,
+    fontSize: 14,
     fontWeight: '600',
   },
-  errorBanner: {
+
+  // Tabs
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: REZ_COLORS.white,
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  tabButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 8,
-    gap: 8,
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    ...Platform.select({ web: { cursor: 'pointer' }, default: {} }),
   },
-  errorBannerText: {
-    flex: 1,
-    fontSize: 14,
+  tabButtonActive: {
+    backgroundColor: REZ_COLORS.primary,
   },
-  statsContainer: {
+  tabButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: REZ_COLORS.textSecondary,
+  },
+  tabButtonTextActive: {
+    color: REZ_COLORS.white,
+  },
+
+  // KPI Grid
+  kpiGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 8,
-    marginBottom: 16,
-    gap: 8,
+    gap: 10,
   },
-  statCard: {
+  kpiCard: {
     flex: 1,
-    minWidth: 100,
-    padding: 16,
-    borderRadius: 12,
+    minWidth: 150,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  statLabel: {
-    fontSize: 14,
-  },
-  section: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    gap: 10,
+    backgroundColor: REZ_COLORS.white,
+    padding: 12,
     borderRadius: 12,
-    padding: 16,
+  },
+  kpiIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  kpiContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  kpiLabel: {
+    fontSize: 11,
+    color: REZ_COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  kpiValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
+  },
+  kpiSubtext: {
+    fontSize: 10,
+    color: REZ_COLORS.textMuted,
+    marginTop: 2,
+  },
+
+  // Section
+  section: {
+    backgroundColor: REZ_COLORS.white,
+    borderRadius: 16,
+    padding: 20,
+    gap: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
   },
-  viewAllButton: {
+  sectionCount: {
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
+    backgroundColor: REZ_COLORS.background,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  viewAllLink: {
     fontSize: 14,
     fontWeight: '600',
+    color: REZ_COLORS.primary,
   },
+
+  // Role Breakdown
   roleBreakdown: {
     gap: 12,
   },
@@ -521,83 +892,180 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  roleLeft: {
+  roleItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   roleIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  roleLabel: {
-    fontSize: 16,
+  roleItemLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: REZ_COLORS.textPrimary,
   },
-  roleCount: {
+  roleItemCount: {
     fontSize: 16,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
+  },
+
+  // Search
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: REZ_COLORS.white,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: REZ_COLORS.textPrimary,
+    padding: 0,
+  },
+
+  // Filters
+  filterSection: {
+    gap: 8,
+  },
+  filterLabel: {
+    fontSize: 13,
     fontWeight: '600',
+    color: REZ_COLORS.textSecondary,
+    marginLeft: 4,
   },
+  filterChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: REZ_COLORS.white,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: REZ_COLORS.border,
+    ...Platform.select({ web: { cursor: 'pointer' }, default: {} }),
+  },
+  filterChipActive: {
+    borderColor: 'transparent',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: REZ_COLORS.textSecondary,
+  },
+  filterChipTextActive: {
+    color: REZ_COLORS.white,
+  },
+  filterChipBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    backgroundColor: REZ_COLORS.background,
+  },
+  filterChipBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  filterChipBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: REZ_COLORS.textSecondary,
+  },
+  filterChipBadgeTextActive: {
+    color: REZ_COLORS.white,
+  },
+
+  // Members List/Grid
   membersList: {
     gap: 12,
   },
-  memberItem: {
+  membersGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+
+  // Member Card
+  memberCard: {
+    flex: 1,
+    minWidth: 280,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    backgroundColor: REZ_COLORS.background,
+    borderRadius: 12,
+    padding: 14,
+    gap: 12,
   },
-  memberLeft: {
+  memberCardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     flex: 1,
+    minWidth: 0,
   },
   memberAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   avatarText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: REZ_COLORS.white,
+    fontSize: 15,
+    fontWeight: '700',
   },
   memberInfo: {
     flex: 1,
+    minWidth: 0,
   },
   memberName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
+    color: REZ_COLORS.textPrimary,
     marginBottom: 2,
   },
   memberEmail: {
-    fontSize: 14,
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
   },
-  memberRight: {
+  memberCardRight: {
     alignItems: 'flex-end',
     gap: 4,
   },
   roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   roleBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
+    borderRadius: 8,
   },
   statusDot: {
     width: 6,
@@ -605,47 +1073,188 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statusText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '600',
   },
   lastLogin: {
-    fontSize: 11,
+    fontSize: 10,
+    color: REZ_COLORS.textMuted,
+    marginTop: 2,
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 32,
-    gap: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-  },
-  emptyActionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginTop: 8,
-  },
-  emptyActionText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
+  // Actions Grid
   actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 12,
-    marginTop: 12,
   },
   actionCard: {
-    flex: 1,
-    minWidth: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: REZ_COLORS.background,
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
-    gap: 8,
+    gap: 14,
+    ...Platform.select({ web: { cursor: 'pointer' }, default: {} }),
   },
-  actionText: {
+  actionCardDisabled: {
+    opacity: 0.6,
+  },
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionContent: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: REZ_COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  actionTitleDisabled: {
+    color: REZ_COLORS.textMuted,
+  },
+  actionDescription: {
+    fontSize: 12,
+    color: REZ_COLORS.textSecondary,
+    lineHeight: 18,
+  },
+
+  // Permissions Summary
+  permissionsSummary: {
+    backgroundColor: `${REZ_COLORS.primary}08`,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  permissionsTitle: {
     fontSize: 14,
     fontWeight: '600',
+    color: REZ_COLORS.textPrimary,
+    marginBottom: 12,
+  },
+  permissionsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  permissionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: REZ_COLORS.white,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  permissionLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: REZ_COLORS.textPrimary,
+  },
+  permissionLabelDisabled: {
+    color: REZ_COLORS.textMuted,
+  },
+  currentRoleText: {
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
+    marginTop: 12,
+  },
+  currentRoleBadge: {
+    fontWeight: '700',
+    color: REZ_COLORS.primary,
+  },
+
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    minWidth: '100%',
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: REZ_COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: REZ_COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: REZ_COLORS.textMuted,
+    textAlign: 'center',
+    maxWidth: 280,
+  },
+  emptyButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: REZ_COLORS.primary,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: REZ_COLORS.white,
+  },
+
+  // Loading & Error States
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: REZ_COLORS.textPrimary,
+    marginTop: 12,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: REZ_COLORS.textMuted,
+    marginTop: 4,
+  },
+  errorIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: `${REZ_COLORS.error}10`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: REZ_COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: REZ_COLORS.textMuted,
+    textAlign: 'center',
+    maxWidth: 300,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: REZ_COLORS.primary,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: REZ_COLORS.white,
   },
 });

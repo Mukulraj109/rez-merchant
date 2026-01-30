@@ -252,26 +252,75 @@ export default function NotificationPreferencesScreen() {
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
               <Ionicons name="volume-high" size={24} color="#3B82F6" />
-              <Text style={styles.settingLabel}>Sound</Text>
+              <View style={styles.settingText}>
+                <Text style={styles.settingLabel}>Sound</Text>
+                <Text style={styles.settingDescription}>
+                  Play sound for new notifications
+                </Text>
+              </View>
             </View>
             <Switch
-              value={true}
-              onValueChange={() => {}}
+              value={(preferences as any)?.inAppSettings?.sound ?? true}
+              onValueChange={(value) =>
+                updateMutation.mutate({
+                  inAppSettings: {
+                    ...(preferences as any)?.inAppSettings,
+                    sound: value,
+                  },
+                } as any)
+              }
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor="#3B82F6"
+              thumbColor={(preferences as any)?.inAppSettings?.sound !== false ? '#3B82F6' : '#F3F4F6'}
             />
           </View>
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
               <Ionicons name="phone-portrait" size={24} color="#3B82F6" />
-              <Text style={styles.settingLabel}>Vibration</Text>
+              <View style={styles.settingText}>
+                <Text style={styles.settingLabel}>Vibration</Text>
+                <Text style={styles.settingDescription}>
+                  Vibrate for new notifications
+                </Text>
+              </View>
             </View>
             <Switch
-              value={true}
-              onValueChange={() => {}}
+              value={(preferences as any)?.inAppSettings?.vibration ?? true}
+              onValueChange={(value) =>
+                updateMutation.mutate({
+                  inAppSettings: {
+                    ...(preferences as any)?.inAppSettings,
+                    vibration: value,
+                  },
+                } as any)
+              }
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor="#3B82F6"
+              thumbColor={(preferences as any)?.inAppSettings?.vibration !== false ? '#3B82F6' : '#F3F4F6'}
+            />
+          </View>
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingLeft}>
+              <Ionicons name="notifications-circle" size={24} color="#3B82F6" />
+              <View style={styles.settingText}>
+                <Text style={styles.settingLabel}>Badge Count</Text>
+                <Text style={styles.settingDescription}>
+                  Show unread count on app icon
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={(preferences as any)?.inAppSettings?.badgeCount ?? true}
+              onValueChange={(value) =>
+                updateMutation.mutate({
+                  inAppSettings: {
+                    ...(preferences as any)?.inAppSettings,
+                    badgeCount: value,
+                  },
+                } as any)
+              }
+              trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
+              thumbColor={(preferences as any)?.inAppSettings?.badgeCount !== false ? '#3B82F6' : '#F3F4F6'}
             />
           </View>
         </View>

@@ -1,6 +1,7 @@
 /**
  * Trend Analysis Screen
  * Seasonal patterns, peak/trough identification, and cyclicity analysis
+ * Production-ready with ReZ Design System
  */
 
 import React, { useState } from 'react';
@@ -11,6 +12,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -18,9 +20,28 @@ import { useQuery } from '@tanstack/react-query';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
 import { analyticsService } from '@/services/api/analytics';
 import { useHasPermission } from '@/hooks/usePermissions';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+
+// ReZ Design System Colors
+const REZ_COLORS = {
+  primary: '#00C06A',
+  navy: '#0B2240',
+  gold: '#FFC857',
+  white: '#FFFFFF',
+  background: '#F8FAFC',
+  cardBg: '#FFFFFF',
+  textPrimary: '#0B2240',
+  textSecondary: '#64748B',
+  textMuted: '#94A3B8',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
+  border: '#E2E8F0',
+  purple: '#8B5CF6',
+};
 
 type DataType = 'sales' | 'orders' | 'customers' | 'products';
 
@@ -28,6 +49,7 @@ export default function TrendsAnalysisScreen() {
   const [dataType, setDataType] = useState<DataType>('sales');
   const [refreshing, setRefreshing] = useState(false);
 
+  const { isDesktop, isTablet } = useResponsiveLayout();
   const canViewAnalytics = useHasPermission('analytics:view');
 
   const {
@@ -38,6 +60,7 @@ export default function TrendsAnalysisScreen() {
     queryKey: ['trends', dataType],
     queryFn: () => analyticsService.getSeasonalTrends(dataType),
     enabled: canViewAnalytics,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleRefresh = async () => {
@@ -46,23 +69,23 @@ export default function TrendsAnalysisScreen() {
     setRefreshing(false);
   };
 
-  const dataTypes: { value: DataType; label: string; icon: string }[] = [
-    { value: 'sales', label: 'Sales', icon: 'cash' },
-    { value: 'orders', label: 'Orders', icon: 'receipt' },
-    { value: 'customers', label: 'Customers', icon: 'people' },
-    { value: 'products', label: 'Products', icon: 'cube' },
+  const dataTypes: { value: DataType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { value: 'sales', label: 'Sales', icon: 'cash-outline' },
+    { value: 'orders', label: 'Orders', icon: 'receipt-outline' },
+    { value: 'customers', label: 'Customers', icon: 'people-outline' },
+    { value: 'products', label: 'Products', icon: 'cube-outline' },
   ];
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
-      case 'up': return Colors.light.success;
-      case 'down': return Colors.light.error;
-      case 'cyclic': return Colors.light.info;
-      default: return Colors.light.textSecondary;
+      case 'up': return REZ_COLORS.success;
+      case 'down': return REZ_COLORS.error;
+      case 'cyclic': return REZ_COLORS.purple;
+      default: return REZ_COLORS.textSecondary;
     }
   };
 
-  const getTrendIcon = (trend: string) => {
+  const getTrendIcon = (trend: string): keyof typeof Ionicons.glyphMap => {
     switch (trend) {
       case 'up': return 'trending-up';
       case 'down': return 'trending-down';
@@ -76,11 +99,30 @@ export default function TrendsAnalysisScreen() {
     return value.toLocaleString();
   };
 
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return REZ_COLORS.success;
+    if (confidence >= 60) return REZ_COLORS.warning;
+    return REZ_COLORS.error;
+  };
+
+  // Check if we have minimal data (less than 2 data points)
+  const hasMinimalData = trends?.seasonalTrends?.[0]?.dataPoints?.length === 1;
+
+  // Responsive widths
+  const contentMaxWidth = isDesktop ? 1200 : isTablet ? 900 : undefined;
+
   if (!canViewAnalytics) {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
-        <Ionicons name="lock-closed" size={48} color={Colors.light.error} />
-        <ThemedText style={styles.errorText}>Access Denied</ThemedText>
+        <View style={styles.accessDeniedCard}>
+          <View style={styles.accessDeniedIcon}>
+            <Ionicons name="lock-closed" size={32} color={REZ_COLORS.error} />
+          </View>
+          <ThemedText style={styles.accessDeniedTitle}>Access Denied</ThemedText>
+          <ThemedText style={styles.accessDeniedText}>
+            You don't have permission to view analytics
+          </ThemedText>
+        </View>
       </ThemedView>
     );
   }
@@ -88,7 +130,7 @@ export default function TrendsAnalysisScreen() {
   if (isLoading && !trends) {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ActivityIndicator size="large" color={REZ_COLORS.primary} />
         <ThemedText style={styles.loadingText}>Analyzing trends...</ThemedText>
       </ThemedView>
     );
@@ -97,351 +139,352 @@ export default function TrendsAnalysisScreen() {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={[
+        styles.scrollContent,
+        contentMaxWidth ? { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' } : undefined,
+      ]}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={[REZ_COLORS.primary]}
+          tintColor={REZ_COLORS.primary}
+        />
       }
     >
-      <ThemedView style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <ThemedText type="title" style={styles.title}>
-              Trend Analysis
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Seasonal patterns & insights
-            </ThemedText>
-          </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color={REZ_COLORS.navy} />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <ThemedText style={styles.headerTitle}>Trend Analysis</ThemedText>
+          <ThemedText style={styles.headerSubtitle}>
+            Seasonal patterns & insights
+          </ThemedText>
         </View>
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+          <Ionicons name="refresh" size={22} color={REZ_COLORS.primary} />
+        </TouchableOpacity>
+      </View>
 
-        {/* Data Type Selector */}
-        <View style={styles.typeSelector}>
+      {/* Data Type Selector */}
+      <View style={styles.selectorContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.selectorScroll}
+        >
           {dataTypes.map((type) => (
             <TouchableOpacity
               key={type.value}
               style={[
-                styles.typeButton,
-                dataType === type.value && styles.activeTypeButton,
+                styles.selectorButton,
+                dataType === type.value && styles.selectorButtonActive,
               ]}
               onPress={() => setDataType(type.value)}
             >
               <Ionicons
-                name={type.icon as any}
-                size={20}
-                color={dataType === type.value ? 'white' : Colors.light.textSecondary}
+                name={type.icon}
+                size={18}
+                color={dataType === type.value ? REZ_COLORS.white : REZ_COLORS.textSecondary}
               />
               <ThemedText
                 style={[
-                  styles.typeButtonText,
-                  dataType === type.value && styles.activeTypeButtonText,
+                  styles.selectorButtonText,
+                  dataType === type.value && styles.selectorButtonTextActive,
                 ]}
               >
                 {type.label}
               </ThemedText>
             </TouchableOpacity>
           ))}
+        </ScrollView>
+      </View>
+
+      {/* Low Data Warning */}
+      {hasMinimalData && (
+        <View style={styles.warningCard}>
+          <View style={styles.warningIcon}>
+            <Ionicons name="information-circle" size={24} color={REZ_COLORS.warning} />
+          </View>
+          <View style={styles.warningContent}>
+            <ThemedText style={styles.warningTitle}>Limited Data Available</ThemedText>
+            <ThemedText style={styles.warningText}>
+              Trend analysis works best with more historical data. Continue making sales to see richer insights.
+            </ThemedText>
+          </View>
         </View>
+      )}
 
-        {/* Overall Analysis */}
-        {trends?.overallAnalysis && (
-          <View style={[styles.analysisCard, { borderLeftColor: getTrendColor(trends.overallAnalysis.trend) }]}>
-            <View style={styles.analysisHeader}>
-              <View style={styles.analysisIcon}>
-                <Ionicons
-                  name={getTrendIcon(trends.overallAnalysis.trend) as any}
-                  size={32}
-                  color={getTrendColor(trends.overallAnalysis.trend)}
-                />
-              </View>
-              <View style={styles.analysisContent}>
-                <ThemedText type="subtitle" style={styles.analysisTitle}>
-                  Overall Trend: {trends.overallAnalysis.trend.toUpperCase()}
+      {/* Overall Trend Card */}
+      {trends?.overallAnalysis && (
+        <View style={styles.trendCard}>
+          <View style={styles.trendCardHeader}>
+            <View style={[styles.trendIconContainer, { backgroundColor: `${getTrendColor(trends.overallAnalysis.trend)}15` }]}>
+              <Ionicons
+                name={getTrendIcon(trends.overallAnalysis.trend)}
+                size={28}
+                color={getTrendColor(trends.overallAnalysis.trend)}
+              />
+            </View>
+            <View style={styles.trendCardInfo}>
+              <ThemedText style={styles.trendCardLabel}>Overall Trend</ThemedText>
+              <View style={styles.trendCardValueRow}>
+                <ThemedText style={[styles.trendCardValue, { color: getTrendColor(trends.overallAnalysis.trend) }]}>
+                  {trends.overallAnalysis.trend.toUpperCase()}
                 </ThemedText>
-                <ThemedText style={styles.analysisSubtext}>
-                  {(trends.overallAnalysis.growthRate * 100).toFixed(1)}% growth rate
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.strengthBars}>
-              <View style={styles.strengthBar}>
-                <ThemedText style={styles.strengthLabel}>Trend Strength</ThemedText>
-                <View style={styles.barContainer}>
-                  <View
-                    style={[
-                      styles.barFill,
-                      {
-                        width: `${trends.overallAnalysis.strength}%`,
-                        backgroundColor: trends.overallAnalysis.strength >= 70 ? Colors.light.success :
-                                       trends.overallAnalysis.strength >= 40 ? Colors.light.warning :
-                                       Colors.light.error
-                      }
-                    ]}
-                  />
-                  <ThemedText style={styles.barValue}>{trends.overallAnalysis.strength.toFixed(0)}%</ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.strengthBar}>
-                <ThemedText style={styles.strengthLabel}>Seasonality</ThemedText>
-                <View style={styles.barContainer}>
-                  <View
-                    style={[
-                      styles.barFill,
-                      { width: `${trends.overallAnalysis.seasonality}%`, backgroundColor: Colors.light.info }
-                    ]}
-                  />
-                  <ThemedText style={styles.barValue}>{trends.overallAnalysis.seasonality.toFixed(0)}%</ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.strengthBar}>
-                <ThemedText style={styles.strengthLabel}>Cyclicity</ThemedText>
-                <View style={styles.barContainer}>
-                  <View
-                    style={[
-                      styles.barFill,
-                      { width: `${trends.overallAnalysis.cyclicity}%`, backgroundColor: Colors.light.secondary }
-                    ]}
-                  />
-                  <ThemedText style={styles.barValue}>{trends.overallAnalysis.cyclicity.toFixed(0)}%</ThemedText>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Peaks & Troughs */}
-        {trends && (
-          <View style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Peaks & Troughs
-            </ThemedText>
-            <View style={styles.peaksGrid}>
-              <View style={styles.peakCard}>
-                <View style={[styles.peakBadge, { backgroundColor: Colors.light.success }]}>
-                  <Ionicons name="trending-up" size={24} color="white" />
-                </View>
-                <ThemedText type="defaultSemiBold" style={styles.peakTitle}>
-                  Top Peak
-                </ThemedText>
-                {trends.peaks.length > 0 && (
-                  <>
-                    <ThemedText type="title" style={styles.peakValue}>
-                      {formatValue(trends.peaks[0].value)}
-                    </ThemedText>
-                    <ThemedText style={styles.peakDate}>
-                      {new Date(trends.peaks[0].period).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric'
-                      })}
-                    </ThemedText>
-                    {trends.peaks[0].dayOfWeek && (
-                      <ThemedText style={styles.peakDay}>{trends.peaks[0].dayOfWeek}</ThemedText>
-                    )}
-                  </>
-                )}
-              </View>
-
-              <View style={styles.peakCard}>
-                <View style={[styles.peakBadge, { backgroundColor: Colors.light.error }]}>
-                  <Ionicons name="trending-down" size={24} color="white" />
-                </View>
-                <ThemedText type="defaultSemiBold" style={styles.peakTitle}>
-                  Lowest Trough
-                </ThemedText>
-                {trends.troughs.length > 0 && (
-                  <>
-                    <ThemedText type="title" style={styles.peakValue}>
-                      {formatValue(trends.troughs[0].value)}
-                    </ThemedText>
-                    <ThemedText style={styles.peakDate}>
-                      {new Date(trends.troughs[0].period).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric'
-                      })}
-                    </ThemedText>
-                    {trends.troughs[0].dayOfWeek && (
-                      <ThemedText style={styles.peakDay}>{trends.troughs[0].dayOfWeek}</ThemedText>
-                    )}
-                  </>
-                )}
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Seasonal Trends */}
-        {trends?.seasonalTrends && trends.seasonalTrends.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Seasonal Patterns
-            </ThemedText>
-            <View style={styles.seasonalList}>
-              {trends.seasonalTrends.map((season, index) => (
-                <View key={index} style={styles.seasonCard}>
-                  <View style={styles.seasonHeader}>
-                    <ThemedText type="defaultSemiBold" style={styles.seasonTitle}>
-                      {season.season} {season.year}
-                    </ThemedText>
-                    <View style={styles.seasonStats}>
-                      <View style={styles.seasonStat}>
-                        <Ionicons name="trending-up" size={14} color={Colors.light.success} />
-                        <ThemedText style={styles.seasonStatText}>
-                          {formatValue(season.peak)}
-                        </ThemedText>
-                      </View>
-                      <View style={styles.seasonStat}>
-                        <Ionicons name="trending-down" size={14} color={Colors.light.error} />
-                        <ThemedText style={styles.seasonStatText}>
-                          {formatValue(season.trough)}
-                        </ThemedText>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.seasonMetrics}>
-                    <View style={styles.seasonMetric}>
-                      <ThemedText style={styles.seasonMetricLabel}>Average</ThemedText>
-                      <ThemedText type="defaultSemiBold" style={styles.seasonMetricValue}>
-                        {formatValue(season.average)}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.seasonMetric}>
-                      <ThemedText style={styles.seasonMetricLabel}>Volatility</ThemedText>
-                      <ThemedText type="defaultSemiBold" style={styles.seasonMetricValue}>
-                        {season.volatility.toFixed(1)}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.seasonMetric}>
-                      <ThemedText style={styles.seasonMetricLabel}>Data Points</ThemedText>
-                      <ThemedText type="defaultSemiBold" style={styles.seasonMetricValue}>
-                        {season.dataPoints.length}
-                      </ThemedText>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Category Breakdown */}
-        {trends?.byCategory && trends.byCategory.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Trends by Category
-            </ThemedText>
-            <View style={styles.categoryList}>
-              {trends.byCategory.map((category, index) => (
-                <View key={index} style={styles.categoryCard}>
-                  <View style={styles.categoryHeader}>
-                    <ThemedText type="defaultSemiBold" style={styles.categoryName}>
-                      {category.category}
-                    </ThemedText>
-                    <View style={[styles.trendBadge, { backgroundColor: getTrendColor(category.analysis.trend) }]}>
-                      <Ionicons
-                        name={getTrendIcon(category.analysis.trend) as any}
-                        size={14}
-                        color="white"
-                      />
-                      <ThemedText style={styles.trendBadgeText}>
-                        {category.analysis.trend.toUpperCase()}
-                      </ThemedText>
-                    </View>
-                  </View>
-
-                  <View style={styles.categoryMetrics}>
-                    <View style={styles.categoryMetric}>
-                      <ThemedText style={styles.categoryMetricLabel}>Growth Rate</ThemedText>
-                      <ThemedText
-                        type="defaultSemiBold"
-                        style={[styles.categoryMetricValue, { color: getTrendColor(category.analysis.trend) }]}
-                      >
-                        {(category.analysis.growthRate * 100).toFixed(1)}%
-                      </ThemedText>
-                    </View>
-                    <View style={styles.categoryMetric}>
-                      <ThemedText style={styles.categoryMetricLabel}>Strength</ThemedText>
-                      <ThemedText type="defaultSemiBold" style={styles.categoryMetricValue}>
-                        {category.analysis.strength.toFixed(0)}%
-                      </ThemedText>
-                    </View>
-                    <View style={styles.categoryMetric}>
-                      <ThemedText style={styles.categoryMetricLabel}>Seasonality</ThemedText>
-                      <ThemedText type="defaultSemiBold" style={styles.categoryMetricValue}>
-                        {category.analysis.seasonality.toFixed(0)}%
-                      </ThemedText>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Predictions */}
-        {trends?.predictions && (
-          <View style={styles.predictionsCard}>
-            <View style={styles.predictionsHeader}>
-              <Ionicons name="analytics" size={24} color={Colors.light.primary} />
-              <ThemedText type="subtitle" style={styles.predictionsTitle}>
-                Next Period Forecast
-              </ThemedText>
-            </View>
-            <View style={styles.predictionsContent}>
-              <View style={styles.predictionRow}>
-                <ThemedText style={styles.predictionLabel}>Period:</ThemedText>
-                <ThemedText type="defaultSemiBold" style={styles.predictionValue}>
-                  {trends.predictions.nextSeason}
-                </ThemedText>
-              </View>
-              <View style={styles.predictionRow}>
-                <ThemedText style={styles.predictionLabel}>Expected Trend:</ThemedText>
-                <View style={styles.predictionTrend}>
+                <View style={[styles.growthBadge, {
+                  backgroundColor: trends.overallAnalysis.growthRate >= 0 ? `${REZ_COLORS.success}15` : `${REZ_COLORS.error}15`
+                }]}>
                   <Ionicons
-                    name={getTrendIcon(trends.predictions.expectedTrend) as any}
-                    size={16}
-                    color={getTrendColor(trends.predictions.expectedTrend)}
+                    name={trends.overallAnalysis.growthRate >= 0 ? 'arrow-up' : 'arrow-down'}
+                    size={12}
+                    color={trends.overallAnalysis.growthRate >= 0 ? REZ_COLORS.success : REZ_COLORS.error}
                   />
-                  <ThemedText
-                    type="defaultSemiBold"
-                    style={[styles.predictionValue, { color: getTrendColor(trends.predictions.expectedTrend) }]}
-                  >
-                    {trends.predictions.expectedTrend.toUpperCase()}
+                  <ThemedText style={[styles.growthBadgeText, {
+                    color: trends.overallAnalysis.growthRate >= 0 ? REZ_COLORS.success : REZ_COLORS.error
+                  }]}>
+                    {Math.abs(trends.overallAnalysis.growthRate).toFixed(1)}%
                   </ThemedText>
                 </View>
               </View>
-              <View style={styles.predictionRow}>
-                <ThemedText style={styles.predictionLabel}>Expected Value:</ThemedText>
-                <ThemedText type="defaultSemiBold" style={styles.predictionValue}>
-                  {formatValue(trends.predictions.expectedValue)}
-                </ThemedText>
+            </View>
+          </View>
+
+          {/* Progress Bars */}
+          <View style={styles.progressBarsContainer}>
+            <View style={styles.progressBarItem}>
+              <View style={styles.progressBarHeader}>
+                <ThemedText style={styles.progressBarLabel}>Trend Strength</ThemedText>
+                <ThemedText style={styles.progressBarValue}>{trends.overallAnalysis.strength}%</ThemedText>
               </View>
-              <View style={styles.predictionRow}>
-                <ThemedText style={styles.predictionLabel}>Confidence:</ThemedText>
-                <View style={styles.confidenceContainer}>
-                  <View
-                    style={[
-                      styles.confidenceBadge,
-                      {
-                        backgroundColor: trends.predictions.confidence >= 80 ? Colors.light.success :
-                                       trends.predictions.confidence >= 60 ? Colors.light.warning :
-                                       Colors.light.error
-                      }
-                    ]}
-                  >
-                    <ThemedText style={styles.confidenceText}>
-                      {trends.predictions.confidence.toFixed(0)}%
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.max(5, trends.overallAnalysis.strength)}%`,
+                      backgroundColor: trends.overallAnalysis.strength >= 60 ? REZ_COLORS.success :
+                                      trends.overallAnalysis.strength >= 30 ? REZ_COLORS.warning :
+                                      REZ_COLORS.error
+                    }
+                  ]}
+                />
+              </View>
+            </View>
+
+            <View style={styles.progressBarItem}>
+              <View style={styles.progressBarHeader}>
+                <ThemedText style={styles.progressBarLabel}>Seasonality</ThemedText>
+                <ThemedText style={styles.progressBarValue}>{trends.overallAnalysis.seasonality}%</ThemedText>
+              </View>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.max(5, trends.overallAnalysis.seasonality)}%`,
+                      backgroundColor: REZ_COLORS.info
+                    }
+                  ]}
+                />
+              </View>
+            </View>
+
+            <View style={styles.progressBarItem}>
+              <View style={styles.progressBarHeader}>
+                <ThemedText style={styles.progressBarLabel}>Cyclicity</ThemedText>
+                <ThemedText style={styles.progressBarValue}>{trends.overallAnalysis.cyclicity}%</ThemedText>
+              </View>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.max(5, trends.overallAnalysis.cyclicity)}%`,
+                      backgroundColor: REZ_COLORS.purple
+                    }
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Peaks & Troughs */}
+      {trends?.peaks && trends.peaks.length > 0 && (
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={styles.sectionTitle}>Peaks & Troughs</ThemedText>
+          </View>
+
+          <View style={styles.peaksGrid}>
+            {/* Top Peak */}
+            <View style={[styles.peakCard, { borderTopColor: REZ_COLORS.success }]}>
+              <View style={[styles.peakIconBg, { backgroundColor: `${REZ_COLORS.success}15` }]}>
+                <Ionicons name="trending-up" size={24} color={REZ_COLORS.success} />
+              </View>
+              <ThemedText style={styles.peakLabel}>Top Peak</ThemedText>
+              <ThemedText style={styles.peakValue}>{formatValue(trends.peaks[0].value)}</ThemedText>
+              <ThemedText style={styles.peakPeriod}>{trends.peaks[0].period}</ThemedText>
+              {trends.peaks[0].seasonalIndex && (
+                <View style={[styles.indexBadge, { backgroundColor: `${REZ_COLORS.success}15` }]}>
+                  <ThemedText style={[styles.indexBadgeText, { color: REZ_COLORS.success }]}>
+                    {trends.peaks[0].seasonalIndex.toFixed(2)}x avg
+                  </ThemedText>
+                </View>
+              )}
+            </View>
+
+            {/* Lowest Trough */}
+            {trends?.troughs && trends.troughs.length > 0 && (
+              <View style={[styles.peakCard, { borderTopColor: REZ_COLORS.error }]}>
+                <View style={[styles.peakIconBg, { backgroundColor: `${REZ_COLORS.error}15` }]}>
+                  <Ionicons name="trending-down" size={24} color={REZ_COLORS.error} />
+                </View>
+                <ThemedText style={styles.peakLabel}>Lowest Trough</ThemedText>
+                <ThemedText style={styles.peakValue}>{formatValue(trends.troughs[0].value)}</ThemedText>
+                <ThemedText style={styles.peakPeriod}>{trends.troughs[0].period}</ThemedText>
+                {trends.troughs[0].seasonalIndex && (
+                  <View style={[styles.indexBadge, { backgroundColor: `${REZ_COLORS.error}15` }]}>
+                    <ThemedText style={[styles.indexBadgeText, { color: REZ_COLORS.error }]}>
+                      {trends.troughs[0].seasonalIndex.toFixed(2)}x avg
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Seasonal Patterns */}
+      {trends?.seasonalTrends && trends.seasonalTrends.length > 0 && (
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={styles.sectionTitle}>Seasonal Patterns</ThemedText>
+          </View>
+
+          {trends.seasonalTrends.map((season, index) => (
+            <View key={index} style={styles.seasonCard}>
+              <View style={styles.seasonHeader}>
+                <View style={styles.seasonTitleRow}>
+                  <Ionicons name="calendar-outline" size={18} color={REZ_COLORS.primary} />
+                  <ThemedText style={styles.seasonTitle}>
+                    {season.season} {season.year}
+                  </ThemedText>
+                </View>
+                <View style={styles.seasonBadges}>
+                  <View style={[styles.miniBadge, { backgroundColor: `${REZ_COLORS.success}15` }]}>
+                    <Ionicons name="arrow-up" size={12} color={REZ_COLORS.success} />
+                    <ThemedText style={[styles.miniBadgeText, { color: REZ_COLORS.success }]}>
+                      {formatValue(season.peak)}
+                    </ThemedText>
+                  </View>
+                  <View style={[styles.miniBadge, { backgroundColor: `${REZ_COLORS.error}15` }]}>
+                    <Ionicons name="arrow-down" size={12} color={REZ_COLORS.error} />
+                    <ThemedText style={[styles.miniBadgeText, { color: REZ_COLORS.error }]}>
+                      {formatValue(season.trough)}
                     </ThemedText>
                   </View>
                 </View>
               </View>
+
+              <View style={styles.seasonMetricsRow}>
+                <View style={styles.seasonMetric}>
+                  <ThemedText style={styles.seasonMetricLabel}>Average</ThemedText>
+                  <ThemedText style={styles.seasonMetricValue}>{formatValue(Math.round(season.average))}</ThemedText>
+                </View>
+                <View style={[styles.seasonMetric, styles.seasonMetricBorder]}>
+                  <ThemedText style={styles.seasonMetricLabel}>Volatility</ThemedText>
+                  <ThemedText style={styles.seasonMetricValue}>{season.volatility.toFixed(0)}%</ThemedText>
+                </View>
+                <View style={styles.seasonMetric}>
+                  <ThemedText style={styles.seasonMetricLabel}>Data Points</ThemedText>
+                  <ThemedText style={styles.seasonMetricValue}>{season.dataPoints?.length || 0}</ThemedText>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Next Period Forecast */}
+      {trends?.predictions && (
+        <View style={[styles.sectionCard, styles.forecastCard]}>
+          <View style={styles.forecastHeader}>
+            <View style={styles.forecastIconContainer}>
+              <Ionicons name="sparkles" size={20} color={REZ_COLORS.primary} />
+            </View>
+            <ThemedText style={styles.forecastTitle}>Next Period Forecast</ThemedText>
+          </View>
+
+          <View style={styles.forecastContent}>
+            <View style={styles.forecastRow}>
+              <ThemedText style={styles.forecastLabel}>Period</ThemedText>
+              <ThemedText style={styles.forecastValue}>{trends.predictions.nextSeason}</ThemedText>
+            </View>
+
+            <View style={styles.forecastDivider} />
+
+            <View style={styles.forecastRow}>
+              <ThemedText style={styles.forecastLabel}>Expected Trend</ThemedText>
+              <View style={styles.forecastTrendRow}>
+                <Ionicons
+                  name={getTrendIcon(trends.predictions.expectedTrend)}
+                  size={18}
+                  color={getTrendColor(trends.predictions.expectedTrend)}
+                />
+                <ThemedText style={[styles.forecastValue, { color: getTrendColor(trends.predictions.expectedTrend) }]}>
+                  {trends.predictions.expectedTrend.toUpperCase()}
+                </ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.forecastDivider} />
+
+            <View style={styles.forecastRow}>
+              <ThemedText style={styles.forecastLabel}>Expected Value</ThemedText>
+              <ThemedText style={[styles.forecastValue, styles.forecastValueLarge]}>
+                {formatValue(trends.predictions.expectedValue)}
+              </ThemedText>
+            </View>
+
+            <View style={styles.forecastDivider} />
+
+            <View style={styles.forecastRow}>
+              <ThemedText style={styles.forecastLabel}>Confidence</ThemedText>
+              <View style={[styles.confidenceBadge, { backgroundColor: getConfidenceColor(trends.predictions.confidence) }]}>
+                <ThemedText style={styles.confidenceText}>
+                  {trends.predictions.confidence.toFixed(0)}%
+                </ThemedText>
+              </View>
             </View>
           </View>
-        )}
-      </ThemedView>
+        </View>
+      )}
+
+      {/* Empty State */}
+      {!trends?.overallAnalysis && !trends?.peaks?.length && (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconContainer}>
+            <Ionicons name="analytics-outline" size={48} color={REZ_COLORS.textMuted} />
+          </View>
+          <ThemedText style={styles.emptyTitle}>No Trend Data</ThemedText>
+          <ThemedText style={styles.emptyText}>
+            Trend analysis requires order history. Once you have sales data, seasonal patterns and insights will appear here.
+          </ThemedText>
+        </View>
+      )}
+
+      {/* Bottom Spacing */}
+      <View style={{ height: 32 }} />
     </ScrollView>
   );
 }
@@ -449,328 +492,488 @@ export default function TrendsAnalysisScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.backgroundSecondary,
+    backgroundColor: REZ_COLORS.background,
+  },
+  scrollContent: {
+    padding: 16,
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  content: {
-    padding: 16,
-    gap: 16,
-  },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    marginBottom: 20,
   },
   backButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: REZ_COLORS.cardBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   headerContent: {
     flex: 1,
+    marginLeft: 12,
   },
-  title: {
-    color: Colors.light.text,
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
   },
-  subtitle: {
-    color: Colors.light.textSecondary,
+  headerSubtitle: {
     fontSize: 14,
+    color: REZ_COLORS.textSecondary,
+    marginTop: 2,
   },
-  typeSelector: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  typeButton: {
-    flex: 1,
-    minWidth: '45%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.light.background,
+  refreshButton: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  activeTypeButton: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
-  },
-  typeButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.light.textSecondary,
-  },
-  activeTypeButtonText: {
-    color: 'white',
-  },
-  analysisCard: {
-    backgroundColor: Colors.light.background,
-    padding: 20,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-  },
-  analysisHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 20,
-  },
-  analysisIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.light.backgroundSecondary,
+    backgroundColor: `${REZ_COLORS.primary}10`,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  analysisContent: {
-    flex: 1,
-  },
-  analysisTitle: {
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  analysisSubtext: {
-    color: Colors.light.textSecondary,
-    fontSize: 14,
-  },
-  strengthBars: {
-    gap: 16,
-  },
-  strengthBar: {
-    gap: 8,
-  },
-  strengthLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.light.textSecondary,
-  },
-  barContainer: {
-    height: 32,
-    backgroundColor: Colors.light.backgroundSecondary,
-    borderRadius: 6,
-    position: 'relative',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  barFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 6,
-  },
-  barValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    zIndex: 1,
-  },
-  section: {
-    backgroundColor: Colors.light.background,
-    padding: 16,
-    borderRadius: 12,
-  },
-  sectionTitle: {
-    color: Colors.light.text,
+
+  // Selector
+  selectorContainer: {
     marginBottom: 16,
   },
+  selectorScroll: {
+    gap: 8,
+  },
+  selectorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: REZ_COLORS.cardBg,
+    borderWidth: 1,
+    borderColor: REZ_COLORS.border,
+  },
+  selectorButtonActive: {
+    backgroundColor: REZ_COLORS.primary,
+    borderColor: REZ_COLORS.primary,
+  },
+  selectorButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: REZ_COLORS.textSecondary,
+  },
+  selectorButtonTextActive: {
+    color: REZ_COLORS.white,
+  },
+
+  // Warning Card
+  warningCard: {
+    flexDirection: 'row',
+    backgroundColor: `${REZ_COLORS.warning}10`,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: REZ_COLORS.warning,
+  },
+  warningIcon: {
+    marginRight: 12,
+  },
+  warningContent: {
+    flex: 1,
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: REZ_COLORS.navy,
+    marginBottom: 4,
+  },
+  warningText: {
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
+    lineHeight: 18,
+  },
+
+  // Trend Card
+  trendCard: {
+    backgroundColor: REZ_COLORS.cardBg,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  trendCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  trendIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trendCardInfo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  trendCardLabel: {
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
+    marginBottom: 4,
+  },
+  trendCardValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  trendCardValue: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  growthBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  growthBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  // Progress Bars
+  progressBarsContainer: {
+    gap: 14,
+  },
+  progressBarItem: {
+    gap: 8,
+  },
+  progressBarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressBarLabel: {
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  progressBarValue: {
+    fontSize: 13,
+    color: REZ_COLORS.navy,
+    fontWeight: '600',
+  },
+  progressBarTrack: {
+    height: 8,
+    backgroundColor: REZ_COLORS.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+
+  // Section Card
+  sectionCard: {
+    backgroundColor: REZ_COLORS.cardBg,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
+  },
+
+  // Peaks Grid
   peaksGrid: {
     flexDirection: 'row',
     gap: 12,
   },
   peakCard: {
     flex: 1,
-    backgroundColor: Colors.light.backgroundSecondary,
+    backgroundColor: REZ_COLORS.background,
+    borderRadius: 12,
     padding: 16,
-    borderRadius: 8,
     alignItems: 'center',
-    gap: 8,
+    borderTopWidth: 3,
   },
-  peakBadge: {
+  peakIconBg: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 12,
   },
-  peakTitle: {
-    color: Colors.light.text,
-    fontSize: 13,
+  peakLabel: {
+    fontSize: 12,
+    color: REZ_COLORS.textSecondary,
+    fontWeight: '500',
+    marginBottom: 6,
   },
   peakValue: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
+    marginBottom: 4,
   },
-  peakDate: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
+  peakPeriod: {
+    fontSize: 13,
+    color: REZ_COLORS.textSecondary,
+    marginBottom: 8,
   },
-  peakDay: {
-    fontSize: 11,
-    color: Colors.light.textMuted,
-  },
-  seasonalList: {
-    gap: 12,
-  },
-  seasonCard: {
-    backgroundColor: Colors.light.backgroundSecondary,
-    padding: 12,
+  indexBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
-    gap: 12,
+  },
+  indexBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+
+  // Season Card
+  seasonCard: {
+    backgroundColor: REZ_COLORS.background,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
   },
   seasonHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 14,
+  },
+  seasonTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   seasonTitle: {
-    color: Colors.light.text,
+    fontSize: 15,
+    fontWeight: '600',
+    color: REZ_COLORS.navy,
   },
-  seasonStats: {
+  seasonBadges: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
   },
-  seasonStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  seasonStatText: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-  },
-  seasonMetrics: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  seasonMetric: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  seasonMetricLabel: {
-    fontSize: 11,
-    color: Colors.light.textMuted,
-    marginBottom: 4,
-  },
-  seasonMetricValue: {
-    fontSize: 14,
-    color: Colors.light.text,
-  },
-  categoryList: {
-    gap: 12,
-  },
-  categoryCard: {
-    backgroundColor: Colors.light.backgroundSecondary,
-    padding: 12,
-    borderRadius: 8,
-    gap: 12,
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  categoryName: {
-    color: Colors.light.text,
-    flex: 1,
-  },
-  trendBadge: {
+  miniBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 6,
   },
-  trendBadgeText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
+  miniBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
-  categoryMetrics: {
+  seasonMetricsRow: {
     flexDirection: 'row',
-    gap: 12,
   },
-  categoryMetric: {
+  seasonMetric: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: 8,
   },
-  categoryMetricLabel: {
+  seasonMetricBorder: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: REZ_COLORS.border,
+  },
+  seasonMetricLabel: {
     fontSize: 11,
-    color: Colors.light.textMuted,
+    color: REZ_COLORS.textMuted,
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  categoryMetricValue: {
-    fontSize: 14,
-    color: Colors.light.text,
+  seasonMetricValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: REZ_COLORS.navy,
   },
-  predictionsCard: {
-    backgroundColor: Colors.light.background,
-    padding: 16,
-    borderRadius: 12,
+
+  // Forecast Card
+  forecastCard: {
     borderWidth: 2,
-    borderColor: Colors.light.primary,
+    borderColor: REZ_COLORS.primary,
+    backgroundColor: `${REZ_COLORS.primary}05`,
   },
-  predictionsHeader: {
+  forecastHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     marginBottom: 16,
   },
-  predictionsTitle: {
-    color: Colors.light.primary,
+  forecastIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: `${REZ_COLORS.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
   },
-  predictionsContent: {
-    gap: 12,
+  forecastTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: REZ_COLORS.primary,
   },
-  predictionRow: {
+  forecastContent: {
+    gap: 4,
+  },
+  forecastRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.backgroundSecondary,
+    paddingVertical: 10,
   },
-  predictionLabel: {
+  forecastDivider: {
+    height: 1,
+    backgroundColor: REZ_COLORS.border,
+  },
+  forecastLabel: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
+    color: REZ_COLORS.textSecondary,
   },
-  predictionValue: {
+  forecastValue: {
     fontSize: 14,
-    color: Colors.light.text,
+    fontWeight: '600',
+    color: REZ_COLORS.navy,
   },
-  predictionTrend: {
+  forecastValueLarge: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  forecastTrendRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  confidenceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   confidenceBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   confidenceText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: REZ_COLORS.white,
+    fontSize: 13,
+    fontWeight: '700',
   },
+
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    backgroundColor: REZ_COLORS.cardBg,
+    borderRadius: 16,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: REZ_COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: REZ_COLORS.navy,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: REZ_COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 280,
+  },
+
+  // Access Denied
+  accessDeniedCard: {
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: REZ_COLORS.cardBg,
+    borderRadius: 16,
+    margin: 16,
+  },
+  accessDeniedIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: `${REZ_COLORS.error}10`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  accessDeniedTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: REZ_COLORS.navy,
+    marginBottom: 8,
+  },
+  accessDeniedText: {
+    fontSize: 14,
+    color: REZ_COLORS.textSecondary,
+    textAlign: 'center',
+  },
+
+  // Loading
   loadingText: {
     marginTop: 12,
-    color: Colors.light.textSecondary,
-  },
-  errorText: {
-    marginTop: 12,
-    color: Colors.light.error,
+    fontSize: 14,
+    color: REZ_COLORS.textSecondary,
   },
 });

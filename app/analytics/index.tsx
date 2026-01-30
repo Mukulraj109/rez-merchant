@@ -1,9 +1,10 @@
 /**
- * Analytics Dashboard Overview Screen
- * Main analytics screen with quick stats, date range selector, and navigation to detailed analytics
+ * Analytics Dashboard Overview Screen (V2)
+ * Enhanced analytics dashboard matching V2 design reference
+ * Features: 6 stat cards, daily performance, peak hours, top offers, customer segments, popular items
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -12,7 +13,6 @@ import {
   RefreshControl,
   Dimensions,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -23,13 +23,35 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { analyticsService } from '@/services/api/analytics';
 import { useHasPermission } from '@/hooks/usePermissions';
+import { useStore } from '@/contexts/StoreContext';
+import { StoreSelector } from '@/components/stores/StoreSelector';
 import { DateRangePreset } from '@/types/analytics';
+import { formatTime } from '@/utils/dateUtils';
 
-const { width } = Dimensions.get('window');
+// Import new analytics components
+import {
+  StatCard,
+  DailyPerformanceChart,
+  PeakHoursChart,
+  TopOffersCard,
+  CustomerSegmentsCard,
+  PopularItemsCard,
+} from '@/components/analytics';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function AnalyticsOverviewScreen() {
   const [dateRange, setDateRange] = useState<DateRangePreset>('30d');
   const [refreshing, setRefreshing] = useState(false);
+
+  // Store context - get active store for filtering data
+  const { activeStore } = useStore();
+  const storeId = activeStore?._id;
+
+  // Update analytics service with active store ID
+  React.useEffect(() => {
+    analyticsService.setActiveStore(storeId || null);
+  }, [storeId]);
 
   // Permission check
   const canViewAnalytics = useHasPermission('analytics:view');
@@ -38,18 +60,14 @@ export default function AnalyticsOverviewScreen() {
   // Fetch analytics overview
   const {
     data: overview,
-    isLoading,
+    isLoading: overviewLoading,
     error,
-    refetch,
+    refetch: refetchOverview,
   } = useQuery({
-    queryKey: ['analytics-overview', dateRange],
-    queryFn: () => analyticsService.getAnalyticsOverview({
-      preset: dateRange,
-      startDate: '',
-      endDate: '',
-    }),
-    enabled: canViewAnalytics,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    queryKey: ['analytics-overview', storeId, dateRange],
+    queryFn: () => analyticsService.getAnalyticsOverview({ preset: dateRange }),
+    enabled: canViewAnalytics && !!storeId,
+    staleTime: 2 * 60 * 1000,
   });
 
   // Fetch real-time metrics
@@ -57,153 +75,181 @@ export default function AnalyticsOverviewScreen() {
     data: realTimeMetrics,
     refetch: refetchRealTime,
   } = useQuery({
-    queryKey: ['real-time-metrics'],
+    queryKey: ['real-time-metrics', storeId],
     queryFn: () => analyticsService.getRealTimeMetrics(),
-    enabled: canViewAnalytics,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    enabled: canViewAnalytics && !!storeId,
+    refetchInterval: 30000,
   });
 
-  useEffect(() => {
-    if (!canViewAnalytics) {
-      Alert.alert(
-        'Access Denied',
-        'You do not have permission to view analytics.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
-    }
-  }, [canViewAnalytics]);
+  // Fetch sales by day (for daily performance chart)
+  const {
+    data: salesByDay,
+    isLoading: salesByDayLoading,
+    refetch: refetchSalesByDay,
+  } = useQuery({
+    queryKey: ['sales-by-day', storeId, dateRange],
+    queryFn: () => analyticsService.getSalesByDay({ preset: dateRange }),
+    enabled: canViewAnalytics && !!storeId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch sales by time (for peak hours)
+  const {
+    data: salesByTime,
+    isLoading: salesByTimeLoading,
+    refetch: refetchSalesByTime,
+  } = useQuery({
+    queryKey: ['sales-by-time', storeId, dateRange],
+    queryFn: () => analyticsService.getSalesByTime({ preset: dateRange }),
+    enabled: canViewAnalytics && !!storeId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch top offers
+  const {
+    data: topOffers,
+    isLoading: topOffersLoading,
+    refetch: refetchTopOffers,
+  } = useQuery({
+    queryKey: ['top-offers', storeId, dateRange],
+    queryFn: () => analyticsService.getTopOffers({ preset: dateRange }),
+    enabled: canViewAnalytics && !!storeId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch customer segments
+  const {
+    data: customerSegments,
+    isLoading: segmentsLoading,
+    refetch: refetchSegments,
+  } = useQuery({
+    queryKey: ['customer-segments', storeId, dateRange],
+    queryFn: () => analyticsService.getCustomerSegments({ preset: dateRange }),
+    enabled: canViewAnalytics && !!storeId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch top selling products
+  const {
+    data: topProducts,
+    isLoading: productsLoading,
+    refetch: refetchProducts,
+  } = useQuery({
+    queryKey: ['top-products', storeId, dateRange],
+    queryFn: () => analyticsService.getTopSellingProducts({ preset: dateRange }),
+    enabled: canViewAnalytics && !!storeId,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetch(), refetchRealTime()]);
+    await Promise.all([
+      refetchOverview(),
+      refetchRealTime(),
+      refetchSalesByDay(),
+      refetchSalesByTime(),
+      refetchTopOffers(),
+      refetchSegments(),
+      refetchProducts(),
+    ]);
     setRefreshing(false);
   };
 
-  const dateRangeOptions: { key: DateRangePreset; label: string }[] = [
-    { key: '7d', label: '7 Days' },
-    { key: '30d', label: '30 Days' },
-    { key: '90d', label: '90 Days' },
-    { key: '1y', label: '1 Year' },
-  ];
+  const handleExportReport = () => {
+    router.push('/analytics/export');
+  };
 
+  // Format helpers
   const formatCurrency = (amount: number) => `₹${amount.toLocaleString()}`;
   const formatNumber = (value: number) => value.toLocaleString();
-  const formatPercentage = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
 
-  const getGrowthColor = (growth: number) => {
-    if (growth > 0) return Colors.light.success;
-    if (growth < 0) return Colors.light.error;
-    return Colors.light.textSecondary;
-  };
+  // Date range options
+  const dateRangeOptions: { key: DateRangePreset; label: string }[] = [
+    { key: '7d', label: '7D' },
+    { key: '30d', label: '30D' },
+    { key: '90d', label: '90D' },
+    { key: '1y', label: '1Y' },
+  ];
 
-  const StatCard = ({
-    title,
-    value,
-    icon,
-    color,
-    change,
-    onPress,
-  }: {
-    title: string;
-    value: string;
-    icon: string;
-    color: string;
-    change?: number;
-    onPress?: () => void;
-  }) => (
-    <TouchableOpacity
-      style={[styles.statCard, { borderLeftColor: color }]}
-      onPress={onPress}
-      disabled={!onPress}
-    >
-      <View style={styles.statHeader}>
-        <Ionicons name={icon as any} size={24} color={color} />
-        <ThemedText type="caption" style={styles.statTitle}>
-          {title}
-        </ThemedText>
-      </View>
-      <ThemedText type="title" style={styles.statValue}>
-        {value}
-      </ThemedText>
-      {change !== undefined && (
-        <View style={styles.changeContainer}>
-          <Ionicons
-            name={change > 0 ? 'trending-up' : change < 0 ? 'trending-down' : 'remove'}
-            size={16}
-            color={getGrowthColor(change)}
-          />
-          <ThemedText style={[styles.statChange, { color: getGrowthColor(change) }]}>
-            {formatPercentage(change)}
-          </ThemedText>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  // Stat cards configuration
+  const statCards = useMemo(() => {
+    const cards = [];
 
-  const AnalyticsNavCard = ({
-    title,
-    description,
-    icon,
-    color,
-    onPress,
-  }: {
-    title: string;
-    description: string;
-    icon: string;
-    color: string;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity style={styles.navCard} onPress={onPress}>
-      <View style={[styles.navIconContainer, { backgroundColor: color }]}>
-        <Ionicons name={icon as any} size={28} color="white" />
-      </View>
-      <View style={styles.navContent}>
-        <ThemedText type="defaultSemiBold" style={styles.navTitle}>
-          {title}
-        </ThemedText>
-        <ThemedText style={styles.navDescription}>{description}</ThemedText>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
-    </TouchableOpacity>
-  );
+    if (canViewRevenue) {
+      cards.push({
+        title: 'Revenue',
+        value: formatCurrency(overview?.sales?.totalRevenue || 0),
+        icon: 'cash' as const,
+        color: '#10B981',
+        growth: overview?.sales?.revenueGrowth,
+      });
+    }
 
-  const AlertCard = ({
-    severity,
-    title,
-    description,
-  }: {
-    severity: 'low' | 'medium' | 'high';
-    title: string;
-    description: string;
-  }) => {
-    const severityColors = {
-      low: Colors.light.info,
-      medium: Colors.light.warning,
-      high: Colors.light.error,
-    };
-
-    return (
-      <View style={[styles.alertCard, { borderLeftColor: severityColors[severity] }]}>
-        <View style={styles.alertHeader}>
-          <Ionicons
-            name={severity === 'high' ? 'alert-circle' : severity === 'medium' ? 'warning' : 'information-circle'}
-            size={20}
-            color={severityColors[severity]}
-          />
-          <ThemedText type="defaultSemiBold" style={styles.alertTitle}>
-            {title}
-          </ThemedText>
-        </View>
-        <ThemedText style={styles.alertDescription}>{description}</ThemedText>
-      </View>
+    cards.push(
+      {
+        title: 'Orders',
+        value: formatNumber(overview?.sales?.totalOrders || 0),
+        icon: 'receipt' as const,
+        color: '#3B82F6',
+      },
+      {
+        title: 'Customers',
+        value: formatNumber(overview?.customers?.totalCustomers || 0),
+        icon: 'people' as const,
+        color: '#8B5CF6',
+      }
     );
-  };
+
+    if (canViewRevenue) {
+      cards.push({
+        title: 'Avg Order',
+        value: formatCurrency(overview?.sales?.avgOrderValue || 0),
+        icon: 'calculator' as const,
+        color: '#F59E0B',
+      });
+    }
+
+    cards.push(
+      {
+        title: 'New Customers',
+        value: formatNumber(overview?.customers?.newCustomers || 0),
+        icon: 'person-add' as const,
+        color: '#EAB308',
+      },
+      {
+        title: 'Retention',
+        value: `${(overview?.customers?.retentionRate || 0).toFixed(0)}%`,
+        icon: 'repeat' as const,
+        color: '#EC4899',
+      }
+    );
+
+    return cards;
+  }, [overview, canViewRevenue]);
 
   if (!canViewAnalytics) {
-    return null;
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <Ionicons name="lock-closed" size={48} color={Colors.light.textMuted} />
+        <ThemedText style={styles.noAccessText}>
+          You don't have permission to view analytics
+        </ThemedText>
+      </ThemedView>
+    );
   }
 
-  if (isLoading && !overview) {
+  if (!storeId) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <Ionicons name="storefront-outline" size={48} color={Colors.light.textMuted} />
+        <ThemedText style={styles.noAccessText}>
+          Please select a store to view analytics
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (overviewLoading && !overview) {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={Colors.light.primary} />
@@ -217,7 +263,7 @@ export default function AnalyticsOverviewScreen() {
       <ThemedView style={[styles.container, styles.centered]}>
         <Ionicons name="alert-circle" size={48} color={Colors.light.error} />
         <ThemedText style={styles.errorText}>Failed to load analytics</ThemedText>
-        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetchOverview()}>
           <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
         </TouchableOpacity>
       </ThemedView>
@@ -227,228 +273,171 @@ export default function AnalyticsOverviewScreen() {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
+      showsVerticalScrollIndicator={false}
     >
-      <ThemedView style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <ThemedText type="title" style={styles.title}>
-              Analytics Dashboard
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Last updated: {realTimeMetrics ? new Date(realTimeMetrics.lastUpdated).toLocaleTimeString() : 'N/A'}
+      {/* Store Selector Header */}
+      <View style={styles.storeHeader}>
+        <StoreSelector compact />
+      </View>
+
+      {/* Header Section */}
+      <View style={styles.headerSection}>
+        <View style={styles.headerTop}>
+          <View style={styles.headerTitleContainer}>
+            <ThemedText style={styles.headerTitle}>Business Analytics</ThemedText>
+            <ThemedText style={styles.headerSubtitle}>
+              {activeStore?.name} | Last updated: {formatTime(realTimeMetrics?.lastUpdated)}
             </ThemedText>
           </View>
-
-          {/* Real-time status */}
-          {realTimeMetrics && (
-            <View style={styles.realtimeStatus}>
-              <View style={[
-                styles.statusDot,
-                { backgroundColor: realTimeMetrics.systemHealth === 'healthy' ? Colors.light.success : Colors.light.warning }
-              ]} />
-              <ThemedText style={styles.statusText}>
-                {realTimeMetrics.systemHealth === 'healthy' ? 'Live' : 'Limited'}
-              </ThemedText>
+          <View style={styles.headerActions}>
+            <View style={styles.liveIndicator}>
+              <View style={styles.liveDot} />
+              <ThemedText style={styles.liveText}>Live</ThemedText>
             </View>
-          )}
+            <TouchableOpacity
+              style={styles.exportButton}
+              onPress={handleExportReport}
+            >
+              <Ionicons name="download-outline" size={18} color={Colors.light.primary} />
+              <ThemedText style={styles.exportButtonText}>Export</ThemedText>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Date Range Selector */}
         <View style={styles.dateRangeContainer}>
-          <ThemedText type="defaultSemiBold" style={styles.sectionLabel}>
-            Time Period
-          </ThemedText>
-          <View style={styles.dateRangeButtons}>
-            {dateRangeOptions.map((option) => (
-              <TouchableOpacity
-                key={option.key}
+          {dateRangeOptions.map((option) => (
+            <TouchableOpacity
+              key={option.key}
+              style={[
+                styles.dateRangeButton,
+                dateRange === option.key && styles.dateRangeButtonActive,
+              ]}
+              onPress={() => setDateRange(option.key)}
+            >
+              <ThemedText
                 style={[
-                  styles.dateRangeButton,
-                  dateRange === option.key && styles.activeDateRangeButton,
+                  styles.dateRangeText,
+                  dateRange === option.key && styles.dateRangeTextActive,
                 ]}
-                onPress={() => setDateRange(option.key)}
               >
-                <ThemedText
-                  style={[
-                    styles.dateRangeButtonText,
-                    dateRange === option.key && styles.activeDateRangeButtonText,
-                  ]}
-                >
-                  {option.label}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Quick Stats */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Key Metrics
-          </ThemedText>
-          <View style={styles.statsGrid}>
-            {canViewRevenue && (
-              <>
-                <StatCard
-                  title="Total Revenue"
-                  value={formatCurrency(overview?.sales?.totalRevenue || 0)}
-                  icon="cash"
-                  color={Colors.light.success}
-                  change={overview?.sales?.revenueGrowth}
-                />
-                <StatCard
-                  title="Avg Order Value"
-                  value={formatCurrency(overview?.sales?.avgOrderValue || 0)}
-                  icon="calculator"
-                  color={Colors.light.primary}
-                />
-              </>
-            )}
-            <StatCard
-              title="Total Orders"
-              value={formatNumber(overview?.sales?.totalOrders || 0)}
-              icon="receipt"
-              color={Colors.light.info}
-            />
-            <StatCard
-              title="Total Customers"
-              value={formatNumber(overview?.customers?.totalCustomers || 0)}
-              icon="people"
-              color={Colors.light.secondary}
-            />
-            <StatCard
-              title="Active Customers"
-              value={formatNumber(overview?.customers?.activeCustomers || 0)}
-              icon="person-add"
-              color={Colors.light.tertiary}
-            />
-            <StatCard
-              title="Retention Rate"
-              value={`${(overview?.customers?.retentionRate || 0).toFixed(1)}%`}
-              icon="repeat"
-              color={Colors.light.warning}
-            />
-          </View>
-        </View>
-
-        {/* Health Score */}
-        {overview?.health && (
-          <View style={styles.healthSection}>
-            <View style={styles.healthHeader}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                Business Health Score
+                {option.label}
               </ThemedText>
-              <View style={styles.healthScoreContainer}>
-                <ThemedText type="title" style={[
-                  styles.healthScore,
-                  { color: overview.health.overallScore >= 80 ? Colors.light.success :
-                           overview.health.overallScore >= 60 ? Colors.light.warning :
-                           Colors.light.error }
-                ]}>
-                  {overview.health.overallScore}
-                </ThemedText>
-                <ThemedText style={styles.healthScoreLabel}>/100</ThemedText>
-              </View>
-            </View>
-
-            {overview.health.alerts && overview.health.alerts.length > 0 && (
-              <View style={styles.alertsContainer}>
-                <ThemedText type="defaultSemiBold" style={styles.alertsTitle}>
-                  Alerts & Recommendations
-                </ThemedText>
-                {overview.health.alerts.slice(0, 3).map((alert, index) => (
-                  <AlertCard
-                    key={index}
-                    severity={alert.severity}
-                    title={alert.title}
-                    description={alert.description}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Real-time Metrics */}
-        {realTimeMetrics && (
-          <View style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Real-time Activity
-            </ThemedText>
-            <View style={styles.realtimeGrid}>
-              <View style={styles.realtimeCard}>
-                <Ionicons name="people" size={24} color={Colors.light.info} />
-                <ThemedText type="title" style={styles.realtimeValue}>
-                  {realTimeMetrics.onlineCustomers}
-                </ThemedText>
-                <ThemedText style={styles.realtimeLabel}>Online Now</ThemedText>
-              </View>
-              <View style={styles.realtimeCard}>
-                <Ionicons name="cart" size={24} color={Colors.light.warning} />
-                <ThemedText type="title" style={styles.realtimeValue}>
-                  {realTimeMetrics.ordersInProgress}
-                </ThemedText>
-                <ThemedText style={styles.realtimeLabel}>In Progress</ThemedText>
-              </View>
-              <View style={styles.realtimeCard}>
-                <Ionicons name="time" size={24} color={Colors.light.secondary} />
-                <ThemedText type="title" style={styles.realtimeValue}>
-                  {realTimeMetrics.avgResponseTime}ms
-                </ThemedText>
-                <ThemedText style={styles.realtimeLabel}>Avg Response</ThemedText>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Detailed Analytics Navigation */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Detailed Analytics
-          </ThemedText>
-          <View style={styles.navCardsContainer}>
-            <AnalyticsNavCard
-              title="Sales Forecast"
-              description="AI-powered sales predictions for 7-90 days"
-              icon="trending-up"
-              color={Colors.light.success}
-              onPress={() => router.push('/analytics/sales-forecast')}
-            />
-            <AnalyticsNavCard
-              title="Inventory Analytics"
-              description="Stockout predictions & reorder recommendations"
-              icon="cube"
-              color={Colors.light.warning}
-              onPress={() => router.push('/analytics/inventory')}
-            />
-            <AnalyticsNavCard
-              title="Customer Insights"
-              description="CLV, retention, churn analysis"
-              icon="people"
-              color={Colors.light.info}
-              onPress={() => router.push('/analytics/customers')}
-            />
-            <AnalyticsNavCard
-              title="Trend Analysis"
-              description="Seasonal patterns & peak detection"
-              icon="pulse"
-              color={Colors.light.secondary}
-              onPress={() => router.push('/analytics/trends')}
-            />
-            <AnalyticsNavCard
-              title="Product Performance"
-              description="Top performers & profitability analysis"
-              icon="bar-chart"
-              color={Colors.light.tertiary}
-              onPress={() => router.push('/analytics/products')}
-            />
-          </View>
+            </TouchableOpacity>
+          ))}
         </View>
-      </ThemedView>
+      </View>
+
+      {/* 6 Stat Cards Grid */}
+      <View style={styles.statCardsSection}>
+        <View style={styles.statCardsGrid}>
+          {statCards.map((card, index) => (
+            <View key={`${card.title}-${index}`} style={styles.statCardWrapper}>
+              <StatCard
+                title={card.title}
+                value={card.value}
+                icon={card.icon}
+                color={card.color}
+                growth={card.growth}
+                compact={true}
+              />
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Daily Performance Chart Section */}
+      <DailyPerformanceChart
+        data={salesByDay?.data || []}
+        isLoading={salesByDayLoading}
+      />
+
+      {/* Peak Hours Analysis */}
+      <View style={styles.chartSection}>
+        <PeakHoursChart
+          data={salesByTime?.data || []}
+          peakHours={salesByTime?.peakHours}
+          isLoading={salesByTimeLoading}
+        />
+      </View>
+
+      {/* Top Offers */}
+      <View style={styles.chartSection}>
+        <TopOffersCard
+          offers={topOffers?.offers || []}
+          isLoading={topOffersLoading}
+          onViewAll={() => router.push('/analytics/offers')}
+        />
+      </View>
+
+      {/* Customer Segments */}
+      <View style={styles.chartSection}>
+        <CustomerSegmentsCard
+          segments={customerSegments?.segments || []}
+          totalCustomers={customerSegments?.totalCustomers || 0}
+          isLoading={segmentsLoading}
+          onViewAll={() => router.push('/analytics/customers')}
+        />
+      </View>
+
+      {/* Popular Items */}
+      <View style={styles.chartSection}>
+        <PopularItemsCard
+          items={topProducts?.products || []}
+          isLoading={productsLoading}
+          onViewAll={() => router.push('/analytics/products')}
+        />
+      </View>
+
+      {/* Quick Navigation */}
+      <View style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>Detailed Reports</ThemedText>
+        <View style={styles.navGrid}>
+          <TouchableOpacity
+            style={styles.navCard}
+            onPress={() => router.push('/analytics/sales-forecast')}
+          >
+            <View style={[styles.navIcon, { backgroundColor: '#DCFCE7' }]}>
+              <Ionicons name="trending-up" size={24} color="#16A34A" />
+            </View>
+            <ThemedText style={styles.navLabel}>Forecast</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.navCard}
+            onPress={() => router.push('/analytics/inventory')}
+          >
+            <View style={[styles.navIcon, { backgroundColor: '#FEF3C7' }]}>
+              <Ionicons name="cube" size={24} color="#D97706" />
+            </View>
+            <ThemedText style={styles.navLabel}>Inventory</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.navCard}
+            onPress={() => router.push('/analytics/customers')}
+          >
+            <View style={[styles.navIcon, { backgroundColor: '#DBEAFE' }]}>
+              <Ionicons name="people" size={24} color="#2563EB" />
+            </View>
+            <ThemedText style={styles.navLabel}>Customers</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.navCard}
+            onPress={() => router.push('/analytics/trends')}
+          >
+            <View style={[styles.navIcon, { backgroundColor: '#F3E8FF' }]}>
+              <Ionicons name="pulse" size={24} color="#7C3AED" />
+            </View>
+            <ThemedText style={styles.navLabel}>Trends</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -458,229 +447,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.backgroundSecondary,
   },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
+  },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  content: {
-    padding: 16,
-    gap: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  title: {
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  subtitle: {
-    color: Colors.light.textSecondary,
-    fontSize: 14,
-  },
-  realtimeStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: Colors.light.background,
-    borderRadius: 20,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.light.text,
-  },
-  dateRangeContainer: {
-    backgroundColor: Colors.light.background,
-    padding: 16,
-    borderRadius: 12,
-  },
-  sectionLabel: {
-    color: Colors.light.text,
-    marginBottom: 12,
-  },
-  dateRangeButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  dateRangeButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: Colors.light.backgroundSecondary,
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  activeDateRangeButton: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
-  },
-  dateRangeButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.light.textSecondary,
-  },
-  activeDateRangeButtonText: {
-    color: 'white',
-  },
-  section: {
-    backgroundColor: Colors.light.background,
-    padding: 16,
-    borderRadius: 12,
-  },
-  sectionTitle: {
-    color: Colors.light.text,
-    marginBottom: 16,
-  },
-  statsGrid: {
-    gap: 12,
-  },
-  statCard: {
-    backgroundColor: Colors.light.backgroundSecondary,
-    padding: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-  },
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  statTitle: {
-    color: Colors.light.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontSize: 11,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  changeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  statChange: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  healthSection: {
-    backgroundColor: Colors.light.background,
-    padding: 16,
-    borderRadius: 12,
-  },
-  healthHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  healthScoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  healthScore: {
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  healthScoreLabel: {
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-    marginLeft: 4,
-  },
-  alertsContainer: {
-    gap: 8,
-  },
-  alertsTitle: {
-    color: Colors.light.text,
-    marginBottom: 8,
-  },
-  alertCard: {
-    backgroundColor: Colors.light.backgroundSecondary,
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-  },
-  alertHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  alertTitle: {
-    color: Colors.light.text,
-    fontSize: 14,
-  },
-  alertDescription: {
-    color: Colors.light.textSecondary,
-    fontSize: 13,
-    marginLeft: 28,
-  },
-  realtimeGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  realtimeCard: {
-    flex: 1,
-    backgroundColor: Colors.light.backgroundSecondary,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  realtimeValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginVertical: 8,
-  },
-  realtimeLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-  },
-  navCardsContainer: {
-    gap: 12,
-  },
-  navCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.light.backgroundSecondary,
-    padding: 16,
-    borderRadius: 8,
-    gap: 12,
-  },
-  navIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navContent: {
-    flex: 1,
-  },
-  navTitle: {
-    color: Colors.light.text,
-    marginBottom: 2,
-  },
-  navDescription: {
-    color: Colors.light.textSecondary,
-    fontSize: 13,
   },
   loadingText: {
     marginTop: 12,
@@ -690,6 +463,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: Colors.light.error,
     textAlign: 'center',
+  },
+  noAccessText: {
+    marginTop: 12,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 32,
   },
   retryButton: {
     marginTop: 16,
@@ -701,5 +480,165 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: 'white',
     fontWeight: '600',
+  },
+
+  // Store Selector Header
+  storeHeader: {
+    backgroundColor: Colors.light.primary,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+
+  // Header Section
+  headerSection: {
+    backgroundColor: Colors.light.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  headerTitleContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.light.text,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#16A34A',
+  },
+  liveText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#16A34A',
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.background,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+  },
+  exportButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.light.primary,
+  },
+
+  // Date Range
+  dateRangeContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.light.backgroundSecondary,
+    borderRadius: 10,
+    padding: 4,
+  },
+  dateRangeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  dateRangeButtonActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  dateRangeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.light.textSecondary,
+  },
+  dateRangeTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // Stat Cards Section
+  statCardsSection: {
+    marginBottom: 16,
+  },
+  statCardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  statCardWrapper: {
+    width: '50%',
+    padding: 4,
+  },
+
+  // Sections
+  section: {
+    backgroundColor: Colors.light.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  chartSection: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.light.text,
+    marginBottom: 16,
+  },
+
+  // Navigation Grid
+  navGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  navCard: {
+    width: (SCREEN_WIDTH - 64 - 36) / 4,
+    minWidth: 70,
+    backgroundColor: Colors.light.backgroundSecondary,
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  navIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  navLabel: {
+    fontSize: 11,
+    color: Colors.light.textSecondary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

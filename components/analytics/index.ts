@@ -21,6 +21,14 @@ export { TrendIndicator } from './TrendIndicator';
 export { DateRangeSelector } from './DateRangeSelector';
 export { ExportButton } from './ExportButton';
 
+// Dashboard Analytics Components (V2)
+export { StatCard } from './StatCard';
+export { DailyPerformanceChart } from './DailyPerformanceChart';
+export { PeakHoursChart } from './PeakHoursChart';
+export { TopOffersCard } from './TopOffersCard';
+export { CustomerSegmentsCard } from './CustomerSegmentsCard';
+export { PopularItemsCard } from './PopularItemsCard';
+
 // Type exports for convenience
 export type { default as LineChartProps } from './LineChart';
 export type { default as BarChartProps } from './BarChart';

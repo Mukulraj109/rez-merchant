@@ -1,6 +1,7 @@
 /**
- * Audit Log Advanced Filters Modal
+ * Audit Log Advanced Filters Modal - Premium Redesign
  * Comprehensive filtering for audit logs
+ * Uses AuditFilterContext for state management
  * Permissions required: logs:view
  */
 
@@ -11,82 +12,66 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
-import { Colors } from '@/constants/Colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+
+import { Colors, Spacing, Shadows, BorderRadius } from '@/constants/DesignTokens';
+import { Heading3, BodyText, Caption } from '@/components/ui/DesignSystemComponents';
 import { AuditLogFilters, AuditSeverity, AuditAction, AuditResourceType } from '@/types/audit';
 import { useActionOptions, useResourceTypeOptions, useSeverityOptions } from '@/hooks/queries/useAudit';
+import { useAuditFilters } from '@/contexts/AuditFilterContext';
 
 type DateRangePreset = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'last_90_days' | 'custom';
 
 export default function AuditFiltersScreen() {
+  // Try to use context, fallback to local state if not available
+  let contextFilters: ReturnType<typeof useAuditFilters> | null = null;
+  try {
+    contextFilters = useAuditFilters();
+  } catch {
+    // Context not available, use local state
+  }
+
   // Get filter options from service
   const actionOptions = useActionOptions();
   const resourceOptions = useResourceTypeOptions();
   const severityOptions = useSeverityOptions();
 
-  // State
-  const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>('last_7_days');
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-
-  const [selectedActions, setSelectedActions] = useState<Set<string>>(new Set());
-  const [selectedResourceTypes, setSelectedResourceTypes] = useState<Set<string>>(new Set());
-  const [selectedSeverities, setSelectedSeverities] = useState<Set<string>>(new Set());
-
-  const [userSearch, setUserSearch] = useState('');
-  const [ipAddress, setIpAddress] = useState('');
+  // Local state (used if context not available)
+  const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>(
+    contextFilters?.dateRangePreset || 'last_7_days'
+  );
+  const [selectedActions, setSelectedActions] = useState<Set<string>>(
+    new Set(contextFilters?.filters.action || [])
+  );
+  const [selectedResourceTypes, setSelectedResourceTypes] = useState<Set<string>>(
+    new Set(contextFilters?.filters.resourceType || [])
+  );
+  const [selectedSeverities, setSelectedSeverities] = useState<Set<string>>(
+    new Set(contextFilters?.filters.severity || [])
+  );
+  const [userSearch, setUserSearch] = useState(contextFilters?.filters.search || '');
+  const [ipAddress, setIpAddress] = useState(contextFilters?.filters.ipAddress || '');
 
   // Date range presets
-  const datePresets: { label: string; value: DateRangePreset }[] = [
-    { label: 'Today', value: 'today' },
-    { label: 'Yesterday', value: 'yesterday' },
-    { label: 'Last 7 days', value: 'last_7_days' },
-    { label: 'Last 30 days', value: 'last_30_days' },
-    { label: 'Last 90 days', value: 'last_90_days' },
-    { label: 'Custom range', value: 'custom' },
+  const datePresets: { label: string; value: DateRangePreset; icon: string }[] = [
+    { label: 'Today', value: 'today', icon: 'today' },
+    { label: 'Yesterday', value: 'yesterday', icon: 'calendar' },
+    { label: 'Last 7 days', value: 'last_7_days', icon: 'calendar-outline' },
+    { label: 'Last 30 days', value: 'last_30_days', icon: 'calendar-outline' },
+    { label: 'Last 90 days', value: 'last_90_days', icon: 'time' },
   ];
 
   // Handlers
   const handleDatePresetChange = (preset: DateRangePreset) => {
     setDateRangePreset(preset);
-
-    if (preset === 'custom') {
-      // User will select custom dates
-      return;
+    if (contextFilters) {
+      contextFilters.setDateRangePreset(preset);
     }
-
-    const now = new Date();
-    const end = new Date(now);
-    let start = new Date(now);
-
-    switch (preset) {
-      case 'today':
-        start.setHours(0, 0, 0, 0);
-        break;
-      case 'yesterday':
-        start.setDate(now.getDate() - 1);
-        start.setHours(0, 0, 0, 0);
-        end.setDate(now.getDate() - 1);
-        end.setHours(23, 59, 59, 999);
-        break;
-      case 'last_7_days':
-        start.setDate(now.getDate() - 7);
-        break;
-      case 'last_30_days':
-        start.setDate(now.getDate() - 30);
-        break;
-      case 'last_90_days':
-        start.setDate(now.getDate() - 90);
-        break;
-    }
-
-    setStartDate(start);
-    setEndDate(end);
   };
 
   const toggleAction = (action: string) => {
@@ -121,265 +106,30 @@ export default function AuditFiltersScreen() {
 
   const handleReset = () => {
     setDateRangePreset('last_7_days');
-    setStartDate(null);
-    setEndDate(null);
     setSelectedActions(new Set());
     setSelectedResourceTypes(new Set());
     setSelectedSeverities(new Set());
     setUserSearch('');
     setIpAddress('');
+
+    if (contextFilters) {
+      contextFilters.resetFilters();
+    }
   };
 
   const handleApply = () => {
-    // Build filter object
-    const filters: AuditLogFilters = {
-      page: 1,
-      limit: 20,
-    };
-
-    // Add date range
-    if (dateRangePreset !== 'custom') {
-      filters.dateRange = dateRangePreset;
-    } else if (startDate || endDate) {
-      if (startDate) filters.startDate = startDate.toISOString();
-      if (endDate) filters.endDate = endDate.toISOString();
+    if (contextFilters) {
+      // Update context with all filter values
+      contextFilters.setDateRangePreset(dateRangePreset);
+      contextFilters.setSeverities(Array.from(selectedSeverities) as AuditSeverity[]);
+      contextFilters.setActions(Array.from(selectedActions) as AuditAction[]);
+      contextFilters.setResourceTypes(Array.from(selectedResourceTypes) as AuditResourceType[]);
+      contextFilters.setSearch(userSearch);
+      contextFilters.setIpAddress(ipAddress);
     }
 
-    // Add selected filters
-    if (selectedActions.size > 0) {
-      filters.action = Array.from(selectedActions) as AuditAction[];
-    }
-    if (selectedResourceTypes.size > 0) {
-      filters.resourceType = Array.from(selectedResourceTypes) as AuditResourceType[];
-    }
-    if (selectedSeverities.size > 0) {
-      filters.severity = Array.from(selectedSeverities) as AuditSeverity[];
-    }
-    if (userSearch.trim()) {
-      filters.search = userSearch.trim();
-    }
-    if (ipAddress.trim()) {
-      filters.ipAddress = ipAddress.trim();
-    }
-
-    // In production, pass filters back to list screen via navigation params or state management
-    Alert.alert('Filters Applied', `Applied ${Object.keys(filters).length} filters`);
-
-    // For now, just go back (in production, you'd pass filters to parent screen)
     router.back();
   };
-
-  // Render sections
-  const renderDateRangeSection = () => (
-    <View style={styles.section}>
-      <ThemedText style={styles.sectionTitle}>Date Range</ThemedText>
-
-      <View style={styles.chipContainer}>
-        {datePresets.map((preset) => (
-          <TouchableOpacity
-            key={preset.value}
-            style={[
-              styles.chip,
-              dateRangePreset === preset.value && styles.chipActive,
-            ]}
-            onPress={() => handleDatePresetChange(preset.value)}
-          >
-            <ThemedText
-              style={[
-                styles.chipText,
-                dateRangePreset === preset.value && styles.chipTextActive,
-              ]}
-            >
-              {preset.label}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {dateRangePreset === 'custom' && (
-        <View style={styles.customDateContainer}>
-          <ThemedText style={styles.customDateNote}>
-            Custom date range: Install @react-native-community/datetimepicker to enable date pickers.
-            For now, use the preset ranges above.
-          </ThemedText>
-          <View style={styles.dateInputGroup}>
-            <ThemedText style={styles.dateLabel}>Start Date</ThemedText>
-            <View style={[styles.dateInput, styles.dateInputDisabled]}>
-              <Ionicons name="calendar-outline" size={20} color="#ccc" />
-              <ThemedText style={styles.dateInputTextDisabled}>
-                {startDate ? startDate.toLocaleDateString() : 'Select date (coming soon)'}
-              </ThemedText>
-            </View>
-          </View>
-
-          <View style={styles.dateInputGroup}>
-            <ThemedText style={styles.dateLabel}>End Date</ThemedText>
-            <View style={[styles.dateInput, styles.dateInputDisabled]}>
-              <Ionicons name="calendar-outline" size={20} color="#ccc" />
-              <ThemedText style={styles.dateInputTextDisabled}>
-                {endDate ? endDate.toLocaleDateString() : 'Select date (coming soon)'}
-              </ThemedText>
-            </View>
-          </View>
-        </View>
-      )}
-    </View>
-  );
-
-  const renderActionTypesSection = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <ThemedText style={styles.sectionTitle}>Action Types</ThemedText>
-        {selectedActions.size > 0 && (
-          <ThemedText style={styles.selectionCount}>
-            {selectedActions.size} selected
-          </ThemedText>
-        )}
-      </View>
-
-      <View style={styles.checkboxContainer}>
-        {actionOptions.slice(0, 12).map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={styles.checkboxItem}
-            onPress={() => toggleAction(option.value)}
-          >
-            <View style={[
-              styles.checkbox,
-              selectedActions.has(option.value) && styles.checkboxChecked,
-            ]}>
-              {selectedActions.has(option.value) && (
-                <Ionicons name="checkmark" size={16} color="#fff" />
-              )}
-            </View>
-            <ThemedText style={styles.checkboxLabel}>{option.label}</ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {actionOptions.length > 12 && (
-        <ThemedText style={styles.moreText}>
-          +{actionOptions.length - 12} more action types available
-        </ThemedText>
-      )}
-    </View>
-  );
-
-  const renderResourceTypesSection = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <ThemedText style={styles.sectionTitle}>Resource Types</ThemedText>
-        {selectedResourceTypes.size > 0 && (
-          <ThemedText style={styles.selectionCount}>
-            {selectedResourceTypes.size} selected
-          </ThemedText>
-        )}
-      </View>
-
-      <View style={styles.chipContainer}>
-        {resourceOptions.map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.chip,
-              selectedResourceTypes.has(option.value) && styles.chipActive,
-            ]}
-            onPress={() => toggleResourceType(option.value)}
-          >
-            <ThemedText
-              style={[
-                styles.chipText,
-                selectedResourceTypes.has(option.value) && styles.chipTextActive,
-              ]}
-            >
-              {option.label}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderSeveritySection = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <ThemedText style={styles.sectionTitle}>Severity Levels</ThemedText>
-        {selectedSeverities.size > 0 && (
-          <ThemedText style={styles.selectionCount}>
-            {selectedSeverities.size} selected
-          </ThemedText>
-        )}
-      </View>
-
-      <View style={styles.severityContainer}>
-        {severityOptions.map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.severityChip,
-              selectedSeverities.has(option.value) && {
-                backgroundColor: option.color,
-                borderColor: option.color,
-              },
-            ]}
-            onPress={() => toggleSeverity(option.value)}
-          >
-            <ThemedText
-              style={[
-                styles.severityChipText,
-                selectedSeverities.has(option.value) && styles.severityChipTextActive,
-              ]}
-            >
-              {option.label}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderUserFilterSection = () => (
-    <View style={styles.section}>
-      <ThemedText style={styles.sectionTitle}>User Filter</ThemedText>
-      <View style={styles.inputContainer}>
-        <Ionicons name="search-outline" size={20} color="#666" />
-        <TextInput
-          style={styles.input}
-          placeholder="Search by user name or email..."
-          value={userSearch}
-          onChangeText={setUserSearch}
-          placeholderTextColor="#999"
-        />
-        {userSearch.length > 0 && (
-          <TouchableOpacity onPress={() => setUserSearch('')}>
-            <Ionicons name="close-circle" size={20} color="#999" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-
-  const renderIpAddressSection = () => (
-    <View style={styles.section}>
-      <ThemedText style={styles.sectionTitle}>IP Address Filter</ThemedText>
-      <View style={styles.inputContainer}>
-        <Ionicons name="location-outline" size={20} color="#666" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter IP address..."
-          value={ipAddress}
-          onChangeText={setIpAddress}
-          placeholderTextColor="#999"
-          keyboardType="numeric"
-        />
-        {ipAddress.length > 0 && (
-          <TouchableOpacity onPress={() => setIpAddress('')}>
-            <Ionicons name="close-circle" size={20} color="#999" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
 
   // Calculate active filter count
   const activeFilterCount = useMemo(() => {
@@ -393,37 +143,289 @@ export default function AuditFiltersScreen() {
     return count;
   }, [selectedActions, selectedResourceTypes, selectedSeverities, userSearch, ipAddress, dateRangePreset]);
 
+  // Severity colors
+  const getSeverityColor = (severity: string) => {
+    const colors: Record<string, string> = {
+      critical: '#991B1B',
+      error: '#EF4444',
+      warning: '#F59E0B',
+      info: '#3B82F6',
+    };
+    return colors[severity] || '#6B7280';
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {renderDateRangeSection()}
-        {renderActionTypesSection()}
-        {renderResourceTypesSection()}
-        {renderSeveritySection()}
-        {renderUserFilterSection()}
-        {renderIpAddressSection()}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Date Range Section */}
+        <Animated.View entering={FadeInDown.delay(100).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons name="calendar" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.sectionTitle}>Date Range</Heading3>
+            </View>
 
-        {/* Info box */}
-        <View style={styles.infoBox}>
-          <Ionicons name="information-circle-outline" size={20} color={Colors.light.primary} />
-          <ThemedText style={styles.infoText}>
-            Filters are combined with AND logic. Logs must match all selected criteria.
-          </ThemedText>
-        </View>
+            <View style={styles.dateGrid}>
+              {datePresets.map((preset) => (
+                <TouchableOpacity
+                  key={preset.value}
+                  style={[
+                    styles.dateCard,
+                    dateRangePreset === preset.value && styles.dateCardActive,
+                  ]}
+                  onPress={() => handleDatePresetChange(preset.value)}
+                >
+                  <Ionicons
+                    name={preset.icon as any}
+                    size={20}
+                    color={dateRangePreset === preset.value ? '#fff' : Colors.text.secondary}
+                  />
+                  <BodyText
+                    style={[
+                      styles.dateCardText,
+                      dateRangePreset === preset.value && styles.dateCardTextActive,
+                    ]}
+                  >
+                    {preset.label}
+                  </BodyText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Severity Section */}
+        <Animated.View entering={FadeInDown.delay(150).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons name="alert-circle" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.sectionTitle}>Severity Level</Heading3>
+              {selectedSeverities.size > 0 && (
+                <View style={styles.selectionBadge}>
+                  <BodyText style={styles.selectionBadgeText}>
+                    {selectedSeverities.size}
+                  </BodyText>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.severityGrid}>
+              {severityOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.severityCard,
+                    selectedSeverities.has(option.value) && {
+                      backgroundColor: getSeverityColor(option.value),
+                      borderColor: getSeverityColor(option.value),
+                    },
+                  ]}
+                  onPress={() => toggleSeverity(option.value)}
+                >
+                  <Ionicons
+                    name={
+                      option.value === 'critical' ? 'alert-circle' :
+                      option.value === 'error' ? 'close-circle' :
+                      option.value === 'warning' ? 'warning' : 'information-circle'
+                    }
+                    size={24}
+                    color={selectedSeverities.has(option.value) ? '#fff' : getSeverityColor(option.value)}
+                  />
+                  <BodyText
+                    style={[
+                      styles.severityCardText,
+                      selectedSeverities.has(option.value) && styles.severityCardTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </BodyText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Resource Types Section */}
+        <Animated.View entering={FadeInDown.delay(200).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons name="cube" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.sectionTitle}>Resource Types</Heading3>
+              {selectedResourceTypes.size > 0 && (
+                <View style={styles.selectionBadge}>
+                  <BodyText style={styles.selectionBadgeText}>
+                    {selectedResourceTypes.size}
+                  </BodyText>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.chipGrid}>
+              {resourceOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.chip,
+                    selectedResourceTypes.has(option.value) && styles.chipActive,
+                  ]}
+                  onPress={() => toggleResourceType(option.value)}
+                >
+                  <BodyText
+                    style={[
+                      styles.chipText,
+                      selectedResourceTypes.has(option.value) && styles.chipTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </BodyText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Action Types Section */}
+        <Animated.View entering={FadeInDown.delay(250).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons name="flash" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.sectionTitle}>Action Types</Heading3>
+              {selectedActions.size > 0 && (
+                <View style={styles.selectionBadge}>
+                  <BodyText style={styles.selectionBadgeText}>
+                    {selectedActions.size}
+                  </BodyText>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.checkboxList}>
+              {actionOptions.slice(0, 12).map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.checkboxItem}
+                  onPress={() => toggleAction(option.value)}
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      selectedActions.has(option.value) && styles.checkboxChecked,
+                    ]}
+                  >
+                    {selectedActions.has(option.value) && (
+                      <Ionicons name="checkmark" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <BodyText style={styles.checkboxLabel}>{option.label}</BodyText>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {actionOptions.length > 12 && (
+              <Caption style={styles.moreText}>
+                +{actionOptions.length - 12} more action types available
+              </Caption>
+            )}
+          </View>
+        </Animated.View>
+
+        {/* User Search Section */}
+        <Animated.View entering={FadeInDown.delay(300).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons name="person" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.sectionTitle}>User Filter</Heading3>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="search-outline" size={20} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                placeholder="Search by user name or email..."
+                value={userSearch}
+                onChangeText={setUserSearch}
+                placeholderTextColor="#9CA3AF"
+              />
+              {userSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setUserSearch('')}>
+                  <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* IP Address Section */}
+        <Animated.View entering={FadeInDown.delay(350).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons name="location" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.sectionTitle}>IP Address</Heading3>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="globe-outline" size={20} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter IP address..."
+                value={ipAddress}
+                onChangeText={setIpAddress}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
+              {ipAddress.length > 0 && (
+                <TouchableOpacity onPress={() => setIpAddress('')}>
+                  <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Info Box */}
+        <Animated.View entering={FadeInDown.delay(400).springify()}>
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle" size={20} color={Colors.primary[500]} />
+            <BodyText style={styles.infoText}>
+              Filters are combined with AND logic. Logs must match all selected criteria.
+            </BodyText>
+          </View>
+        </Animated.View>
       </ScrollView>
 
-      {/* Action buttons */}
+      {/* Action Buttons */}
       <View style={styles.actionBar}>
         <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-          <Ionicons name="refresh-outline" size={20} color="#666" />
-          <ThemedText style={styles.resetButtonText}>Reset</ThemedText>
+          <Ionicons name="refresh" size={20} color="#6B7280" />
+          <BodyText style={styles.resetButtonText}>Reset</BodyText>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-          <ThemedText style={styles.applyButtonText}>
-            Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-          </ThemedText>
-          <Ionicons name="checkmark" size={20} color="#fff" />
+          <LinearGradient
+            colors={[Colors.primary[500], Colors.primary[600]]}
+            style={styles.applyButtonGradient}
+          >
+            <BodyText style={styles.applyButtonText}>
+              Apply Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+            </BodyText>
+            <Ionicons name="checkmark" size={20} color="#fff" />
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -433,191 +435,217 @@ export default function AuditFiltersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FE',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    gap: 24,
+    padding: Spacing.base,
+    gap: Spacing.lg,
+    paddingBottom: 100,
   },
+
+  // Section
   section: {
-    gap: 12,
+    backgroundColor: '#fff',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    ...Shadows.sm,
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
+    flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
   },
-  selectionCount: {
-    fontSize: 13,
-    color: Colors.light.primary,
+  selectionBadge: {
+    backgroundColor: Colors.primary[500],
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  selectionBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Date Grid
+  dateGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  dateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  dateCardActive: {
+    backgroundColor: Colors.primary[500],
+    borderColor: Colors.primary[500],
+  },
+  dateCardText: {
+    fontSize: 14,
     fontWeight: '500',
+    color: Colors.text.secondary,
   },
-  chipContainer: {
+  dateCardTextActive: {
+    color: '#fff',
+  },
+
+  // Severity Grid
+  severityGrid: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  severityCard: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
+  severityCardText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text.secondary,
+  },
+  severityCardTextActive: {
+    color: '#fff',
+  },
+
+  // Chip Grid
+  chipGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
   chip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
+    paddingVertical: 10,
+    backgroundColor: '#F3F4F6',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#E5E7EB',
   },
   chipActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: Colors.primary[500],
+    borderColor: Colors.primary[500],
   },
   chipText: {
     fontSize: 13,
-    color: '#666',
     fontWeight: '500',
+    color: Colors.text.secondary,
   },
   chipTextActive: {
     color: '#fff',
   },
-  customDateContainer: {
-    gap: 12,
-  },
-  customDateNote: {
-    fontSize: 12,
-    color: '#f59e0b',
-    fontStyle: 'italic',
-    padding: 8,
-    backgroundColor: '#fffbeb',
-    borderRadius: 6,
-  },
-  dateInputGroup: {
-    gap: 6,
-  },
-  dateLabel: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
-  },
-  dateInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e5e5',
-  },
-  dateInputDisabled: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#e5e5e5',
-  },
-  dateInputText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#000',
-  },
-  dateInputTextDisabled: {
-    flex: 1,
-    fontSize: 14,
-    color: '#ccc',
-  },
-  checkboxContainer: {
+
+  // Checkbox List
+  checkboxList: {
     gap: 12,
   },
   checkboxItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 4,
   },
   checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   checkboxChecked: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: Colors.primary[500],
+    borderColor: Colors.primary[500],
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#000',
+    color: Colors.text.primary,
   },
   moreText: {
+    marginTop: Spacing.sm,
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.secondary,
     fontStyle: 'italic',
   },
-  severityContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  severityChip: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#e5e5e5',
-  },
-  severityChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
-  },
-  severityChipTextActive: {
-    color: '#fff',
-  },
+
+  // Input
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    padding: 14,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#E5E7EB',
   },
   input: {
     flex: 1,
-    fontSize: 14,
-    color: '#000',
+    fontSize: 15,
+    color: Colors.text.primary,
     padding: 0,
   },
+
+  // Info Box
   infoBox: {
     flexDirection: 'row',
     gap: 12,
-    padding: 12,
-    backgroundColor: '#eff6ff',
-    borderRadius: 8,
+    padding: Spacing.md,
+    backgroundColor: Colors.primary[50],
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#dbeafe',
+    borderColor: Colors.primary[100],
   },
   infoText: {
     flex: 1,
     fontSize: 13,
-    color: '#1e40af',
+    color: Colors.primary[700],
     lineHeight: 18,
   },
+
+  // Action Bar
   actionBar: {
     flexDirection: 'row',
     gap: 12,
-    padding: 16,
+    padding: Spacing.base,
     backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
+    borderTopColor: '#E5E7EB',
+    ...Shadows.sm,
   },
   resetButton: {
     flexDirection: 'row',
@@ -626,25 +654,27 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#E5E7EB',
   },
   resetButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#666',
+    color: '#6B7280',
   },
   applyButton: {
     flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  applyButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 8,
   },
   applyButtonText: {
     fontSize: 15,

@@ -1,10 +1,11 @@
 /**
- * Audit Log Detail Screen
+ * Audit Log Detail Screen - Premium Redesign
  * Shows complete details of a single audit log entry
+ * Uses premium components matching dashboard design
  * Permissions required: logs:view
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -12,14 +13,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Linking,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+
+import { Colors, Spacing, Shadows, BorderRadius } from '@/constants/DesignTokens';
+import { Heading2, Heading3, BodyText, Caption } from '@/components/ui/DesignSystemComponents';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasPermission } from '@/utils/permissions';
 import {
@@ -29,6 +32,9 @@ import {
   useFormatAuditLog,
 } from '@/hooks/queries/useAudit';
 import { AuditLog, AuditSeverity, AuditChangeDetail } from '@/types/audit';
+import { ActionTypeBadge } from '@/components/audit/ActionTypeBadge';
+import { SeverityBadge } from '@/components/audit/SeverityBadge';
+import { ChangesDiff } from '@/components/audit/ChangesDiff';
 
 export default function AuditLogDetailScreen() {
   const { logId } = useLocalSearchParams();
@@ -39,14 +45,14 @@ export default function AuditLogDetailScreen() {
   const canView = user?.role ? hasPermission(user.role as any, 'logs:view') : false;
   const canExport = user?.role ? hasPermission(user.role as any, 'logs:export') : false;
 
-  // Fetch the specific log (we'll fetch with filters)
+  // Fetch logs and find the specific one
   const {
     data: logsData,
     isLoading,
     isError,
     error,
   } = useAuditLogs(
-    { limit: 100 }, // Fetch recent logs and find ours
+    { limit: 100 },
     { enabled: canView && !!logId }
   );
 
@@ -56,45 +62,35 @@ export default function AuditLogDetailScreen() {
     return logsData.logs.find((l) => l.id === logId);
   }, [logsData, logId]);
 
-  // Fetch related logs (other actions on same resource)
+  // Fetch related logs
   const {
     data: relatedLogsData,
     isLoading: relatedLoading,
   } = useResourceHistory(
     log?.resourceType || '',
     log?.resourceId || '',
-    {
-      enabled: !!log?.resourceType && !!log?.resourceId,
-    }
-  );
-
-  const {
-    refetch: exportLog,
-    isFetching: isExporting,
-  } = useExportAuditLogs(
-    { format: 'json' },
-    { enabled: false }
+    { enabled: !!log?.resourceType && !!log?.resourceId }
   );
 
   // Get severity styling
   const getSeverityColor = (severity: AuditSeverity): string => {
     const colors: Record<AuditSeverity, string> = {
-      info: '#3b82f6',
-      warning: '#f59e0b',
-      error: '#ef4444',
-      critical: '#991b1b',
+      info: '#3B82F6',
+      warning: '#F59E0B',
+      error: '#EF4444',
+      critical: '#991B1B',
     };
-    return colors[severity] || '#3b82f6';
+    return colors[severity] || '#3B82F6';
   };
 
-  const getSeverityIcon = (severity: AuditSeverity): string => {
-    const icons: Record<AuditSeverity, string> = {
-      info: 'information-circle',
-      warning: 'warning',
-      error: 'close-circle',
-      critical: 'alert-circle',
+  const getSeverityGradient = (severity: AuditSeverity): string[] => {
+    const gradients: Record<AuditSeverity, string[]> = {
+      info: ['#3B82F6', '#2563EB'],
+      warning: ['#F59E0B', '#D97706'],
+      error: ['#EF4444', '#DC2626'],
+      critical: ['#991B1B', '#7F1D1D'],
     };
-    return icons[severity] || 'information-circle';
+    return gradients[severity] || ['#3B82F6', '#2563EB'];
   };
 
   // Format timestamp
@@ -113,7 +109,35 @@ export default function AuditLogDetailScreen() {
     };
   };
 
-  // Handle export single log
+  // Get action type from audit action
+  const getActionType = (action: string): 'CREATE' | 'READ' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'EXPORT' | 'IMPORT' => {
+    if (action.includes('created')) return 'CREATE';
+    if (action.includes('updated') || action.includes('changed')) return 'UPDATE';
+    if (action.includes('deleted')) return 'DELETE';
+    if (action.includes('login')) return 'LOGIN';
+    if (action.includes('logout')) return 'LOGOUT';
+    if (action.includes('export')) return 'EXPORT';
+    if (action.includes('import')) return 'IMPORT';
+    return 'READ';
+  };
+
+  // Handle share log
+  const handleShare = async () => {
+    if (!log) return;
+
+    try {
+      const logSummary = `Audit Log: ${formatLog(log).displayAction}\n\nUser: ${log.user?.name || 'System'}\nResource: ${log.resourceType} #${log.resourceId?.substring(0, 8)}\nTimestamp: ${formatTimestamp(log.timestamp).absolute}\nSeverity: ${log.severity}\n\nID: ${log.id}`;
+
+      await Share.share({
+        message: logSummary,
+        title: 'Audit Log Details',
+      });
+    } catch (err: any) {
+      Alert.alert('Error', 'Failed to share log details');
+    }
+  };
+
+  // Handle export
   const handleExport = async () => {
     if (!canExport || !log) return;
 
@@ -125,30 +149,22 @@ export default function AuditLogDetailScreen() {
         {
           text: 'Export',
           onPress: async () => {
-            try {
-              // Export as JSON for single log
-              const jsonData = JSON.stringify(log, null, 2);
-              Alert.alert('Success', 'Log exported. In production, this would trigger a download.');
-              // In real app: download or share the JSON
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to export log');
-            }
+            const jsonData = JSON.stringify(log, null, 2);
+            Alert.alert('Success', 'Log exported. In production, this would trigger a download.');
           },
         },
       ]
     );
   };
 
-  // Navigate to related resource
+  // Navigate to resource
   const handleNavigateToResource = () => {
     if (!log?.resourceType || !log?.resourceId) return;
 
-    // Map resource types to routes
     const routes: Record<string, string> = {
       product: `/products/${log.resourceId}`,
       order: `/orders/${log.resourceId}`,
       user: `/team/${log.resourceId}`,
-      // Add more as needed
     };
 
     const route = routes[log.resourceType];
@@ -159,245 +175,13 @@ export default function AuditLogDetailScreen() {
     }
   };
 
-  // Render sections
-  const renderUserInfo = () => {
-    if (!log?.user) return null;
-
-    return (
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>User Information</ThemedText>
-        <View style={styles.card}>
-          <View style={styles.infoRow}>
-            <View style={styles.avatarContainer}>
-              <Ionicons name="person-circle-outline" size={48} color={Colors.light.primary} />
-            </View>
-            <View style={styles.userInfo}>
-              <ThemedText style={styles.userName}>{log.user.name}</ThemedText>
-              <ThemedText style={styles.userEmail}>{log.user.email}</ThemedText>
-              <View style={styles.roleBadge}>
-                <ThemedText style={styles.roleBadgeText}>{log.user.role}</ThemedText>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderActionInfo = () => {
-    if (!log) return null;
-
-    const formatted = formatLog(log);
-    const severityColor = getSeverityColor(log.severity);
-    const severityIcon = getSeverityIcon(log.severity);
-    const timestamps = formatTimestamp(log.timestamp);
-
-    return (
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Action Details</ThemedText>
-        <View style={styles.card}>
-          <View style={styles.actionHeader}>
-            <Ionicons name={severityIcon as any} size={32} color={severityColor} />
-            <View style={styles.actionTitleContainer}>
-              <ThemedText style={styles.actionTitle}>{formatted.displayAction}</ThemedText>
-              <View style={[styles.severityBadge, { backgroundColor: severityColor }]}>
-                <ThemedText style={styles.severityBadgeText}>
-                  {log.severity.toUpperCase()}
-                </ThemedText>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
-              <Ionicons name="pricetag-outline" size={16} color="#666" />
-              <ThemedText style={styles.infoLabel}>Action Type</ThemedText>
-              <ThemedText style={styles.infoValue}>{log.action}</ThemedText>
-            </View>
-
-            <View style={styles.infoItem}>
-              <Ionicons name="cube-outline" size={16} color="#666" />
-              <ThemedText style={styles.infoLabel}>Resource Type</ThemedText>
-              <ThemedText style={styles.infoValue}>{log.resourceType}</ThemedText>
-            </View>
-
-            {log.resourceId && (
-              <View style={styles.infoItem}>
-                <Ionicons name="key-outline" size={16} color="#666" />
-                <ThemedText style={styles.infoLabel}>Resource ID</ThemedText>
-                <ThemedText style={styles.infoValue} numberOfLines={1}>
-                  {log.resourceId}
-                </ThemedText>
-              </View>
-            )}
-
-            <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={16} color="#666" />
-              <ThemedText style={styles.infoLabel}>Timestamp</ThemedText>
-              <ThemedText style={styles.infoValue}>{timestamps.relative}</ThemedText>
-              <ThemedText style={styles.infoSubvalue}>{timestamps.absolute}</ThemedText>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderTechnicalDetails = () => {
-    if (!log) return null;
-
-    return (
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Technical Details</ThemedText>
-        <View style={styles.card}>
-          {log.ipAddress && (
-            <View style={styles.detailRow}>
-              <Ionicons name="location-outline" size={18} color="#666" />
-              <View style={styles.detailContent}>
-                <ThemedText style={styles.detailLabel}>IP Address</ThemedText>
-                <ThemedText style={styles.detailValue}>{log.ipAddress}</ThemedText>
-              </View>
-            </View>
-          )}
-
-          {log.userAgent && (
-            <View style={styles.detailRow}>
-              <Ionicons name="desktop-outline" size={18} color="#666" />
-              <View style={styles.detailContent}>
-                <ThemedText style={styles.detailLabel}>User Agent</ThemedText>
-                <ThemedText style={styles.detailValue} numberOfLines={2}>
-                  {log.userAgent}
-                </ThemedText>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.detailRow}>
-            <Ionicons name="finger-print-outline" size={18} color="#666" />
-            <View style={styles.detailContent}>
-              <ThemedText style={styles.detailLabel}>Log ID</ThemedText>
-              <ThemedText style={styles.detailValue}>{log.id}</ThemedText>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderChanges = () => {
-    if (!log?.details?.changes || log.details.changes.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Changes Made</ThemedText>
-        <View style={styles.card}>
-          {log.details.changes.map((change: AuditChangeDetail, index: number) => (
-            <View key={index} style={styles.changeItem}>
-              <ThemedText style={styles.changeField}>{change.field}</ThemedText>
-              <View style={styles.changeComparison}>
-                <View style={styles.changeBeforeContainer}>
-                  <ThemedText style={styles.changeLabel}>Before</ThemedText>
-                  <ThemedText style={styles.changeValue} numberOfLines={3}>
-                    {JSON.stringify(change.before || change.oldValue, null, 2)}
-                  </ThemedText>
-                </View>
-                <Ionicons name="arrow-forward" size={20} color="#999" />
-                <View style={styles.changeAfterContainer}>
-                  <ThemedText style={styles.changeLabel}>After</ThemedText>
-                  <ThemedText style={styles.changeValue} numberOfLines={3}>
-                    {JSON.stringify(change.after || change.newValue, null, 2)}
-                  </ThemedText>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  };
-
-  const renderMetadata = () => {
-    if (!log?.details?.metadata) return null;
-
-    const metadata = log.details.metadata;
-    const entries = Object.entries(metadata);
-
-    if (entries.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Additional Context</ThemedText>
-        <View style={styles.card}>
-          {entries.map(([key, value], index) => (
-            <View key={index} style={styles.metadataRow}>
-              <ThemedText style={styles.metadataKey}>{key}:</ThemedText>
-              <ThemedText style={styles.metadataValue}>
-                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-              </ThemedText>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  };
-
-  const renderRelatedLogs = () => {
-    if (relatedLoading) {
-      return (
-        <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Related Logs</ThemedText>
-          <ActivityIndicator size="small" color={Colors.light.primary} />
-        </View>
-      );
-    }
-
-    if (!relatedLogsData?.history || relatedLogsData.history.length <= 1) return null;
-
-    // Filter out current log
-    const otherLogs = relatedLogsData.history.filter((l) => l.id !== logId).slice(0, 5);
-
-    if (otherLogs.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>
-          Related Logs ({otherLogs.length})
-        </ThemedText>
-        <View style={styles.card}>
-          {otherLogs.map((relatedLog) => {
-            const formatted = formatLog(relatedLog);
-            return (
-              <TouchableOpacity
-                key={relatedLog.id}
-                style={styles.relatedLogItem}
-                onPress={() => router.push(`/audit/${relatedLog.id}`)}
-              >
-                <View style={styles.relatedLogContent}>
-                  <ThemedText style={styles.relatedLogAction}>
-                    {formatted.displayAction}
-                  </ThemedText>
-                  <ThemedText style={styles.relatedLogTime}>
-                    {formatted.displayTime}
-                  </ThemedText>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#ccc" />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
-
   // Loading state
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.light.primary} />
-          <ThemedText style={styles.loadingText}>Loading log details...</ThemedText>
+          <ActivityIndicator size="large" color={Colors.primary[500]} />
+          <BodyText style={styles.loadingText}>Loading log details...</BodyText>
         </View>
       </SafeAreaView>
     );
@@ -408,13 +192,15 @@ export default function AuditLogDetailScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#ef4444" />
-          <ThemedText style={styles.errorText}>Log Not Found</ThemedText>
-          <ThemedText style={styles.errorSubtext}>
+          <View style={styles.errorIconContainer}>
+            <Ionicons name="alert-circle" size={48} color="#EF4444" />
+          </View>
+          <Heading3 style={styles.errorTitle}>Log Not Found</Heading3>
+          <BodyText style={styles.errorText}>
             {error?.message || 'The requested audit log could not be found'}
-          </ThemedText>
+          </BodyText>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <ThemedText style={styles.backButtonText}>Go Back</ThemedText>
+            <BodyText style={styles.backButtonText}>Go Back</BodyText>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -426,331 +212,665 @@ export default function AuditLogDetailScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Ionicons name="lock-closed-outline" size={64} color="#ccc" />
-          <ThemedText style={styles.errorText}>Permission Denied</ThemedText>
+          <View style={styles.permissionIconContainer}>
+            <Ionicons name="lock-closed" size={48} color="#9CA3AF" />
+          </View>
+          <Heading3 style={styles.permissionTitle}>Access Restricted</Heading3>
+          <BodyText style={styles.permissionText}>
+            You don't have permission to view this log
+          </BodyText>
         </View>
       </SafeAreaView>
     );
   }
 
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {renderUserInfo()}
-        {renderActionInfo()}
-        {renderChanges()}
-        {renderMetadata()}
-        {renderTechnicalDetails()}
-        {renderRelatedLogs()}
+  const formatted = formatLog(log);
+  const timestamps = formatTimestamp(log.timestamp);
+  const severityColor = getSeverityColor(log.severity);
+  const severityGradient = getSeverityGradient(log.severity);
 
-        {/* Action buttons */}
-        <View style={styles.actionButtons}>
+  return (
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[Colors.primary[100], Colors.primary[50], '#F8F9FE']}
+        style={styles.backgroundGradient}
+      />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Card */}
+        <Animated.View entering={FadeInDown.springify()}>
+          <LinearGradient
+            colors={severityGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerCard}
+          >
+            <View style={styles.headerOverlay}>
+              <View style={styles.headerTop}>
+                <SeverityBadge severity={log.severity} size="large" />
+                <View style={styles.headerActions}>
+                  <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
+                    <Ionicons name="share-outline" size={20} color="#fff" />
+                  </TouchableOpacity>
+                  {canExport && (
+                    <TouchableOpacity style={styles.headerButton} onPress={handleExport}>
+                      <Ionicons name="download-outline" size={20} color="#fff" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              <Heading2 style={styles.headerTitle}>{formatted.displayAction}</Heading2>
+
+              <View style={styles.headerMeta}>
+                <ActionTypeBadge actionType={getActionType(log.action)} size="medium" />
+                <Caption style={styles.headerTimestamp}>{timestamps.relative}</Caption>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* User Section */}
+        {log.user && (
+          <Animated.View entering={FadeInDown.delay(100).springify()}>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Ionicons name="person" size={18} color={Colors.primary[500]} />
+                </View>
+                <Heading3 style={styles.cardTitle}>User Information</Heading3>
+              </View>
+
+              <View style={styles.userInfo}>
+                <LinearGradient
+                  colors={[Colors.primary[400], Colors.primary[600]]}
+                  style={styles.userAvatar}
+                >
+                  <BodyText style={styles.userAvatarText}>
+                    {(log.user.name || 'U').charAt(0).toUpperCase()}
+                  </BodyText>
+                </LinearGradient>
+
+                <View style={styles.userDetails}>
+                  <BodyText style={styles.userName}>{log.user.name}</BodyText>
+                  <Caption style={styles.userEmail}>{log.user.email}</Caption>
+                  <View style={styles.userRoleBadge}>
+                    <BodyText style={styles.userRoleText}>{log.user.role}</BodyText>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Action Details */}
+        <Animated.View entering={FadeInDown.delay(150).springify()}>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons name="information-circle" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.cardTitle}>Action Details</Heading3>
+            </View>
+
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailItem}>
+                <Caption style={styles.detailLabel}>Action Type</Caption>
+                <BodyText style={styles.detailValue}>{log.action}</BodyText>
+              </View>
+
+              <View style={styles.detailItem}>
+                <Caption style={styles.detailLabel}>Resource Type</Caption>
+                <BodyText style={styles.detailValue}>{log.resourceType}</BodyText>
+              </View>
+
+              {log.resourceId && (
+                <View style={styles.detailItem}>
+                  <Caption style={styles.detailLabel}>Resource ID</Caption>
+                  <BodyText style={styles.detailValueMono} numberOfLines={1}>
+                    {log.resourceId}
+                  </BodyText>
+                </View>
+              )}
+
+              <View style={styles.detailItem}>
+                <Caption style={styles.detailLabel}>Timestamp</Caption>
+                <BodyText style={styles.detailValue}>{timestamps.absolute}</BodyText>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Changes Section */}
+        {log.details?.changes && log.details.changes.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(200).springify()}>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Ionicons name="git-compare" size={18} color={Colors.primary[500]} />
+                </View>
+                <Heading3 style={styles.cardTitle}>Changes Made</Heading3>
+              </View>
+
+              <ChangesDiff
+                before={log.details.changes.reduce((acc: any, c: AuditChangeDetail) => {
+                  acc[c.field] = c.before ?? c.oldValue;
+                  return acc;
+                }, {})}
+                after={log.details.changes.reduce((acc: any, c: AuditChangeDetail) => {
+                  acc[c.field] = c.after ?? c.newValue;
+                  return acc;
+                }, {})}
+              />
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Technical Details */}
+        <Animated.View entering={FadeInDown.delay(250).springify()}>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons name="code" size={18} color={Colors.primary[500]} />
+              </View>
+              <Heading3 style={styles.cardTitle}>Technical Details</Heading3>
+            </View>
+
+            <View style={styles.technicalDetails}>
+              {log.ipAddress && (
+                <View style={styles.technicalItem}>
+                  <View style={styles.technicalItemIcon}>
+                    <Ionicons name="location" size={16} color="#6B7280" />
+                  </View>
+                  <View style={styles.technicalItemContent}>
+                    <Caption style={styles.technicalLabel}>IP Address</Caption>
+                    <BodyText style={styles.technicalValue}>{log.ipAddress}</BodyText>
+                  </View>
+                </View>
+              )}
+
+              {log.userAgent && (
+                <View style={styles.technicalItem}>
+                  <View style={styles.technicalItemIcon}>
+                    <Ionicons name="desktop" size={16} color="#6B7280" />
+                  </View>
+                  <View style={styles.technicalItemContent}>
+                    <Caption style={styles.technicalLabel}>User Agent</Caption>
+                    <BodyText style={styles.technicalValue} numberOfLines={2}>
+                      {log.userAgent}
+                    </BodyText>
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.technicalItem}>
+                <View style={styles.technicalItemIcon}>
+                  <Ionicons name="finger-print" size={16} color="#6B7280" />
+                </View>
+                <View style={styles.technicalItemContent}>
+                  <Caption style={styles.technicalLabel}>Log ID</Caption>
+                  <BodyText style={styles.technicalValueMono}>{log.id}</BodyText>
+                </View>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Metadata */}
+        {log.details?.metadata && Object.keys(log.details.metadata).length > 0 && (
+          <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Ionicons name="layers" size={18} color={Colors.primary[500]} />
+                </View>
+                <Heading3 style={styles.cardTitle}>Additional Context</Heading3>
+              </View>
+
+              <View style={styles.metadataList}>
+                {Object.entries(log.details.metadata).map(([key, value], index) => (
+                  <View key={index} style={styles.metadataItem}>
+                    <Caption style={styles.metadataKey}>{key}</Caption>
+                    <BodyText style={styles.metadataValue}>
+                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    </BodyText>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Related Logs */}
+        {!relatedLoading && relatedLogsData?.history && relatedLogsData.history.length > 1 && (
+          <Animated.View entering={FadeInDown.delay(350).springify()}>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Ionicons name="git-network" size={18} color={Colors.primary[500]} />
+                </View>
+                <Heading3 style={styles.cardTitle}>
+                  Related Logs ({relatedLogsData.history.filter(l => l.id !== logId).length})
+                </Heading3>
+              </View>
+
+              {relatedLogsData.history
+                .filter(l => l.id !== logId)
+                .slice(0, 5)
+                .map((relatedLog, index) => {
+                  const relFormatted = formatLog(relatedLog);
+                  return (
+                    <TouchableOpacity
+                      key={relatedLog.id}
+                      style={[
+                        styles.relatedItem,
+                        index === 0 && { borderTopWidth: 0 },
+                      ]}
+                      onPress={() => router.push(`/audit/${relatedLog.id}`)}
+                    >
+                      <View style={[styles.relatedDot, { backgroundColor: getSeverityColor(relatedLog.severity) }]} />
+                      <View style={styles.relatedContent}>
+                        <BodyText style={styles.relatedAction}>{relFormatted.displayAction}</BodyText>
+                        <Caption style={styles.relatedTime}>{relFormatted.displayTime}</Caption>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+                  );
+                })}
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Action Buttons */}
+        <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.actionButtonsContainer}>
           {log.resourceId && log.resourceType && (
             <TouchableOpacity
-              style={styles.actionButton}
+              style={styles.primaryActionButton}
               onPress={handleNavigateToResource}
             >
-              <Ionicons name="open-outline" size={20} color="#fff" />
-              <ThemedText style={styles.actionButtonText}>View Resource</ThemedText>
+              <LinearGradient
+                colors={[Colors.primary[500], Colors.primary[600]]}
+                style={styles.primaryActionButtonGradient}
+              >
+                <Ionicons name="open-outline" size={20} color="#fff" />
+                <BodyText style={styles.primaryActionButtonText}>View Resource</BodyText>
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
           {canExport && (
             <TouchableOpacity
-              style={[styles.actionButton, styles.exportActionButton]}
+              style={styles.secondaryActionButton}
               onPress={handleExport}
-              disabled={isExporting}
             >
-              {isExporting ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="download-outline" size={20} color="#fff" />
-                  <ThemedText style={styles.actionButtonText}>Export Log</ThemedText>
-                </>
-              )}
+              <Ionicons name="download-outline" size={20} color={Colors.primary[500]} />
+              <BodyText style={styles.secondaryActionButtonText}>Export Log</BodyText>
             </TouchableOpacity>
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FE',
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 300,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    gap: 16,
+    padding: Spacing.base,
+    paddingBottom: 100,
+    gap: Spacing.md,
   },
-  section: {
-    gap: 8,
+
+  // Header Card
+  headerCard: {
+    borderRadius: BorderRadius['2xl'],
+    overflow: 'hidden',
+    ...Shadows.lg,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+  headerOverlay: {
+    padding: Spacing.lg,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
   },
-  infoRow: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+  },
+  headerMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: Spacing.md,
   },
-  avatarContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#f5f5f5',
+  headerTimestamp: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 13,
+  },
+
+  // Cards
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    ...Shadows.sm,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  cardHeaderIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+
+  // User Info
   userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  userAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userAvatarText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  userDetails: {
     flex: 1,
     gap: 4,
   },
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
   },
   userEmail: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
-  roleBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 4,
-    marginTop: 4,
-  },
-  roleBadgeText: {
-    fontSize: 11,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  actionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  actionTitleContainer: {
-    flex: 1,
-    gap: 6,
-  },
-  actionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  severityBadge: {
+  userRoleBadge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    backgroundColor: Colors.primary[100],
+    borderRadius: 6,
+    marginTop: 4,
   },
-  severityBadgeText: {
-    fontSize: 11,
-    color: '#fff',
-    fontWeight: '700',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#e5e5e5',
-    marginVertical: 4,
-  },
-  infoGrid: {
-    gap: 16,
-  },
-  infoItem: {
-    gap: 4,
-  },
-  infoLabel: {
+  userRoleText: {
     fontSize: 12,
-    color: '#999',
-    fontWeight: '500',
+    fontWeight: '600',
+    color: Colors.primary[600],
   },
-  infoValue: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '500',
+
+  // Details Grid
+  detailsGrid: {
+    gap: Spacing.md,
   },
-  infoSubvalue: {
-    fontSize: 12,
-    color: '#666',
-  },
-  detailRow: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-  },
-  detailContent: {
-    flex: 1,
+  detailItem: {
     gap: 4,
   },
   detailLabel: {
     fontSize: 12,
-    color: '#999',
     fontWeight: '500',
+    color: Colors.text.secondary,
   },
   detailValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text.primary,
+  },
+  detailValueMono: {
     fontSize: 14,
-    color: '#000',
-  },
-  changeItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-  },
-  changeField: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  changeComparison: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  changeBeforeContainer: {
-    flex: 1,
-    padding: 8,
-    backgroundColor: '#fef2f2',
-    borderRadius: 6,
-    gap: 4,
-  },
-  changeAfterContainer: {
-    flex: 1,
-    padding: 8,
-    backgroundColor: '#f0fdf4',
-    borderRadius: 6,
-    gap: 4,
-  },
-  changeLabel: {
-    fontSize: 11,
-    color: '#999',
-    fontWeight: '600',
-  },
-  changeValue: {
-    fontSize: 12,
-    color: '#000',
     fontFamily: 'monospace',
+    color: Colors.text.primary,
   },
-  metadataRow: {
+
+  // Technical Details
+  technicalDetails: {
+    gap: Spacing.md,
+  },
+  technicalItem: {
     flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 4,
+    gap: Spacing.md,
+  },
+  technicalItemIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  technicalItemContent: {
+    flex: 1,
+    gap: 2,
+  },
+  technicalLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text.secondary,
+  },
+  technicalValue: {
+    fontSize: 14,
+    color: Colors.text.primary,
+  },
+  technicalValueMono: {
+    fontSize: 13,
+    fontFamily: 'monospace',
+    color: Colors.text.primary,
+  },
+
+  // Metadata
+  metadataList: {
+    gap: Spacing.sm,
+  },
+  metadataItem: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   metadataKey: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
+    minWidth: 100,
   },
   metadataValue: {
     flex: 1,
-    fontSize: 13,
-    color: '#000',
+    fontSize: 14,
+    color: Colors.text.primary,
   },
-  relatedLogItem: {
+
+  // Related Logs
+  relatedItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: Spacing.sm,
   },
-  relatedLogContent: {
+  relatedDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  relatedContent: {
     flex: 1,
-    gap: 4,
   },
-  relatedLogAction: {
+  relatedAction: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#000',
+    color: Colors.text.primary,
   },
-  relatedLogTime: {
+  relatedTime: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
   },
-  actionButtons: {
+
+  // Action Buttons
+  actionButtonsContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
+    gap: Spacing.md,
   },
-  actionButton: {
+  primaryActionButton: {
+    flex: 1,
+    borderRadius: 14,
+    overflow: 'hidden',
+    ...Shadows.md,
+  },
+  primaryActionButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  primaryActionButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  secondaryActionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 12,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 8,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.primary[500],
   },
-  exportActionButton: {
-    backgroundColor: '#10b981',
-  },
-  actionButtonText: {
-    color: '#fff',
+  secondaryActionButtonText: {
+    color: Colors.primary[500],
+    fontSize: 15,
     fontWeight: '600',
-    fontSize: 14,
   },
+
+  // States
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: Spacing.md,
   },
   loadingText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.secondary,
   },
   errorContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
-    gap: 12,
+    padding: Spacing.xl,
   },
-  errorText: {
+  errorIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  errorTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: '#EF4444',
+    marginBottom: 8,
   },
-  errorSubtext: {
+  errorText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.secondary,
     textAlign: 'center',
+    marginBottom: Spacing.lg,
   },
   backButton: {
-    marginTop: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 8,
+    backgroundColor: Colors.primary[500],
+    borderRadius: 12,
   },
   backButtonText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 15,
+  },
+  permissionIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  permissionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  permissionText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    textAlign: 'center',
   },
 });
