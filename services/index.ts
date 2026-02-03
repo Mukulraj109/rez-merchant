@@ -11,6 +11,7 @@ export { documentsService } from './api/documents';
 export { socialMediaService } from './api/socialMedia';
 export { walletService } from './api/wallet';
 export { coinsService } from './api/coins';
+export { dealRedemptionsService } from './api/dealRedemptions';
 
 // Storage Service
 export { storageService } from './storage';
@@ -30,6 +31,7 @@ import { documentsService } from './api/documents';
 import { socialMediaService } from './api/socialMedia';
 import { walletService } from './api/wallet';
 import { coinsService } from './api/coins';
+import { dealRedemptionsService } from './api/dealRedemptions';
 import { storageService } from './storage';
 import { offlineService } from './offline';
 
@@ -46,6 +48,7 @@ export const apiServices = {
   socialMedia: socialMediaService,
   wallet: walletService,
   coins: coinsService,
+  dealRedemptions: dealRedemptionsService,
 };
 
 // Storage utilities
