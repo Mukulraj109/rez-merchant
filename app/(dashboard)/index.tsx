@@ -814,6 +814,17 @@ export default function DashboardScreen() {
 
               <TouchableOpacity
                 style={styles.secondaryActionCard}
+                onPress={() => router.push('/visits')}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.secondaryActionIcon, { backgroundColor: '#F3E8FF' }]}>
+                  <Ionicons name="calendar" size={22} color="#7C3AED" />
+                </View>
+                <BodyText style={styles.secondaryActionText}>Store Visits</BodyText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryActionCard}
                 onPress={() => router.push('/events')}
                 activeOpacity={0.8}
               >

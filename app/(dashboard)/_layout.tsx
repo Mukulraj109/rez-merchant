@@ -164,6 +164,19 @@ export default function DashboardLayout() {
         }}
       />
       <Tabs.Screen
+        name="visits"
+        options={{
+          title: 'Visits',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'calendar' : 'calendar-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="cashback"
         options={{
           title: 'Cashback',

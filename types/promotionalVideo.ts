@@ -68,6 +68,7 @@ export interface PromotionalVideo {
   isPublished: boolean;
   isApproved: boolean;
   isFeatured: boolean;
+  moderationStatus?: 'pending' | 'approved' | 'rejected' | 'flagged';
 
   // Timestamps
   createdAt: string;

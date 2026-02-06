@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,7 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/DesignTokens';
-import { StoreVideoAnalytics, BestPerformingVideo } from '@/types/promotionalVideo';
+import { StoreVideoAnalytics, BestPerformingVideo, SingleVideoAnalytics } from '@/types/promotionalVideo';
 
 interface AnalyticsCardProps {
   analytics: StoreVideoAnalytics;
@@ -22,6 +22,7 @@ export default function AnalyticsCard({
   onBestVideoPress,
   isLoading = false,
 }: AnalyticsCardProps) {
+  const [showDetails, setShowDetails] = useState(false);
   const formatNumber = (num: number | undefined | null): string => {
     // Handle undefined, null, or NaN values
     if (num === undefined || num === null || isNaN(num)) {
@@ -150,6 +151,75 @@ export default function AnalyticsCard({
             <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
           </View>
         </TouchableOpacity>
+      )}
+
+      {/* Per-Video Detail Toggle */}
+      {analytics.videoPerformance && analytics.videoPerformance.length > 0 && (
+        <View style={styles.detailSection}>
+          <TouchableOpacity
+            style={styles.detailToggle}
+            onPress={() => setShowDetails(!showDetails)}
+            activeOpacity={0.7}
+          >
+            <ThemedText style={styles.detailToggleText}>
+              {showDetails ? 'Hide Details' : 'View Details'}
+            </ThemedText>
+            <Ionicons
+              name={showDetails ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color={Colors.primary[600]}
+            />
+          </TouchableOpacity>
+
+          {showDetails && (
+            <View style={styles.detailList}>
+              {[...analytics.videoPerformance]
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .map((video, index) => (
+                  <View key={video.videoId || index} style={styles.detailRow}>
+                    {video.thumbnail ? (
+                      <Image
+                        source={{ uri: video.thumbnail }}
+                        style={styles.detailThumb}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={[styles.detailThumb, styles.placeholderThumbnail]}>
+                        <Ionicons name="videocam" size={14} color={Colors.gray[400]} />
+                      </View>
+                    )}
+                    <View style={styles.detailInfo}>
+                      <ThemedText style={styles.detailTitle} numberOfLines={1}>
+                        {video.title}
+                      </ThemedText>
+                      <View style={styles.detailStats}>
+                        <View style={styles.miniStat}>
+                          <Ionicons name="eye-outline" size={12} color={Colors.gray[500]} />
+                          <ThemedText style={styles.miniStatText}>
+                            {formatNumber(video.views)}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.miniStat}>
+                          <Ionicons name="heart-outline" size={12} color={Colors.gray[500]} />
+                          <ThemedText style={styles.miniStatText}>
+                            {formatNumber(video.likes)}
+                          </ThemedText>
+                        </View>
+                        {video.engagementRate > 0 && (
+                          <View style={styles.engagementMini}>
+                            <Ionicons name="trending-up" size={12} color={Colors.success[500]} />
+                            <ThemedText style={styles.engagementMiniText}>
+                              {video.engagementRate.toFixed(1)}%
+                            </ThemedText>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                ))}
+            </View>
+          )}
+        </View>
       )}
 
       {/* Empty State */}
@@ -325,6 +395,65 @@ const styles = StyleSheet.create({
   miniStatText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.text.secondary,
+  },
+  detailSection: {
+    marginTop: Spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.light,
+    paddingTop: Spacing.md,
+  },
+  detailToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.sm,
+  },
+  detailToggleText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: Typography.fontWeight.semiBold,
+    color: Colors.primary[600],
+  },
+  detailList: {
+    marginTop: Spacing.md,
+    gap: Spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+  },
+  detailThumb: {
+    width: 48,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.gray[200],
+  },
+  detailInfo: {
+    flex: 1,
+  },
+  detailTitle: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: Typography.fontWeight.medium,
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  detailStats: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  engagementMini: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  engagementMiniText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.success[600],
+    fontWeight: Typography.fontWeight.medium,
   },
   emptyState: {
     alignItems: 'center',

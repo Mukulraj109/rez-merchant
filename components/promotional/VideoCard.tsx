@@ -153,6 +153,26 @@ export default function VideoCard({
             <ThemedText style={styles.draftText}>Draft</ThemedText>
           </View>
         )}
+
+        {/* Moderation status badge */}
+        {video.moderationStatus === 'pending' && (
+          <View style={[styles.moderationBadge, { backgroundColor: '#F59E0B' }]}>
+            <Ionicons name="time" size={10} color="#FFFFFF" />
+            <ThemedText style={styles.moderationText}>Under Review</ThemedText>
+          </View>
+        )}
+        {video.moderationStatus === 'rejected' && (
+          <View style={[styles.moderationBadge, { backgroundColor: '#EF4444' }]}>
+            <Ionicons name="close-circle" size={10} color="#FFFFFF" />
+            <ThemedText style={styles.moderationText}>Rejected</ThemedText>
+          </View>
+        )}
+        {video.moderationStatus === 'flagged' && (
+          <View style={[styles.moderationBadge, { backgroundColor: '#8B5CF6' }]}>
+            <Ionicons name="flag" size={10} color="#FFFFFF" />
+            <ThemedText style={styles.moderationText}>Flagged</ThemedText>
+          </View>
+        )}
       </View>
 
       {/* Content Section */}
@@ -322,6 +342,22 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   draftText: {
+    color: Colors.text.inverse,
+    fontSize: Typography.fontSize.xs,
+    fontWeight: Typography.fontWeight.semiBold,
+  },
+  moderationBadge: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    left: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    gap: 4,
+  },
+  moderationText: {
     color: Colors.text.inverse,
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.semiBold,
