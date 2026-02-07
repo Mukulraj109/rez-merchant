@@ -279,6 +279,19 @@ export default function DashboardLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: 'More',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

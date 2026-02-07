@@ -138,6 +138,16 @@ export default function EditStoreScreen() {
   const [locationButtonEnabled, setLocationButtonEnabled] = useState(true);
   const [locationButtonLabel, setLocationButtonLabel] = useState('Location');
   
+  // Table booking configuration
+  const [bookingEnabled, setBookingEnabled] = useState(false);
+  const [slotDuration, setSlotDuration] = useState('30');
+  const [maxTableCapacity, setMaxTableCapacity] = useState('50');
+  const [advanceBookingDays, setAdvanceBookingDays] = useState('7');
+  const [bookingHoursStart, setBookingHoursStart] = useState('09:00');
+  const [bookingHoursEnd, setBookingHoursEnd] = useState('21:00');
+  const [requiresAdvanceBooking, setRequiresAdvanceBooking] = useState(false);
+  const [allowWalkIn, setAllowWalkIn] = useState(true);
+
   // Helper functions for modals
   const showError = (title: string, message: string) => {
     setErrorModal({ visible: true, title, message });
@@ -285,6 +295,18 @@ export default function EditStoreScreen() {
             setLocationButtonEnabled(locationBtn.enabled !== false);
             setLocationButtonLabel(locationBtn.label || 'Location');
           }
+        }
+
+        // Load booking configuration
+        if (s.bookingConfig) {
+          setBookingEnabled(s.bookingConfig.enabled || false);
+          setSlotDuration(String(s.bookingConfig.slotDuration || 30));
+          setMaxTableCapacity(String(s.bookingConfig.maxTableCapacity || 50));
+          setAdvanceBookingDays(String(s.bookingConfig.advanceBookingDays || 7));
+          setBookingHoursStart(s.bookingConfig.workingHours?.start || '09:00');
+          setBookingHoursEnd(s.bookingConfig.workingHours?.end || '21:00');
+          setRequiresAdvanceBooking(s.bookingConfig.requiresAdvanceBooking || false);
+          setAllowWalkIn(s.bookingConfig.allowWalkIn !== false);
         }
       }
     } catch (error: any) {
@@ -637,8 +659,22 @@ export default function EditStoreScreen() {
         ],
       };
 
+      // Table booking configuration
+      updatePayload.bookingConfig = {
+        enabled: bookingEnabled,
+        slotDuration: parseInt(slotDuration) || 30,
+        maxTableCapacity: parseInt(maxTableCapacity) || 50,
+        advanceBookingDays: parseInt(advanceBookingDays) || 7,
+        requiresAdvanceBooking,
+        allowWalkIn,
+        workingHours: {
+          start: bookingHoursStart || '09:00',
+          end: bookingHoursEnd || '21:00',
+        },
+      };
+
       await updateStore(id, updatePayload);
-      
+
       // Show success message and navigate to stores page
       showSuccess('Success', 'Store updated successfully');
       setTimeout(() => {
@@ -1082,6 +1118,138 @@ export default function EditStoreScreen() {
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </View>
         </TouchableOpacity>
+
+        {/* ===== Table Reservations Config ===== */}
+        <Text style={styles.sectionTitle}>Table Reservations</Text>
+        <Text style={styles.sectionHint}>Configure table booking settings for your store. Customers can reserve tables online.</Text>
+
+        {/* Enable/Disable Toggle */}
+        <TouchableOpacity
+          style={styles.toggleRow}
+          onPress={() => setBookingEnabled(!bookingEnabled)}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>Enable Table Bookings</Text>
+            <Text style={styles.toggleHint}>Allow customers to book tables online</Text>
+          </View>
+          <Ionicons
+            name={bookingEnabled ? "toggle" : "toggle-outline"}
+            size={40}
+            color={bookingEnabled ? "#3B82F6" : "#9CA3AF"}
+          />
+        </TouchableOpacity>
+
+        {bookingEnabled && (
+          <View style={styles.bookingConfigContainer}>
+            {/* Slot Duration */}
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Slot Duration (minutes)</Text>
+              <View style={styles.configChipsRow}>
+                {['15', '30', '45', '60'].map(val => (
+                  <TouchableOpacity
+                    key={val}
+                    style={[styles.configChip, slotDuration === val && styles.configChipActive]}
+                    onPress={() => setSlotDuration(val)}
+                  >
+                    <Text style={[styles.configChipText, slotDuration === val && styles.configChipTextActive]}>{val}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Max Capacity Per Slot */}
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Max Guests Per Slot</Text>
+              <TextInput
+                style={styles.configInput}
+                value={maxTableCapacity}
+                onChangeText={setMaxTableCapacity}
+                keyboardType="number-pad"
+                placeholder="50"
+              />
+            </View>
+
+            {/* Advance Booking Days */}
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Advance Booking (days)</Text>
+              <TextInput
+                style={styles.configInput}
+                value={advanceBookingDays}
+                onChangeText={setAdvanceBookingDays}
+                keyboardType="number-pad"
+                placeholder="7"
+              />
+            </View>
+
+            {/* Booking Hours */}
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Booking Hours</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TextInput
+                  style={[styles.configInput, { flex: 1 }]}
+                  value={bookingHoursStart}
+                  onChangeText={setBookingHoursStart}
+                  placeholder="09:00"
+                />
+                <Text style={styles.hoursTo}>to</Text>
+                <TextInput
+                  style={[styles.configInput, { flex: 1 }]}
+                  value={bookingHoursEnd}
+                  onChangeText={setBookingHoursEnd}
+                  placeholder="21:00"
+                />
+              </View>
+            </View>
+
+            {/* Toggles */}
+            <TouchableOpacity
+              style={styles.toggleRow}
+              onPress={() => setRequiresAdvanceBooking(!requiresAdvanceBooking)}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.toggleLabel}>Require Advance Booking</Text>
+                <Text style={styles.toggleHint}>Customers must book ahead of time</Text>
+              </View>
+              <Ionicons
+                name={requiresAdvanceBooking ? "toggle" : "toggle-outline"}
+                size={36}
+                color={requiresAdvanceBooking ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.toggleRow}
+              onPress={() => setAllowWalkIn(!allowWalkIn)}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.toggleLabel}>Allow Walk-Ins</Text>
+                <Text style={styles.toggleHint}>Accept customers without a reservation</Text>
+              </View>
+              <Ionicons
+                name={allowWalkIn ? "toggle" : "toggle-outline"}
+                size={36}
+                color={allowWalkIn ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+
+            {/* View Bookings Link */}
+            <TouchableOpacity
+              style={styles.dealsButton}
+              onPress={() => {
+                router.push({
+                  pathname: '/stores/[id]/table-bookings',
+                  params: { id: id }
+                } as any);
+              }}
+            >
+              <View style={styles.dealsButtonContent}>
+                <Ionicons name="calendar" size={20} color="#3B82F6" />
+                <Text style={styles.dealsButtonText}>View Table Bookings</Text>
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Reviews & UGC</Text>
         <Text style={styles.sectionHint}>View customer reviews and user-generated content for your store.</Text>
@@ -1614,6 +1782,82 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     color: '#111827',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginBottom: 8,
+  },
+  toggleLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  toggleHint: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  bookingConfigContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 12,
+  },
+  configRow: {
+    marginBottom: 4,
+  },
+  configLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  configChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  configChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  configChipActive: {
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
+  },
+  configChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  configChipTextActive: {
+    color: '#FFFFFF',
+  },
+  configInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
+    width: 100,
+  },
+  hoursTo: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginHorizontal: 8,
   },
 });
 

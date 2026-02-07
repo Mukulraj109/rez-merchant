@@ -735,6 +735,33 @@ export default function StoreDetailsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Table Bookings Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="calendar" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Table Bookings</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              View and manage table reservations from customers
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/table-bookings`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="calendar-outline" size={24} color="#10B981" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>View Table Bookings</Text>
+                    <Text style={styles.actionCardSubtitle}>Manage reservations, confirm or cancel bookings</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Actions */}
           <View style={styles.actionsSection}>
             {!store.isActive ? (

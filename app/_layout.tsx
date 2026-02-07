@@ -134,6 +134,9 @@ export default function RootLayout() {
                     {/* Notifications */}
                     <Stack.Screen name="notifications" options={{ headerShown: false }} />
 
+                    {/* Table Bookings (all stores) */}
+                    <Stack.Screen name="all-table-bookings" options={{ headerShown: false }} />
+
                     {/* Not Found */}
                     <Stack.Screen name="+not-found" />
                   </Stack>
