@@ -18,6 +18,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '@/contexts/StoreContext';
 import { storeService, Store } from '@/services/api/stores';
+import { tableBookingService } from '@/services/api/tableBookings';
 import { Colors } from '@/constants/Colors';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
 import ConfirmModal from '@/components/common/ConfirmModal';
@@ -37,12 +38,36 @@ export default function StoreDetailsScreen() {
   const [deactivateModalVisible, setDeactivateModalVisible] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
 
+  // Today's bookings widget
+  const [todayBookingsCount, setTodayBookingsCount] = useState(0);
+  const [nextBookingTime, setNextBookingTime] = useState<string | null>(null);
+
   useEffect(() => {
     if (id) {
       loadStoreDetails();
+      loadTodayBookings();
       setCurrentBannerIndex(0);
     }
   }, [id]);
+
+  const loadTodayBookings = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const result = await tableBookingService.getStoreTableBookings(id as string, { date: today, limit: 50 });
+      const activeBookings = result.bookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
+      setTodayBookingsCount(activeBookings.length);
+
+      // Find next upcoming booking
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5);
+      const upcoming = activeBookings
+        .filter(b => b.bookingTime >= currentTime)
+        .sort((a, b) => a.bookingTime.localeCompare(b.bookingTime));
+      setNextBookingTime(upcoming.length > 0 ? upcoming[0].bookingTime : null);
+    } catch {
+      // Non-critical — silently fail
+    }
+  };
 
   const loadStoreDetails = async () => {
     try {
@@ -463,6 +488,34 @@ export default function StoreDetailsScreen() {
                 </View>
               </View>
             </View>
+          )}
+
+          {/* Today's Bookings Widget */}
+          {todayBookingsCount > 0 && (
+            <TouchableOpacity
+              style={[styles.section, { backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#BBF7D0', borderRadius: 16 }]}
+              onPress={() => router.push(`/stores/${store._id}/table-bookings`)}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="restaurant-outline" size={20} color="#16A34A" />
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#15803D' }}>
+                      {todayBookingsCount} Booking{todayBookingsCount !== 1 ? 's' : ''} Today
+                    </Text>
+                    {nextBookingTime && (
+                      <Text style={{ fontSize: 13, color: '#4ADE80', marginTop: 2 }}>
+                        Next at {(() => { const [h, m] = nextBookingTime.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#16A34A" />
+              </View>
+            </TouchableOpacity>
           )}
 
           {/* Tags */}

@@ -13,7 +13,8 @@ export interface TableBooking {
   customerPhone: string;
   customerEmail?: string;
   specialRequests?: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+  cancellationReason?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,6 +25,7 @@ export interface TableBookingStats {
   pending: number;
   completed: number;
   cancelled: number;
+  noShow: number;
   todayCount: number;
 }
 
@@ -75,6 +77,7 @@ class TableBookingService {
         pending: bookings.filter(b => b.status === 'pending').length,
         completed: bookings.filter(b => b.status === 'completed').length,
         cancelled: bookings.filter(b => b.status === 'cancelled').length,
+        noShow: bookings.filter(b => b.status === 'no_show').length,
         todayCount: bookings.filter(b => b.bookingDate?.startsWith(today)).length,
       };
 
@@ -95,7 +98,7 @@ class TableBookingService {
    */
   async updateBookingStatus(
     bookingId: string,
-    status: 'confirmed' | 'completed' | 'cancelled'
+    status: 'confirmed' | 'completed' | 'cancelled' | 'no_show'
   ): Promise<TableBooking> {
     try {
       const response = await apiClient.put<any>(`table-bookings/${bookingId}/status`, { status });
@@ -136,6 +139,7 @@ class TableBookingService {
         pending: bookings.filter(b => b.status === 'pending').length,
         completed: bookings.filter(b => b.status === 'completed').length,
         cancelled: bookings.filter(b => b.status === 'cancelled').length,
+        noShow: bookings.filter(b => b.status === 'no_show').length,
         todayCount: bookings.filter(b => b.bookingDate?.startsWith(today)).length,
       };
 

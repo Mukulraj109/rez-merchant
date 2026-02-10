@@ -25,6 +25,7 @@ const STATUS_TABS = [
   { key: 'confirmed', label: 'Confirmed' },
   { key: 'completed', label: 'Completed' },
   { key: 'cancelled', label: 'Cancelled' },
+  { key: 'no_show', label: 'No Show' },
 ];
 
 const BOOKING_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
@@ -32,6 +33,15 @@ const BOOKING_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   confirmed: { bg: '#D1FAE5', text: '#10B981' },
   cancelled: { bg: '#FEE2E2', text: '#EF4444' },
   completed: { bg: '#E0E7FF', text: '#6366F1' },
+  no_show: { bg: '#F3F4F6', text: '#6B7280' },
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  cancelled: 'Cancelled',
+  completed: 'Completed',
+  no_show: 'No Show',
 };
 
 export default function TableBookingsScreen() {
@@ -167,7 +177,7 @@ export default function TableBookingsScreen() {
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
-              {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+              {STATUS_LABELS[item.status] || item.status.charAt(0).toUpperCase() + item.status.slice(1)}
             </Text>
           </View>
         </View>
@@ -286,6 +296,12 @@ export default function TableBookingsScreen() {
               <Text style={[styles.statValue, { color: '#EF4444' }]}>{stats.cancelled}</Text>
               <Text style={styles.statLabel}>Cancelled</Text>
             </View>
+            <View style={[styles.statCard, { backgroundColor: '#F3F4F6' }]}>
+              <Text style={[styles.statValue, { color: '#6B7280' }]}>{stats.noShow}</Text>
+              <Text style={styles.statLabel}>No Show</Text>
+            </View>
+          </View>
+          <View style={styles.statsRow}>
             <View style={[styles.statCard, { backgroundColor: '#DBEAFE' }]}>
               <Text style={[styles.statValue, { color: '#3B82F6' }]}>{stats.todayCount}</Text>
               <Text style={styles.statLabel}>Today</Text>
