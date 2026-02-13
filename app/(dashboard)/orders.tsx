@@ -48,27 +48,25 @@ type StatusFilter = OrderStatus | 'all';
 
 const statusColors: Record<string, string> = {
   placed: Colors.warning[500],
-  pending: Colors.warning[500],
   confirmed: Colors.primary[500],
   preparing: Colors.warning[600],
   ready: Colors.success[500],
-  out_for_delivery: Colors.primary[600],
   dispatched: Colors.primary[600],
   delivered: Colors.success[600],
   cancelled: Colors.error[500],
+  returned: Colors.warning[700],
   refunded: Colors.gray[500]
 };
 
 const statusLabels: Record<string, string> = {
   placed: 'Placed',
-  pending: 'Pending',
   confirmed: 'Confirmed',
   preparing: 'Preparing',
   ready: 'Ready',
-  out_for_delivery: 'Out for Delivery',
   dispatched: 'Dispatched',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
+  returned: 'Returned',
   refunded: 'Refunded'
 };
 
@@ -100,18 +98,16 @@ const StatusTab = ({ status, label, count, active, onPress }: StatusTabProps) =>
   </Pressable>
 );
 
-// Valid status transitions for merchants
-// Backend may use 'placed'/'dispatched' or 'pending'/'out_for_delivery' — handle both
+// Valid status transitions for merchants — matches backend canonical enum
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   placed: ['confirmed', 'cancelled'],
-  pending: ['confirmed', 'cancelled'],
   confirmed: ['preparing', 'cancelled'],
   preparing: ['ready', 'cancelled'],
-  ready: ['out_for_delivery', 'dispatched', 'delivered'],
-  out_for_delivery: ['delivered'],
+  ready: ['dispatched', 'delivered'],
   dispatched: ['delivered'],
-  delivered: [],
-  cancelled: [],
+  delivered: ['returned', 'refunded'],
+  cancelled: ['refunded'],
+  returned: ['refunded'],
   refunded: [],
 };
 

@@ -103,7 +103,8 @@ export interface ApiError {
 }
 
 // Common enums
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded';
+// Canonical order status — must match backend Order model schema
+export type OrderStatus = 'placed' | 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'delivered' | 'cancelled' | 'returned' | 'refunded';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'partial';
 export type CashbackStatus = 'pending' | 'approved' | 'rejected' | 'paid' | 'expired';
 export type RiskLevel = 'low' | 'medium' | 'high';

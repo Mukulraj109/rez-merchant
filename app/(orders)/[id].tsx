@@ -19,25 +19,27 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Order, OrderStatus } from '../../shared/types';
 import { getApiUrl } from '@/config/api';
 
-const statusColors: Record<OrderStatus, string> = {
-  pending: '#FF9800',
+const statusColors: Record<string, string> = {
+  placed: '#FF9800',
   confirmed: '#2196F3',
   preparing: '#FF5722',
   ready: '#4CAF50',
-  out_for_delivery: '#9C27B0',
+  dispatched: '#9C27B0',
   delivered: '#4CAF50',
   cancelled: '#F44336',
+  returned: '#795548',
   refunded: '#607D8B'
 };
 
-const statusLabels: Record<OrderStatus, string> = {
-  pending: 'Pending',
+const statusLabels: Record<string, string> = {
+  placed: 'Placed',
   confirmed: 'Confirmed',
   preparing: 'Preparing',
   ready: 'Ready',
-  out_for_delivery: 'Out for Delivery',
+  dispatched: 'Dispatched',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
+  returned: 'Returned',
   refunded: 'Refunded'
 };
 
@@ -59,14 +61,15 @@ const StatusUpdateModal = ({
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(currentStatus);
   const [notes, setNotes] = useState('');
 
-  const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-    pending: ['confirmed', 'cancelled'],
+  const validTransitions: Record<string, string[]> = {
+    placed: ['confirmed', 'cancelled'],
     confirmed: ['preparing', 'cancelled'],
     preparing: ['ready', 'cancelled'],
-    ready: ['out_for_delivery', 'delivered'],
-    out_for_delivery: ['delivered'],
-    delivered: ['refunded'],
-    cancelled: [],
+    ready: ['dispatched', 'delivered'],
+    dispatched: ['delivered'],
+    delivered: ['returned', 'refunded'],
+    cancelled: ['refunded'],
+    returned: ['refunded'],
     refunded: []
   };
 
