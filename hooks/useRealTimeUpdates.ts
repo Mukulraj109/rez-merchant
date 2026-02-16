@@ -44,62 +44,55 @@ export const useRealTimeUpdates = () => {
   const [connectionStats, setConnectionStats] = useState<RealTimeStats | null>(null);
   const eventListeners = useRef<Map<string, (data: any) => void>>(new Map());
   const socketListenersAttached = useRef(false);
+  const connectingRef = useRef(false);
 
   // Connect to real-time updates using Socket.IO
   const connect = useCallback(async () => {
-    if (isConnected || !authState.merchant?.id) return;
+    if (connectingRef.current || socketService.isConnected()) return;
+    if (!authState.merchant?.id) return;
 
+    connectingRef.current = true;
     try {
-      // Connect to WebSocket (optional - app works without it)
-      try {
-        await socketService.connect();
-        await socketService.joinMerchantDashboard();
-      } catch (error) {
-        // Silently fail - WebSocket is optional
-        if (__DEV__) {
-          console.warn('⚠️ [Socket] Connection failed (non-critical)');
-        }
-      }
-      
-      setIsConnected(true);
-      setConnectionState('connected');
-      setLastUpdate(new Date());
+      await socketService.connect();
+      await socketService.joinMerchantDashboard();
 
       if (__DEV__) {
         console.log('📡 [Socket] Real-time updates connected');
       }
     } catch (error) {
-      // Silently fail - WebSocket is optional
       if (__DEV__) {
-        console.warn('⚠️ [Socket] Real-time updates failed (non-critical)');
+        console.warn('⚠️ [Socket] Connection failed (non-critical)');
       }
-      setIsConnected(false);
-      setConnectionState('error');
+    } finally {
+      connectingRef.current = false;
     }
-  }, [isConnected, authState.merchant?.id]);
+  }, [authState.merchant?.id]);
 
   const disconnect = useCallback(() => {
+    connectingRef.current = false;
     socketService.disconnect();
     setIsConnected(false);
     setConnectionState('disconnected');
-    console.log('📡 Real-time Socket.IO disconnected');
+    if (__DEV__) {
+      console.log('📡 Real-time Socket.IO disconnected');
+    }
   }, []);
 
   // Cleanup socket listeners
   const cleanupSocketListeners = useCallback(() => {
     if (!socketListenersAttached.current) return;
 
-    socketService.off('connection-status');
-    socketService.off('initial-dashboard-data');
-    socketService.off('metrics-updated');
-    socketService.off('overview-updated');
-    socketService.off('order-event');
-    socketService.off('cashback-event');
-    socketService.off('product-event');
-    socketService.off('system-notification');
-    socketService.off('connection-error');
-    socketService.off('reconnected');
-    socketService.off('reconnecting');
+    socketService.offAll('connection-status');
+    socketService.offAll('initial-dashboard-data');
+    socketService.offAll('metrics-updated');
+    socketService.offAll('overview-updated');
+    socketService.offAll('order-event');
+    socketService.offAll('cashback-event');
+    socketService.offAll('product-event');
+    socketService.offAll('system-notification');
+    socketService.offAll('connection-error');
+    socketService.offAll('reconnected');
+    socketService.offAll('reconnecting');
 
     socketListenersAttached.current = false;
   }, []);
@@ -286,23 +279,23 @@ export const useRealTimeUpdates = () => {
   }, [connect, disconnect]);
 
   // Setup socket listeners and auto-connect when merchant is available
+  // NOTE: Don't disconnect in cleanup — the socket is a singleton and should stay
+  // alive while authenticated. AuthContext.logout() handles disconnect on logout.
+  // Disconnecting in cleanup causes errors in React Strict Mode (dev) due to
+  // mount→unmount→remount cycle destroying in-flight connections.
   useEffect(() => {
     if (authState.merchant?.id) {
       setupSocketListeners();
-      if (!isConnected) {
-        connect();
-      }
-    } else if (!authState.merchant?.id && isConnected) {
+      connect();
+    } else {
+      cleanupSocketListeners();
       disconnect();
     }
 
     return () => {
       cleanupSocketListeners();
-      if (isConnected) {
-        disconnect();
-      }
     };
-  }, [authState.merchant?.id, isConnected, connect, disconnect, setupSocketListeners, cleanupSocketListeners]);
+  }, [authState.merchant?.id]);
 
   // Update connection stats periodically
   useEffect(() => {
@@ -311,13 +304,6 @@ export const useRealTimeUpdates = () => {
       return () => clearInterval(interval);
     }
   }, [isConnected, fetchConnectionStats]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
 
   return {
     // Connection state

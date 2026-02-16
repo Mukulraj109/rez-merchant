@@ -175,19 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.warn('⚠️ Failed to load permissions:', permError);
           }
 
-          // Initialize socket connection (optional - app works without it)
-          try {
-            await socketService.connect();
-            await socketService.joinMerchantDashboard();
-            if (__DEV__) {
-              console.log('✅ [Socket] Connection established');
-            }
-          } catch (socketError) {
-            // Silently fail - WebSocket is optional
-            if (__DEV__) {
-              console.warn('⚠️ [Socket] Connection failed (non-critical)');
-            }
-          }
+          // Socket connection is managed by useRealTimeUpdates hook
         } else {
           console.warn('❌ Incomplete stored data, logging out');
           await authService.clearAuthData();
@@ -256,20 +244,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('⚠️ Failed to load permissions (continuing anyway):', permError);
       }
 
-      // Initialize socket connection after successful login (optional)
-      try {
-        await socketService.connect();
-        await socketService.joinMerchantDashboard();
-        if (__DEV__) {
-          console.log('✅ [Socket] Connection established');
-        }
-      } catch (socketError) {
-        // Silently fail - WebSocket is optional
-        if (__DEV__) {
-          console.warn('⚠️ [Socket] Connection failed (non-critical)');
-        }
-      }
-      
+      // Socket connection is managed by useRealTimeUpdates hook
+
     } catch (error: any) {
       console.error('❌ Login failed:', error.message);
       dispatch({
@@ -309,20 +285,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('⚠️ Failed to load permissions (continuing anyway):', permError);
       }
 
-      // Initialize socket connection after successful registration (optional)
-      try {
-        await socketService.connect();
-        await socketService.joinMerchantDashboard();
-        if (__DEV__) {
-          console.log('✅ [Socket] Connection established');
-        }
-      } catch (socketError) {
-        // Silently fail - WebSocket is optional
-        if (__DEV__) {
-          console.warn('⚠️ [Socket] Connection failed (non-critical)');
-        }
-      }
-      
+      // Socket connection is managed by useRealTimeUpdates hook
+
     } catch (error: any) {
       console.error('❌ Registration failed:', error.message);
       dispatch({

@@ -46,6 +46,14 @@ const MENU_ITEMS: MenuItem[] = [
     route: '/events',
   },
   {
+    id: 'services',
+    title: 'Services',
+    subtitle: 'Manage travel & service listings',
+    icon: 'briefcase-outline',
+    iconColor: '#0EA5E9',
+    route: '/services',
+  },
+  {
     id: 'social-impact',
     title: 'Social Impact',
     subtitle: 'Manage social impact initiatives',
@@ -68,6 +76,14 @@ const MENU_ITEMS: MenuItem[] = [
     icon: 'notifications-outline',
     iconColor: '#EF4444',
     route: '/notifications',
+  },
+  {
+    id: 'categories',
+    title: 'Business Categories',
+    subtitle: 'Manage product and service categories',
+    icon: 'grid-outline',
+    iconColor: '#14B8A6',
+    route: '/categories',
   },
   {
     id: 'reports',

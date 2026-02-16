@@ -137,6 +137,9 @@ export default function RootLayout() {
                     {/* Table Bookings (all stores) */}
                     <Stack.Screen name="all-table-bookings" options={{ headerShown: false }} />
 
+                    {/* Services Management */}
+                    <Stack.Screen name="services" options={{ headerShown: false }} />
+
                     {/* Not Found */}
                     <Stack.Screen name="+not-found" />
                   </Stack>

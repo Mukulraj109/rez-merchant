@@ -20,6 +20,7 @@ import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStore } from '@/contexts/StoreContext';
 import { productsService } from '@/services';
+import { serviceManagementService, ServiceCategory } from '@/services/api/services';
 import { ProductCategory } from '@/types/api';
 
 interface CategoryWithStats extends ProductCategory {
@@ -53,6 +54,7 @@ export default function CategoriesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStoreId, setSelectedStoreId] = useState<string>(activeStore?._id || '');
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -68,43 +70,48 @@ export default function CategoriesScreen() {
         setLoading(true);
       }
 
-      // For now, use the products service to get categories
-      // This will get basic category data - the backend may need to be extended for stats
-      const categoriesData = await productsService.getCategories(selectedStoreId || undefined);
-      
-      // Transform the data to match the expected format with subcategories
-      const categoriesWithStats: CategoryWithStats[] = categoriesData.map(cat => ({
-        ...cat,
-        subcategories: [] // Backend doesn't provide subcategories yet
+      // Fetch product categories and service categories in parallel
+      const [rawCategories, svcCategories] = await Promise.all([
+        productsService.getCategories(),
+        serviceManagementService.getCategories().catch(() => [] as ServiceCategory[]),
+      ]);
+      setServiceCategories(svcCategories);
+
+      // Backend returns { label, value, id } format — map to CategoryWithStats
+
+      const categoriesWithStats: CategoryWithStats[] = rawCategories.map(cat => ({
+        id: cat.id || cat.value || '',
+        name: cat.label || cat.value || 'Unnamed',
+        description: '',
+        parentId: undefined,
+        merchantId: '',
+        isActive: true,
+        productCount: 0,
+        createdAt: '',
+        updatedAt: '',
+        subcategories: [],
       }));
 
       setCategories(categoriesWithStats);
-      
-      // Mock stats for now - could be extended in backend later
-      const mockStats: CategoryStats = {
+
+      const totalCategories = categoriesWithStats.length;
+      setStats({
         overview: {
-          totalCategories: categoriesData.length,
+          totalCategories,
           totalSubcategories: 0,
-          totalProducts: categoriesData.reduce((sum, cat) => sum + cat.productCount, 0),
+          totalProducts: 0,
         },
-        topCategories: categoriesData
-          .sort((a, b) => b.productCount - a.productCount)
-          .slice(0, 5)
-          .map(cat => ({
-            category: cat.name,
-            productCount: cat.productCount,
-            averagePrice: 0, // Would need backend calculation
-            totalValue: 0, // Would need backend calculation
-          })),
+        topCategories: categoriesWithStats.slice(0, 5).map(cat => ({
+          category: cat.name,
+          productCount: cat.productCount || 0,
+          averagePrice: 0,
+          totalValue: 0,
+        })),
         insights: {
-          averageProductsPerCategory: categoriesData.length > 0 
-            ? Math.round(categoriesData.reduce((sum, cat) => sum + cat.productCount, 0) / categoriesData.length)
-            : 0,
-          categoriesNeedingAttention: categoriesData.filter(cat => cat.productCount === 0).length,
+          averageProductsPerCategory: 0,
+          categoriesNeedingAttention: 0,
         },
-      };
-      
-      setStats(mockStats);
+      });
 
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -113,7 +120,7 @@ export default function CategoriesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, searchQuery, selectedStoreId]);
+  }, [token, selectedStoreId]);
 
   useEffect(() => {
     fetchCategories();
@@ -275,42 +282,59 @@ export default function CategoriesScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <ThemedText style={styles.statNumber}>{stats.overview.totalCategories}</ThemedText>
-            <ThemedText style={styles.statLabel}>Categories</ThemedText>
+            <ThemedText style={styles.statLabel}>Product</ThemedText>
           </View>
-          
+
           <View style={styles.statCard}>
-            <ThemedText style={styles.statNumber}>{stats.overview.totalSubcategories}</ThemedText>
-            <ThemedText style={styles.statLabel}>Subcategories</ThemedText>
+            <ThemedText style={[styles.statNumber, { color: '#0EA5E9' }]}>{serviceCategories.length}</ThemedText>
+            <ThemedText style={styles.statLabel}>Service</ThemedText>
           </View>
-          
+
           <View style={styles.statCard}>
-            <ThemedText style={styles.statNumber}>{stats.overview.totalProducts}</ThemedText>
-            <ThemedText style={styles.statLabel}>Products</ThemedText>
+            <ThemedText style={styles.statNumber}>{stats.overview.totalCategories + serviceCategories.length}</ThemedText>
+            <ThemedText style={styles.statLabel}>Total</ThemedText>
           </View>
-          
+
           <View style={styles.statCard}>
-            <ThemedText style={styles.statNumber}>{stats.insights.averageProductsPerCategory}</ThemedText>
-            <ThemedText style={styles.statLabel}>Avg/Category</ThemedText>
+            <ThemedText style={[styles.statNumber, { color: '#10B981' }]}>
+              {serviceCategories.filter(s => s.isActive).length + categories.filter(c => c.isActive).length}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>Active</ThemedText>
           </View>
         </View>
 
-        {stats.topCategories.length > 0 && (
+        {/* Combined top categories: product + service */}
+        {(categories.length > 0 || serviceCategories.length > 0) && (
           <View style={styles.topCategoriesContainer}>
-            <ThemedText style={styles.subsectionTitle}>Top Categories</ThemedText>
-            {stats.topCategories.slice(0, 5).map((cat, index) => (
-              <View key={cat.category} style={styles.topCategoryItem}>
+            <ThemedText style={styles.subsectionTitle}>All Categories</ThemedText>
+            {categories.slice(0, 5).map((cat, index) => (
+              <View key={cat.id} style={styles.topCategoryItem}>
                 <View style={styles.topCategoryRank}>
                   <ThemedText style={styles.rankNumber}>{index + 1}</ThemedText>
                 </View>
                 <View style={styles.topCategoryInfo}>
-                  <ThemedText style={styles.topCategoryName}>{cat.category}</ThemedText>
+                  <ThemedText style={styles.topCategoryName}>{cat.name}</ThemedText>
+                  <ThemedText style={styles.topCategoryStats}>Product category</ThemedText>
+                </View>
+                <View style={[styles.typeBadge, { backgroundColor: '#F3F4F6' }]}>
+                  <ThemedText style={[styles.typeBadgeText, { color: Colors.light.primary }]}>Product</ThemedText>
+                </View>
+              </View>
+            ))}
+            {serviceCategories.slice(0, 5).map((svc, index) => (
+              <View key={svc._id} style={styles.topCategoryItem}>
+                <View style={[styles.topCategoryRank, { backgroundColor: '#0EA5E9' }]}>
+                  <ThemedText style={styles.rankNumber}>{categories.length + index + 1}</ThemedText>
+                </View>
+                <View style={styles.topCategoryInfo}>
+                  <ThemedText style={styles.topCategoryName}>{svc.name}</ThemedText>
                   <ThemedText style={styles.topCategoryStats}>
-                    {cat.productCount} products • ₹${cat.averagePrice.toFixed(2)} avg
+                    {svc.serviceCount || 0} services • {svc.cashbackPercentage}% CB
                   </ThemedText>
                 </View>
-                <ThemedText style={styles.topCategoryValue}>
-                  ₹${cat.totalValue.toFixed(0)}
-                </ThemedText>
+                <View style={[styles.typeBadge, { backgroundColor: '#F0F9FF' }]}>
+                  <ThemedText style={[styles.typeBadgeText, { color: '#0EA5E9' }]}>Service</ThemedText>
+                </View>
               </View>
             ))}
           </View>
@@ -334,13 +358,21 @@ export default function CategoriesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
-            <ThemedText type="title" style={styles.title}>
-              Categories
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Organize your product catalog
-            </ThemedText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ marginRight: 12, padding: 4 }}
+            >
+              <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+            </TouchableOpacity>
+            <View>
+              <ThemedText type="title" style={styles.title}>
+                Categories
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                Organize your product catalog
+              </ThemedText>
+            </View>
           </View>
           
           <View style={styles.headerActions}>
@@ -490,10 +522,50 @@ export default function CategoriesScreen() {
           {/* Stats */}
           {renderStatsCard()}
 
-          {/* Categories List */}
+          {/* Service Categories (Travel & Services) */}
+          {serviceCategories.length > 0 && (
+            <View style={styles.categoriesContainer}>
+              <View style={styles.categoriesHeader}>
+                <ThemedText style={styles.sectionTitle}>Service Categories</ThemedText>
+                <TouchableOpacity
+                  style={styles.organizeButton}
+                  onPress={() => router.push('/services' as any)}
+                >
+                  <Ionicons name="briefcase-outline" size={18} color="#0EA5E9" />
+                  <ThemedText style={[styles.organizeText, { color: '#0EA5E9' }]}>Manage</ThemedText>
+                </TouchableOpacity>
+              </View>
+
+              {serviceCategories.map((svc) => (
+                <TouchableOpacity
+                  key={svc._id}
+                  style={styles.serviceCategoryCard}
+                  onPress={() => router.push(`/services?category=${svc._id}` as any)}
+                >
+                  <View style={styles.serviceCategoryIcon}>
+                    <ThemedText style={{ fontSize: 20 }}>
+                      {svc.icon || '📦'}
+                    </ThemedText>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={styles.categoryName}>{svc.name}</ThemedText>
+                    <ThemedText style={styles.productCount}>
+                      {svc.serviceCount || 0} services • {svc.cashbackPercentage}% cashback
+                    </ThemedText>
+                  </View>
+                  <View style={[
+                    styles.svcStatusDot,
+                    { backgroundColor: svc.isActive ? '#10B981' : '#9CA3AF' }
+                  ]} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Product Categories List */}
           <View style={styles.categoriesContainer}>
             <View style={styles.categoriesHeader}>
-              <ThemedText style={styles.sectionTitle}>All Categories</ThemedText>
+              <ThemedText style={styles.sectionTitle}>Product Categories</ThemedText>
               <TouchableOpacity
                 style={styles.organizeButton}
                 onPress={() => router.push('/categories/organize')}
@@ -502,18 +574,23 @@ export default function CategoriesScreen() {
                 <ThemedText style={styles.organizeText}>Organize</ThemedText>
               </TouchableOpacity>
             </View>
-            
-            {categories.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <FlatList
-                data={categories}
-                renderItem={renderCategoryItem}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
+
+            {(() => {
+              const filtered = searchQuery
+                ? categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                : categories;
+              return filtered.length === 0 ? (
+                renderEmptyState()
+              ) : (
+                <FlatList
+                  data={filtered}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                  showsVerticalScrollIndicator={false}
+                />
+              );
+            })()}
           </View>
         </ScrollView>
       )}
@@ -875,5 +952,36 @@ const styles = StyleSheet.create({
     color: Colors.light.primary,
     fontWeight: '500',
     marginTop: 2,
+  },
+  typeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  typeBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  serviceCategoryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.backgroundSecondary,
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 8,
+    gap: 12,
+  },
+  serviceCategoryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F0F9FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  svcStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

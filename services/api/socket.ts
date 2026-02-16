@@ -29,6 +29,18 @@ class SocketService {
 
   // Initialize socket connection
   async connect(): Promise<void> {
+    // Don't create a new socket if one is already connected or connecting
+    if (this.socket?.connected || this.connectionState === 'connecting') {
+      return;
+    }
+
+    // Clean up any existing socket before creating a new one
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
     try {
       const token = await storageService.getAuthToken();
       if (!token) {
@@ -38,7 +50,7 @@ class SocketService {
       }
 
       // Use localhost for development instead of IP address
-      const socketUrl = SOCKET_URL.includes('172.20.10.4') 
+      const socketUrl = SOCKET_URL.includes('172.20.10.4')
         ? SOCKET_URL.replace('172.20.10.4', 'localhost')
         : SOCKET_URL;
 
@@ -46,7 +58,9 @@ class SocketService {
       if (__DEV__) {
         console.log(`📡 [Socket] Attempting to connect to: ${socketUrl}`);
       }
-      
+
+      this.connectionState = 'connecting';
+
       this.socket = io(socketUrl, {
         auth: {
           token
@@ -54,16 +68,14 @@ class SocketService {
         transports: ['polling', 'websocket'], // Try polling first for iOS compatibility
         timeout: SOCKET_TIMEOUT,
         reconnection: true,
-        reconnectionDelay: 2000, // Increased delay to reduce spam
-        reconnectionAttempts: 3, // Reduced attempts to avoid spam
+        reconnectionDelay: 2000,
+        reconnectionAttempts: 3,
         reconnectionDelayMax: 5000,
-        forceNew: true,
         autoConnect: true
       });
 
       this.setupEventListeners();
       this.connectionStartTime = Date.now();
-      this.connectionState = 'connecting';
 
     } catch (error) {
       // Silently handle connection errors - WebSocket is optional
@@ -78,15 +90,16 @@ class SocketService {
   // Disconnect socket
   disconnect(): void {
     if (this.socket) {
+      this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }
-    
+
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
       this.pingInterval = null;
     }
-    
+
     this.connectionState = 'disconnected';
     this.stats.connectionUptime = Date.now() - this.connectionStartTime;
   }
@@ -305,7 +318,12 @@ class SocketService {
     this.listeners.get(event)!.push(callback);
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback?: Function): void {
+    if (!callback) {
+      // Remove all listeners for this event
+      this.listeners.delete(event);
+      return;
+    }
     const listeners = this.listeners.get(event);
     if (listeners) {
       const index = listeners.indexOf(callback);
@@ -313,6 +331,11 @@ class SocketService {
         listeners.splice(index, 1);
       }
     }
+  }
+
+  // Remove all listeners for an event
+  offAll(event: string): void {
+    this.listeners.delete(event);
   }
 
   private emitToListeners(event: string, data: any): void {

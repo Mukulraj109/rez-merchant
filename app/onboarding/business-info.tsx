@@ -82,6 +82,7 @@ const businessCategories = [
   'Sports & Outdoors',
   'Books & Media',
   'Services',
+  'Travel & Tourism',
   'Other',
 ];
 
