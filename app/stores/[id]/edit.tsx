@@ -138,6 +138,21 @@ export default function EditStoreScreen() {
   const [locationButtonEnabled, setLocationButtonEnabled] = useState(true);
   const [locationButtonLabel, setLocationButtonLabel] = useState('Location');
   
+  // Service capabilities
+  const [homeDeliveryEnabled, setHomeDeliveryEnabled] = useState(false);
+  const [homeDeliveryRadius, setHomeDeliveryRadius] = useState('');
+  const [homeDeliveryMinOrder, setHomeDeliveryMinOrder] = useState('');
+  const [homeDeliveryFee, setHomeDeliveryFee] = useState('');
+  const [homeDeliveryFreeAbove, setHomeDeliveryFreeAbove] = useState('');
+  const [homeDeliveryTime, setHomeDeliveryTime] = useState('');
+  const [driveThruEnabled, setDriveThruEnabled] = useState(false);
+  const [driveThruTime, setDriveThruTime] = useState('');
+  const [driveThruMenuType, setDriveThruMenuType] = useState<'full' | 'limited'>('full');
+  const [dineInEnabled, setDineInEnabled] = useState(false);
+  const [tableBookingCapEnabled, setTableBookingCapEnabled] = useState(false);
+  const [storePickupEnabled, setStorePickupEnabled] = useState(false);
+  const [storePickupTime, setStorePickupTime] = useState('');
+
   // Table booking configuration
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [slotDuration, setSlotDuration] = useState('30');
@@ -294,6 +309,34 @@ export default function EditStoreScreen() {
           if (locationBtn) {
             setLocationButtonEnabled(locationBtn.enabled !== false);
             setLocationButtonLabel(locationBtn.label || 'Location');
+          }
+        }
+
+        // Load service capabilities
+        if (s.serviceCapabilities) {
+          const sc = s.serviceCapabilities;
+          if (sc.homeDelivery) {
+            setHomeDeliveryEnabled(sc.homeDelivery.enabled || false);
+            setHomeDeliveryRadius(String(sc.homeDelivery.deliveryRadius || ''));
+            setHomeDeliveryMinOrder(String(sc.homeDelivery.minOrder || ''));
+            setHomeDeliveryFee(String(sc.homeDelivery.deliveryFee || ''));
+            setHomeDeliveryFreeAbove(String(sc.homeDelivery.freeDeliveryAbove || ''));
+            setHomeDeliveryTime(sc.homeDelivery.estimatedTime || '');
+          }
+          if (sc.driveThru) {
+            setDriveThruEnabled(sc.driveThru.enabled || false);
+            setDriveThruTime(sc.driveThru.estimatedTime || '');
+            setDriveThruMenuType(sc.driveThru.menuType || 'full');
+          }
+          if (sc.dineIn) {
+            setDineInEnabled(sc.dineIn.enabled || false);
+          }
+          if (sc.tableBooking) {
+            setTableBookingCapEnabled(sc.tableBooking.enabled || false);
+          }
+          if (sc.storePickup) {
+            setStorePickupEnabled(sc.storePickup.enabled || false);
+            setStorePickupTime(sc.storePickup.estimatedTime || '');
           }
         }
 
@@ -657,6 +700,39 @@ export default function EditStoreScreen() {
             order: 2,
           },
         ],
+      };
+
+      // Service capabilities
+      updatePayload.serviceCapabilities = {
+        homeDelivery: {
+          enabled: homeDeliveryEnabled,
+          ...(homeDeliveryEnabled && {
+            deliveryRadius: parseFloat(homeDeliveryRadius) || undefined,
+            minOrder: parseFloat(homeDeliveryMinOrder) || undefined,
+            deliveryFee: parseFloat(homeDeliveryFee) || undefined,
+            freeDeliveryAbove: parseFloat(homeDeliveryFreeAbove) || undefined,
+            estimatedTime: homeDeliveryTime.trim() || undefined,
+          }),
+        },
+        driveThru: {
+          enabled: driveThruEnabled,
+          ...(driveThruEnabled && {
+            estimatedTime: driveThruTime.trim() || undefined,
+            menuType: driveThruMenuType,
+          }),
+        },
+        dineIn: {
+          enabled: dineInEnabled,
+        },
+        tableBooking: {
+          enabled: tableBookingCapEnabled,
+        },
+        storePickup: {
+          enabled: storePickupEnabled,
+          ...(storePickupEnabled && {
+            estimatedTime: storePickupTime.trim() || undefined,
+          }),
+        },
       };
 
       // Table booking configuration
@@ -1118,6 +1194,202 @@ export default function EditStoreScreen() {
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </View>
         </TouchableOpacity>
+
+        {/* ===== Service Capabilities ===== */}
+        <Text style={styles.sectionTitle}>Service Capabilities</Text>
+        <Text style={styles.sectionHint}>Configure which services your store offers to customers.</Text>
+
+        {/* Home Delivery */}
+        <TouchableOpacity
+          style={styles.toggleRow}
+          onPress={() => setHomeDeliveryEnabled(!homeDeliveryEnabled)}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>Home Delivery</Text>
+            <Text style={styles.toggleHint}>Deliver orders to customer doorstep</Text>
+          </View>
+          <Ionicons
+            name={homeDeliveryEnabled ? "toggle" : "toggle-outline"}
+            size={40}
+            color={homeDeliveryEnabled ? "#3B82F6" : "#9CA3AF"}
+          />
+        </TouchableOpacity>
+
+        {homeDeliveryEnabled && (
+          <View style={styles.serviceConfigContainer}>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Delivery Radius (km)</Text>
+              <TextInput
+                style={styles.configInput}
+                value={homeDeliveryRadius}
+                onChangeText={setHomeDeliveryRadius}
+                keyboardType="numeric"
+                placeholder="5"
+              />
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Min Order Amount</Text>
+              <View style={styles.configInputWithPrefix}>
+                <Text style={styles.configInputPrefix}>₹</Text>
+                <TextInput
+                  style={[styles.configInput, { flex: 1 }]}
+                  value={homeDeliveryMinOrder}
+                  onChangeText={setHomeDeliveryMinOrder}
+                  keyboardType="numeric"
+                  placeholder="100"
+                />
+              </View>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Delivery Fee</Text>
+              <View style={styles.configInputWithPrefix}>
+                <Text style={styles.configInputPrefix}>₹</Text>
+                <TextInput
+                  style={[styles.configInput, { flex: 1 }]}
+                  value={homeDeliveryFee}
+                  onChangeText={setHomeDeliveryFee}
+                  keyboardType="numeric"
+                  placeholder="30"
+                />
+              </View>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Free Delivery Above</Text>
+              <View style={styles.configInputWithPrefix}>
+                <Text style={styles.configInputPrefix}>₹</Text>
+                <TextInput
+                  style={[styles.configInput, { flex: 1 }]}
+                  value={homeDeliveryFreeAbove}
+                  onChangeText={setHomeDeliveryFreeAbove}
+                  keyboardType="numeric"
+                  placeholder="500"
+                />
+              </View>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Estimated Time</Text>
+              <TextInput
+                style={[styles.configInput, { width: 140 }]}
+                value={homeDeliveryTime}
+                onChangeText={setHomeDeliveryTime}
+                placeholder="30-45 min"
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Drive-Thru */}
+        <TouchableOpacity
+          style={styles.toggleRow}
+          onPress={() => setDriveThruEnabled(!driveThruEnabled)}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>Drive-Thru</Text>
+            <Text style={styles.toggleHint}>Serve customers without leaving their vehicle</Text>
+          </View>
+          <Ionicons
+            name={driveThruEnabled ? "toggle" : "toggle-outline"}
+            size={40}
+            color={driveThruEnabled ? "#3B82F6" : "#9CA3AF"}
+          />
+        </TouchableOpacity>
+
+        {driveThruEnabled && (
+          <View style={styles.serviceConfigContainer}>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Estimated Time</Text>
+              <TextInput
+                style={[styles.configInput, { width: 140 }]}
+                value={driveThruTime}
+                onChangeText={setDriveThruTime}
+                placeholder="5-10 min"
+              />
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Menu Type</Text>
+              <View style={styles.configChipsRow}>
+                {(['full', 'limited'] as const).map(val => (
+                  <TouchableOpacity
+                    key={val}
+                    style={[styles.configChip, driveThruMenuType === val && styles.configChipActive]}
+                    onPress={() => setDriveThruMenuType(val)}
+                  >
+                    <Text style={[styles.configChipText, driveThruMenuType === val && styles.configChipTextActive]}>
+                      {val.charAt(0).toUpperCase() + val.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Dine-In */}
+        <TouchableOpacity
+          style={styles.toggleRow}
+          onPress={() => setDineInEnabled(!dineInEnabled)}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>Dine-In</Text>
+            <Text style={styles.toggleHint}>Allow customers to eat at your store</Text>
+          </View>
+          <Ionicons
+            name={dineInEnabled ? "toggle" : "toggle-outline"}
+            size={40}
+            color={dineInEnabled ? "#3B82F6" : "#9CA3AF"}
+          />
+        </TouchableOpacity>
+
+        {/* Table Booking */}
+        <TouchableOpacity
+          style={styles.toggleRow}
+          onPress={() => {
+            const newVal = !tableBookingCapEnabled;
+            setTableBookingCapEnabled(newVal);
+            // Sync with existing bookingConfig toggle
+            setBookingEnabled(newVal);
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>Table Booking</Text>
+            <Text style={styles.toggleHint}>Allow customers to reserve tables online (configured below)</Text>
+          </View>
+          <Ionicons
+            name={tableBookingCapEnabled ? "toggle" : "toggle-outline"}
+            size={40}
+            color={tableBookingCapEnabled ? "#3B82F6" : "#9CA3AF"}
+          />
+        </TouchableOpacity>
+
+        {/* Store Pickup */}
+        <TouchableOpacity
+          style={styles.toggleRow}
+          onPress={() => setStorePickupEnabled(!storePickupEnabled)}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>Store Pickup</Text>
+            <Text style={styles.toggleHint}>Let customers order online and pick up in-store</Text>
+          </View>
+          <Ionicons
+            name={storePickupEnabled ? "toggle" : "toggle-outline"}
+            size={40}
+            color={storePickupEnabled ? "#3B82F6" : "#9CA3AF"}
+          />
+        </TouchableOpacity>
+
+        {storePickupEnabled && (
+          <View style={styles.serviceConfigContainer}>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Estimated Pickup Time</Text>
+              <TextInput
+                style={[styles.configInput, { width: 140 }]}
+                value={storePickupTime}
+                onChangeText={setStorePickupTime}
+                placeholder="15-20 min"
+              />
+            </View>
+          </View>
+        )}
 
         {/* ===== Table Reservations Config ===== */}
         <Text style={styles.sectionTitle}>Table Reservations</Text>
@@ -1800,6 +2072,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
+  },
+  serviceConfigContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 12,
+  },
+  configInputWithPrefix: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 140,
+  },
+  configInputPrefix: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginRight: 4,
   },
   bookingConfigContainer: {
     backgroundColor: '#F9FAFB',

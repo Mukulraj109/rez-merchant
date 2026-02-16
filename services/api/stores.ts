@@ -45,6 +45,32 @@ export interface StoreOffers {
   partnerLevel?: 'bronze' | 'silver' | 'gold' | 'platinum';
 }
 
+export interface ServiceCapabilities {
+  homeDelivery: {
+    enabled: boolean;
+    deliveryRadius?: number;
+    minOrder?: number;
+    deliveryFee?: number;
+    freeDeliveryAbove?: number;
+    estimatedTime?: string;
+  };
+  driveThru: {
+    enabled: boolean;
+    estimatedTime?: string;
+    menuType?: 'full' | 'limited';
+  };
+  tableBooking: {
+    enabled: boolean;
+  };
+  dineIn: {
+    enabled: boolean;
+  };
+  storePickup: {
+    enabled: boolean;
+    estimatedTime?: string;
+  };
+}
+
 export interface Store {
   _id: string;
   name: string;
@@ -61,6 +87,7 @@ export interface Store {
   contact: StoreContact;
   operationalInfo: StoreOperationalInfo;
   offers: StoreOffers;
+  serviceCapabilities?: ServiceCapabilities;
   tags?: string[];
   isActive: boolean;
   isFeatured: boolean;
@@ -91,6 +118,7 @@ export interface CreateStoreData {
   contact?: StoreContact;
   operationalInfo?: StoreOperationalInfo;
   offers?: StoreOffers;
+  serviceCapabilities?: ServiceCapabilities;
   tags?: string[];
   isActive?: boolean;
   isFeatured?: boolean;

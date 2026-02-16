@@ -261,3 +261,6 @@ export * from './socialMedia';
 export * from './events';
 export * from './socialImpact';
 export * from './services';
+export * from './coinDrops';
+export * from './brandedCoins';
+export * from './earningAnalytics';

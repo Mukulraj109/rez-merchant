@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -124,11 +125,19 @@ export default function AddStoreScreen() {
     message: '',
   });
   
+  // Service capabilities (simplified for creation)
+  const [scHomeDelivery, setScHomeDelivery] = useState(false);
+  const [scHomeDeliveryRadius, setScHomeDeliveryRadius] = useState('');
+  const [scDriveThru, setScDriveThru] = useState(false);
+  const [scDineIn, setScDineIn] = useState(false);
+  const [scTableBooking, setScTableBooking] = useState(false);
+  const [scStorePickup, setScStorePickup] = useState(false);
+
   // Helper functions for modals
   const showError = (title: string, message: string) => {
     setErrorModal({ visible: true, title, message });
   };
-  
+
   const showSuccess = (title: string, message: string) => {
     setSuccessModal({ visible: true, title, message });
   };
@@ -508,6 +517,26 @@ export default function AddStoreScreen() {
       if (Object.keys(deliveryCategories).length > 0) {
         createPayload.deliveryCategories = deliveryCategories;
       }
+
+      // Service capabilities
+      createPayload.serviceCapabilities = {
+        homeDelivery: {
+          enabled: scHomeDelivery,
+          ...(scHomeDelivery && scHomeDeliveryRadius ? { deliveryRadius: parseFloat(scHomeDeliveryRadius) || undefined } : {}),
+        },
+        driveThru: {
+          enabled: scDriveThru,
+        },
+        dineIn: {
+          enabled: scDineIn,
+        },
+        tableBooking: {
+          enabled: scTableBooking,
+        },
+        storePickup: {
+          enabled: scStorePickup,
+        },
+      };
 
       await createStore(createPayload);
 
@@ -931,6 +960,113 @@ export default function AddStoreScreen() {
             </View>
           ))}
 
+          <Text style={styles.sectionTitle}>Service Capabilities</Text>
+          <Text style={styles.sectionHint}>Select which services your store offers. You can configure detailed settings later in the edit page.</Text>
+
+          {/* Home Delivery */}
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Home Delivery</Text>
+              <Text style={styles.categoryDescription}>Deliver orders to customer doorstep</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setScHomeDelivery(!scHomeDelivery)}
+            >
+              <Ionicons
+                name={scHomeDelivery ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={scHomeDelivery ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {scHomeDelivery && (
+            <View style={styles.scInlineConfig}>
+              <Text style={styles.scInlineLabel}>Delivery Radius (km)</Text>
+              <TextInput
+                style={styles.scInlineInput}
+                value={scHomeDeliveryRadius}
+                onChangeText={setScHomeDeliveryRadius}
+                keyboardType="numeric"
+                placeholder="5"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+          )}
+
+          {/* Drive-Thru */}
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Drive-Thru</Text>
+              <Text style={styles.categoryDescription}>Serve customers in their vehicles</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setScDriveThru(!scDriveThru)}
+            >
+              <Ionicons
+                name={scDriveThru ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={scDriveThru ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Dine-In */}
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Dine-In</Text>
+              <Text style={styles.categoryDescription}>Allow customers to eat at your store</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setScDineIn(!scDineIn)}
+            >
+              <Ionicons
+                name={scDineIn ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={scDineIn ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Table Booking */}
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Table Booking</Text>
+              <Text style={styles.categoryDescription}>Let customers reserve tables online</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setScTableBooking(!scTableBooking)}
+            >
+              <Ionicons
+                name={scTableBooking ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={scTableBooking ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Store Pickup */}
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Store Pickup</Text>
+              <Text style={styles.categoryDescription}>Order online, pick up in-store</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setScStorePickup(!scStorePickup)}
+            >
+              <Ionicons
+                name={scStorePickup ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={scStorePickup ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.sectionTitle}>Additional Settings</Text>
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>Featured Store</Text>
@@ -1190,6 +1326,35 @@ const styles = StyleSheet.create({
   },
   switchContainer: {
     padding: 4,
+  },
+  scInlineConfig: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    marginTop: -4,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  scInlineLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  scInlineInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#111827',
+    width: 100,
+    textAlign: 'center',
   },
   submitButton: {
     flexDirection: 'row',
