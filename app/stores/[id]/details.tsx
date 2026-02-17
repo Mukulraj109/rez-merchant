@@ -631,6 +631,33 @@ export default function StoreDetailsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Creator Picks Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="people" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Creator Picks</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              Review and approve creator picks that promote your products
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/creator-analytics`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="star-outline" size={24} color="#8B5CF6" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Creator Analytics</Text>
+                    <Text style={styles.actionCardSubtitle}>Approve picks, reward creators, and track performance</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* UPI Payment Discounts Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>

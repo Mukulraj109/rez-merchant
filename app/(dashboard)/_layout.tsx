@@ -163,10 +163,12 @@ export default function DashboardLayout() {
           ),
         }}
       />
+      {/* Hidden from tab bar — accessible via More page */}
       <Tabs.Screen
         name="visits"
         options={{
           title: 'Visits',
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'calendar' : 'calendar-outline'}
@@ -180,6 +182,7 @@ export default function DashboardLayout() {
         name="cashback"
         options={{
           title: 'Cashback',
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'gift' : 'gift-outline'}
@@ -193,6 +196,7 @@ export default function DashboardLayout() {
         name="deals"
         options={{
           title: 'Deals',
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'ticket' : 'ticket-outline'}
@@ -206,7 +210,6 @@ export default function DashboardLayout() {
         name="analytics"
         options={{
           title: 'Analytics',
-          href: hasAnalyticsViewPermission ? '/(dashboard)/analytics' : null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'bar-chart' : 'bar-chart-outline'}
@@ -220,7 +223,7 @@ export default function DashboardLayout() {
         name="team"
         options={{
           title: 'Team',
-          href: hasTeamViewPermission ? '/(dashboard)/team' : null,
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <View>
               <Ionicons
@@ -243,7 +246,7 @@ export default function DashboardLayout() {
         name="audit"
         options={{
           title: 'Audit',
-          href: hasAuditViewPermission ? '/(dashboard)/audit' : null,
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'shield-checkmark' : 'shield-checkmark-outline'}
@@ -257,6 +260,7 @@ export default function DashboardLayout() {
         name="wallet"
         options={{
           title: 'Wallet',
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'wallet' : 'wallet-outline'}
@@ -270,6 +274,7 @@ export default function DashboardLayout() {
         name="coins"
         options={{
           title: 'Coins',
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'sparkles' : 'sparkles-outline'}
@@ -283,6 +288,7 @@ export default function DashboardLayout() {
         name="more"
         options={{
           title: 'More',
+          headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline'}
