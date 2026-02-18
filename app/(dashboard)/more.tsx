@@ -146,15 +146,6 @@ export default function MoreScreen() {
           route: '/events',
         },
         {
-          id: 'sponsors',
-          title: 'Sponsors',
-          subtitle: 'Manage sponsor partnerships',
-          icon: 'people',
-          iconBg: '#FFFBEB',
-          iconColor: '#F59E0B',
-          route: '/sponsors',
-        },
-        {
           id: 'social-impact',
           title: 'Social Impact',
           subtitle: 'Manage social impact initiatives',

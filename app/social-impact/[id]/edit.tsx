@@ -104,6 +104,13 @@ export default function EditEventScreen() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  // Verification config
+  const [verificationMethods, setVerificationMethods] = useState<string[]>(['manual']);
+  const [geoFenceRadius, setGeoFenceRadius] = useState('500');
+  const [requireCheckIn, setRequireCheckIn] = useState(true);
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [errorModal, setErrorModal] = useState({ visible: false, title: '', message: '' });
@@ -196,6 +203,17 @@ export default function EditEventScreen() {
       setExistingImageUrl(eventData.image);
       setImageUrl(eventData.image);
       setImageUri(eventData.image); // Show existing image
+    }
+
+    // Verification config
+    if (eventData.verificationConfig) {
+      setVerificationMethods(eventData.verificationConfig.methods || ['manual']);
+      setGeoFenceRadius(String(eventData.verificationConfig.geoFenceRadiusMeters || 500));
+      setRequireCheckIn(eventData.verificationConfig.requireCheckInBeforeComplete !== false);
+    }
+    if (eventData.location?.coordinates) {
+      setLatitude(String(eventData.location.coordinates.lat || ''));
+      setLongitude(String(eventData.location.coordinates.lng || ''));
     }
   };
 
@@ -322,6 +340,12 @@ export default function EditEventScreen() {
         location: {
           address: address.trim(),
           city: city.trim(),
+          ...(latitude.trim() && longitude.trim() ? {
+            coordinates: {
+              lat: parseFloat(latitude),
+              lng: parseFloat(longitude),
+            }
+          } : {}),
         },
         eventDate: eventDate.toISOString(),
         eventTime: {
@@ -342,6 +366,11 @@ export default function EditEventScreen() {
         isCsrActivity,
         featured: isFeatured,
         image: imageUrl || undefined,
+        verificationConfig: {
+          methods: verificationMethods,
+          geoFenceRadiusMeters: parseInt(geoFenceRadius) || 500,
+          requireCheckInBeforeComplete: requireCheckIn,
+        },
       };
 
       // Add impact if filled
@@ -615,6 +644,33 @@ export default function EditEventScreen() {
                     placeholderTextColor="#9CA3AF"
                   />
                 </View>
+
+                <View style={styles.row}>
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.inputLabel}>Latitude</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={latitude}
+                      onChangeText={setLatitude}
+                      placeholder="e.g. 19.0760"
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                  <View style={{ width: 12 }} />
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.inputLabel}>Longitude</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={longitude}
+                      onChangeText={setLongitude}
+                      placeholder="e.g. 72.8777"
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                </View>
+                <Text style={styles.helperText}>Required for geo-fence check-in</Text>
               </Animated.View>
 
               {/* Date & Time */}
@@ -681,7 +737,7 @@ export default function EditEventScreen() {
 
                 <View style={styles.row}>
                   <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.inputLabel}>ReZ Coins</Text>
+                    <Text style={styles.inputLabel}>Nuqta Coins</Text>
                     <TextInput
                       style={styles.textInput}
                       value={rezCoins}
@@ -850,6 +906,80 @@ export default function EditEventScreen() {
                     trackColor={{ false: '#E5E7EB', true: '#10B981' }}
                     thumbColor="#FFFFFF"
                   />
+                </View>
+              </Animated.View>
+
+              {/* Verification Config */}
+              <Animated.View entering={FadeInDown.delay(500)} style={styles.section}>
+                <Text style={styles.sectionTitle}>Attendance Verification</Text>
+
+                <Text style={styles.inputLabel}>Verification Methods</Text>
+                <View style={styles.verificationMethodsGrid}>
+                  {[
+                    { key: 'manual', label: 'Manual', icon: 'person' },
+                    { key: 'qr', label: 'QR Code', icon: 'qr-code' },
+                    { key: 'otp', label: 'OTP', icon: 'key' },
+                    { key: 'geo', label: 'Location', icon: 'location' },
+                  ].map((method) => {
+                    const isActive = verificationMethods.includes(method.key);
+                    return (
+                      <TouchableOpacity
+                        key={method.key}
+                        style={[
+                          styles.verificationMethodChip,
+                          isActive && styles.verificationMethodChipActive,
+                        ]}
+                        onPress={() => {
+                          setVerificationMethods((prev) =>
+                            isActive
+                              ? prev.filter((m) => m !== method.key)
+                              : [...prev, method.key]
+                          );
+                        }}
+                      >
+                        <Ionicons
+                          name={method.icon as any}
+                          size={16}
+                          color={isActive ? '#FFFFFF' : '#6B7280'}
+                        />
+                        <Text
+                          style={[
+                            styles.verificationMethodChipText,
+                            isActive && styles.verificationMethodChipTextActive,
+                          ]}
+                        >
+                          {method.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {verificationMethods.includes('geo') && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Geo-fence Radius (meters)</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={geoFenceRadius}
+                      onChangeText={setGeoFenceRadius}
+                      placeholder="500"
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="number-pad"
+                    />
+                  </View>
+                )}
+
+                <View style={styles.toggleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.toggleLabel}>Require check-in before complete</Text>
+                    <Text style={styles.toggleDescription}>Participants must check in before being marked complete</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.toggle, requireCheckIn && styles.toggleActive]}
+                    onPress={() => setRequireCheckIn(!requireCheckIn)}
+                  >
+                    <View style={[styles.toggleDot, requireCheckIn && styles.toggleDotActive]} />
+                  </TouchableOpacity>
                 </View>
               </Animated.View>
 
@@ -1158,6 +1288,77 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 2,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: -4,
+    marginBottom: 8,
+  },
+  verificationMethodsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+  },
+  verificationMethodChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  verificationMethodChipActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  verificationMethodChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  verificationMethodChipTextActive: {
+    color: '#FFFFFF',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  toggleDescription: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  toggle: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  toggleActive: {
+    backgroundColor: '#10B981',
+  },
+  toggleDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FFFFFF',
+  },
+  toggleDotActive: {
+    alignSelf: 'flex-end',
   },
   saveButton: {
     flexDirection: 'row',

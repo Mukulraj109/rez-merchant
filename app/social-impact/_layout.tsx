@@ -8,6 +8,7 @@ export default function SocialImpactLayout() {
       <Stack.Screen name="[id]/index" />
       <Stack.Screen name="[id]/edit" options={{ presentation: 'card' }} />
       <Stack.Screen name="[id]/participants" />
+      <Stack.Screen name="[id]/scan" options={{ presentation: 'fullScreenModal' }} />
     </Stack>
   );
 }

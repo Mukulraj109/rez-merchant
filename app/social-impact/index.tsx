@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { socialImpactAdminService, SocialImpactEvent } from '@/services/api/socialImpact';
+import { showAlert } from '@/utils/alert';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
 
 // Status filter options
@@ -45,7 +45,7 @@ export default function SocialImpactEventsScreen() {
       setTotalCount(response.events.length);
     } catch (error: any) {
       console.error('Error fetching events:', error);
-      Alert.alert('Error', error.message || 'Failed to fetch events');
+      showAlert('Error', error.message || 'Failed to fetch events');
     } finally {
       setIsLoading(false);
     }
@@ -93,13 +93,30 @@ export default function SocialImpactEventsScreen() {
       ? Math.min((item.capacity.enrolled / item.capacity.goal) * 100, 100)
       : 0;
 
+    const isPending = item.status === 'pending_approval';
+    const isRejected = item.status === 'rejected';
+
     return (
       <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
         <TouchableOpacity
-          style={styles.eventCard}
+          style={[styles.eventCard, isPending && styles.pendingCard, isRejected && styles.rejectedCard]}
           onPress={() => router.push(`/social-impact/${item._id}`)}
           activeOpacity={0.8}
         >
+          {/* Approval Status Banner */}
+          {isPending && (
+            <View style={styles.approvalBanner}>
+              <Ionicons name="time-outline" size={14} color="#D97706" />
+              <Text style={styles.approvalBannerText}>Pending Admin Approval</Text>
+            </View>
+          )}
+          {isRejected && (
+            <View style={[styles.approvalBanner, styles.rejectedBanner]}>
+              <Ionicons name="close-circle-outline" size={14} color="#EF4444" />
+              <Text style={[styles.approvalBannerText, { color: '#EF4444' }]}>Rejected by Admin</Text>
+            </View>
+          )}
+
           {/* Header */}
           <View style={styles.cardHeader}>
             <View style={styles.eventTypeContainer}>
@@ -165,7 +182,7 @@ export default function SocialImpactEventsScreen() {
             <View style={styles.rewardsRow}>
               <View style={styles.rewardItem}>
                 <Ionicons name="wallet" size={14} color="#10B981" />
-                <Text style={styles.rewardText}>+{item.rewards.rezCoins} ReZ</Text>
+                <Text style={styles.rewardText}>+{item.rewards.rezCoins} Nuqta</Text>
               </View>
               {item.rewards.brandCoins > 0 && item.sponsor && (
                 <View style={styles.rewardItem}>
@@ -249,16 +266,6 @@ export default function SocialImpactEventsScreen() {
             </TouchableOpacity>
           </View>
         </Animated.View>
-
-        {/* Sponsor Link */}
-        <TouchableOpacity
-          style={styles.sponsorLink}
-          onPress={() => router.push('/sponsors')}
-        >
-          <Ionicons name="business-outline" size={18} color="#8B5CF6" />
-          <Text style={styles.sponsorLinkText}>Manage Sponsors</Text>
-          <Ionicons name="chevron-forward" size={18} color="#8B5CF6" />
-        </TouchableOpacity>
 
         {/* Status Filter */}
         <View style={styles.filterContainer}>
@@ -403,25 +410,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
   },
-  sponsorLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
-  },
-  sponsorLinkText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8B5CF6',
-  },
   filterContainer: {
     marginBottom: 12,
   },
@@ -474,6 +462,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
+  },
+  pendingCard: {
+    borderWidth: 1.5,
+    borderColor: '#F59E0B',
+    borderStyle: 'dashed',
+  },
+  rejectedCard: {
+    borderWidth: 1.5,
+    borderColor: '#EF4444',
+    opacity: 0.8,
+  },
+  approvalBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 10,
+    gap: 6,
+  },
+  rejectedBanner: {
+    backgroundColor: '#FEE2E2',
+  },
+  approvalBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D97706',
   },
   cardHeader: {
     flexDirection: 'row',

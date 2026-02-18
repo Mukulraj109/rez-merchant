@@ -371,7 +371,7 @@ export default function EventDetailScreen() {
                   <View style={styles.rewardItem}>
                     <Ionicons name="wallet" size={24} color="#10B981" />
                     <Text style={styles.rewardValue}>+{event.rewards.rezCoins}</Text>
-                    <Text style={styles.rewardLabel}>ReZ Coins</Text>
+                    <Text style={styles.rewardLabel}>Nuqta Coins</Text>
                   </View>
                   {event.rewards.brandCoins > 0 && event.sponsor && (
                     <View style={[styles.rewardItem, styles.rewardItemPurple]}>
@@ -383,6 +383,52 @@ export default function EventDetailScreen() {
                     </View>
                   )}
                 </View>
+              </Animated.View>
+            )}
+
+            {/* Sponsor Budget */}
+            {event.rewards && event.sponsor && event.capacity && (
+              <Animated.View entering={FadeInDown.delay(420).springify()} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <Ionicons name="pie-chart" size={20} color="#8B5CF6" />
+                  <Text style={styles.cardTitle}>Sponsor Budget</Text>
+                </View>
+                {(() => {
+                  const totalBrandAllocated = (event.capacity.goal || 0) * (event.rewards.brandCoins || 0);
+                  const brandConsumed = (event.capacity.enrolled || 0) * (event.rewards.brandCoins || 0);
+                  const brandRemaining = Math.max(0, totalBrandAllocated - brandConsumed);
+                  const consumedPct = totalBrandAllocated > 0
+                    ? Math.min((brandConsumed / totalBrandAllocated) * 100, 100) : 0;
+
+                  return (
+                    <View>
+                      <View style={styles.budgetRow}>
+                        <Text style={styles.budgetLabel}>Allocated</Text>
+                        <Text style={styles.budgetValue}>
+                          {totalBrandAllocated.toLocaleString()} {event.sponsor.brandCoinName}
+                        </Text>
+                      </View>
+                      <View style={styles.budgetRow}>
+                        <Text style={styles.budgetLabel}>Consumed</Text>
+                        <Text style={[styles.budgetValue, { color: '#F59E0B' }]}>
+                          {brandConsumed.toLocaleString()} {event.sponsor.brandCoinName}
+                        </Text>
+                      </View>
+                      <View style={styles.budgetRow}>
+                        <Text style={styles.budgetLabel}>Remaining</Text>
+                        <Text style={[styles.budgetValue, { color: '#10B981' }]}>
+                          {brandRemaining.toLocaleString()} {event.sponsor.brandCoinName}
+                        </Text>
+                      </View>
+                      <View style={styles.budgetProgressBar}>
+                        <View style={[styles.budgetProgressFill, { width: `${consumedPct}%` }]} />
+                      </View>
+                      <Text style={styles.budgetProgressLabel}>
+                        {consumedPct.toFixed(0)}% of budget consumed
+                      </Text>
+                    </View>
+                  );
+                })()}
               </Animated.View>
             )}
 
@@ -460,6 +506,41 @@ export default function EventDetailScreen() {
                     <Text style={styles.contactText}>{event.contact.email}</Text>
                   </TouchableOpacity>
                 )}
+              </Animated.View>
+            )}
+
+            {/* Verification Methods */}
+            {event.verificationConfig && event.verificationConfig.methods?.length > 0 && (
+              <Animated.View entering={FadeInDown.delay(625).springify()} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <Ionicons name="shield-checkmark" size={20} color="#8B5CF6" />
+                  <Text style={styles.cardTitle}>Verification Methods</Text>
+                </View>
+                <View style={styles.verificationMethodsRow}>
+                  {event.verificationConfig.methods.map((method: string) => {
+                    const config: Record<string, { icon: string; label: string; color: string }> = {
+                      manual: { icon: 'person', label: 'Manual', color: '#6B7280' },
+                      qr: { icon: 'qr-code', label: 'QR Code', color: '#10B981' },
+                      otp: { icon: 'key', label: 'OTP', color: '#8B5CF6' },
+                      geo: { icon: 'location', label: 'Location', color: '#3B82F6' },
+                    };
+                    const c = config[method] || config.manual;
+                    return (
+                      <View key={method} style={[styles.verificationChip, { backgroundColor: `${c.color}15` }]}>
+                        <Ionicons name={c.icon as any} size={14} color={c.color} />
+                        <Text style={[styles.verificationChipText, { color: c.color }]}>{c.label}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+                {event.verificationConfig.methods.includes('geo') && (
+                  <Text style={styles.verificationNote}>
+                    Geo-fence radius: {event.verificationConfig.geoFenceRadiusMeters || 500}m
+                  </Text>
+                )}
+                <Text style={styles.verificationNote}>
+                  Scan QR and generate OTP from the Participants page
+                </Text>
               </Animated.View>
             )}
 
@@ -850,6 +931,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     borderRadius: 4,
   },
+  budgetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  budgetLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  budgetValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  budgetProgressBar: {
+    height: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  budgetProgressFill: {
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    borderRadius: 3,
+  },
+  budgetProgressLabel: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    textAlign: 'right',
+    marginTop: 4,
+  },
   rewardsGrid: {
     flexDirection: 'row',
     gap: 12,
@@ -1004,5 +1118,29 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#EF4444',
+  },
+  verificationMethodsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  verificationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  verificationChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  verificationNote: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 4,
+    lineHeight: 18,
   },
 });

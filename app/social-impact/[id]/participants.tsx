@@ -6,11 +6,11 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   ActivityIndicator,
   TextInput,
   Modal,
 } from 'react-native';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +44,9 @@ export default function ParticipantsScreen() {
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [otpCode, setOtpCode] = useState<string | null>(null);
+  const [otpParticipantName, setOtpParticipantName] = useState('');
 
   const fetchData = useCallback(async () => {
     if (!id) return;
@@ -58,7 +61,7 @@ export default function ParticipantsScreen() {
       setParticipants(participantsData.participants);
     } catch (error: any) {
       console.error('Error fetching data:', error);
-      Alert.alert('Error', error.message || 'Failed to load data');
+      showAlert('Error', error.message || 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
@@ -81,9 +84,9 @@ export default function ParticipantsScreen() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (p) =>
-          p.user.name.toLowerCase().includes(query) ||
-          p.user.email?.toLowerCase().includes(query) ||
-          p.user.phone?.includes(query)
+          (p.user?.name || '').toLowerCase().includes(query) ||
+          p.user?.email?.toLowerCase().includes(query) ||
+          (p.user?.phone || '').includes(query)
       );
     }
 
@@ -97,54 +100,38 @@ export default function ParticipantsScreen() {
   };
 
   const handleCheckIn = async (userId: string, userName: string) => {
-    Alert.alert('Check In', `Check in ${userName}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Check In',
-        onPress: async () => {
-          try {
-            setActionLoading(true);
-            await socialImpactAdminService.checkInParticipant(id!, userId);
-            Alert.alert('Success', `${userName} checked in successfully`);
-            fetchData();
-          } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to check in');
-          } finally {
-            setActionLoading(false);
-          }
-        },
-      },
-    ]);
+    showConfirm('Check In', `Check in ${userName}?`, async () => {
+      try {
+        setActionLoading(true);
+        await socialImpactAdminService.checkInParticipant(id!, userId);
+        showAlert('Success', `${userName} checked in successfully`);
+        fetchData();
+      } catch (error: any) {
+        showAlert('Error', error.message || 'Failed to check in');
+      } finally {
+        setActionLoading(false);
+      }
+    });
   };
 
   const handleComplete = async (userId: string, userName: string) => {
-    Alert.alert(
-      'Complete Participation',
-      `Mark ${userName} as completed and award coins?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Complete',
-          onPress: async () => {
-            try {
-              setActionLoading(true);
-              await socialImpactAdminService.completeParticipant(id!, userId);
-              Alert.alert('Success', `${userName} completed! Coins awarded.`);
-              fetchData();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to complete');
-            } finally {
-              setActionLoading(false);
-            }
-          },
-        },
-      ]
-    );
+    showConfirm('Complete Participation', `Mark ${userName} as completed and award coins?`, async () => {
+      try {
+        setActionLoading(true);
+        await socialImpactAdminService.completeParticipant(id!, userId);
+        showAlert('Success', `${userName} completed! Coins awarded.`);
+        fetchData();
+      } catch (error: any) {
+        showAlert('Error', error.message || 'Failed to complete');
+      } finally {
+        setActionLoading(false);
+      }
+    });
   };
 
   const handleBulkComplete = async () => {
     if (selectedParticipants.length === 0) {
-      Alert.alert('Error', 'Please select participants first');
+      showAlert('Error', 'Please select participants first');
       return;
     }
 
@@ -154,7 +141,7 @@ export default function ParticipantsScreen() {
         id!,
         selectedParticipants
       );
-      Alert.alert(
+      showAlert(
         'Bulk Complete',
         `Successfully completed: ${result.success}\nFailed: ${result.failed}`
       );
@@ -162,7 +149,21 @@ export default function ParticipantsScreen() {
       setShowBulkModal(false);
       fetchData();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to bulk complete');
+      showAlert('Error', error.message || 'Failed to bulk complete');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleGenerateOTP = async (userId: string, userName: string) => {
+    try {
+      setActionLoading(true);
+      const result = await socialImpactAdminService.generateEventOTP(id!, userId);
+      setOtpCode(result.otpCode);
+      setOtpParticipantName(userName);
+      setShowOTPModal(true);
+    } catch (error: any) {
+      showAlert('Error', error.message || 'Failed to generate OTP');
     } finally {
       setActionLoading(false);
     }
@@ -179,7 +180,7 @@ export default function ParticipantsScreen() {
   const selectAllEligible = () => {
     const eligible = filteredParticipants
       .filter((p) => p.status === 'checked_in')
-      .map((p) => p.user._id);
+      .map((p) => getUserId(p));
     setSelectedParticipants(eligible);
   };
 
@@ -205,29 +206,34 @@ export default function ParticipantsScreen() {
     return labels[status] || status;
   };
 
+  const getUserId = (item: Participant) => item.user?._id || '';
+  const getUserName = (item: Participant) => item.user?.name || 'Unknown';
+
   const renderParticipant = ({ item, index }: { item: Participant; index: number }) => {
     const statusColor = getStatusColor(item.status);
-    const isSelected = selectedParticipants.includes(item.user._id);
+    const userId = getUserId(item);
+    const userName = getUserName(item);
+    const isSelected = selectedParticipants.includes(userId);
 
     return (
       <Animated.View entering={FadeInDown.delay(index * 50).springify()}>
         <TouchableOpacity
           style={[styles.participantCard, isSelected && styles.participantCardSelected]}
-          onPress={() => toggleParticipantSelection(item.user._id)}
+          onPress={() => toggleParticipantSelection(userId)}
           activeOpacity={0.8}
         >
           <View style={styles.participantHeader}>
             <View style={styles.avatarContainer}>
               <Text style={styles.avatarText}>
-                {item.user.name.charAt(0).toUpperCase()}
+                {userName.charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={styles.participantInfo}>
-              <Text style={styles.participantName}>{item.user.name}</Text>
-              {item.user.email && (
+              <Text style={styles.participantName}>{userName}</Text>
+              {(item.user?.email) && (
                 <Text style={styles.participantEmail}>{item.user.email}</Text>
               )}
-              {item.user.phone && (
+              {item.user?.phone && (
                 <Text style={styles.participantPhone}>{item.user.phone}</Text>
               )}
             </View>
@@ -255,7 +261,7 @@ export default function ParticipantsScreen() {
             <View style={styles.coinsRow}>
               <Ionicons name="wallet" size={14} color="#10B981" />
               <Text style={styles.coinsText}>
-                +{item.coinsAwarded.rez} ReZ, +{item.coinsAwarded.brand} Brand
+                +{item.coinsAwarded.rez} Nuqta, +{item.coinsAwarded.brand} Brand
               </Text>
             </View>
           )}
@@ -263,21 +269,33 @@ export default function ParticipantsScreen() {
           {/* Actions */}
           <View style={styles.actionsRow}>
             {item.status === 'registered' && (
-              <TouchableOpacity
-                style={[styles.actionButton, styles.checkInButton]}
-                onPress={() => handleCheckIn(item.user._id, item.user.name)}
-                disabled={actionLoading}
-              >
-                <Ionicons name="checkmark-circle" size={16} color="#F59E0B" />
-                <Text style={[styles.actionButtonText, { color: '#F59E0B' }]}>
-                  Check In
-                </Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.checkInButton]}
+                  onPress={() => handleCheckIn(userId, userName)}
+                  disabled={actionLoading}
+                >
+                  <Ionicons name="checkmark-circle" size={16} color="#F59E0B" />
+                  <Text style={[styles.actionButtonText, { color: '#F59E0B' }]}>
+                    Check In
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.otpButton]}
+                  onPress={() => handleGenerateOTP(userId, userName)}
+                  disabled={actionLoading}
+                >
+                  <Ionicons name="key" size={16} color="#8B5CF6" />
+                  <Text style={[styles.actionButtonText, { color: '#8B5CF6' }]}>
+                    OTP
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
             {item.status === 'checked_in' && (
               <TouchableOpacity
                 style={[styles.actionButton, styles.completeButton]}
-                onPress={() => handleComplete(item.user._id, item.user.name)}
+                onPress={() => handleComplete(userId, userName)}
                 disabled={actionLoading}
               >
                 <Ionicons name="trophy" size={16} color="#10B981" />
@@ -339,6 +357,12 @@ export default function ParticipantsScreen() {
               </Text>
               <Text style={styles.subtitle}>{stats.total} participants</Text>
             </View>
+            <TouchableOpacity
+              style={styles.scanQRButton}
+              onPress={() => router.push(`/social-impact/${id}/scan`)}
+            >
+              <Ionicons name="qr-code" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
 
           {/* Stats Row */}
@@ -475,6 +499,28 @@ export default function ParticipantsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* OTP Display Modal */}
+      <Modal visible={showOTPModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.otpIconContainer}>
+              <Ionicons name="key" size={40} color="#8B5CF6" />
+            </View>
+            <Text style={styles.modalTitle}>OTP for {otpParticipantName}</Text>
+            <Text style={styles.otpCodeDisplay}>{otpCode}</Text>
+            <Text style={styles.modalText}>
+              Show this code to the participant. It expires in 30 minutes.
+            </Text>
+            <TouchableOpacity
+              style={[styles.modalConfirmButton, { backgroundColor: '#8B5CF6' }]}
+              onPress={() => setShowOTPModal(false)}
+            >
+              <Text style={styles.modalConfirmText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -513,6 +559,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 4,
+  },
+  scanQRButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerContent: {
     flex: 1,
@@ -800,5 +854,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  otpButton: {
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.2)',
+  },
+  otpIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  otpCodeDisplay: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: '#8B5CF6',
+    letterSpacing: 8,
+    marginVertical: 16,
   },
 });

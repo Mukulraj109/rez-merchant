@@ -24,24 +24,6 @@ export interface Sponsor {
   updatedAt: string;
 }
 
-export interface CreateSponsorData {
-  name: string;
-  logo: string;
-  brandCoinName: string;
-  brandCoinLogo?: string;
-  description?: string;
-  website?: string;
-  contactPerson?: {
-    name: string;
-    email: string;
-    phone?: string;
-  };
-}
-
-export interface UpdateSponsorData extends Partial<CreateSponsorData> {
-  isActive?: boolean;
-}
-
 export interface SocialImpactEvent {
   _id: string;
   name: string;
@@ -98,6 +80,11 @@ export interface SocialImpactEvent {
   isCsrActivity?: boolean;
   featured?: boolean;
   image?: string;
+  verificationConfig?: {
+    methods: string[];
+    geoFenceRadiusMeters?: number;
+    requireCheckInBeforeComplete?: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -153,6 +140,11 @@ export interface CreateEventData {
   isCsrActivity?: boolean;
   featured?: boolean;
   image?: string;
+  verificationConfig?: {
+    methods: string[];
+    geoFenceRadiusMeters?: number;
+    requireCheckInBeforeComplete?: boolean;
+  };
 }
 
 export interface UpdateEventData extends Partial<CreateEventData> {}
@@ -178,15 +170,6 @@ export interface Participant {
   };
 }
 
-export interface SponsorAnalytics {
-  totalEventsSponsored: number;
-  totalParticipants: number;
-  totalCoinsDistributed: number;
-  activeEvents: number;
-  completedEvents: number;
-  events: SocialImpactEvent[];
-}
-
 export interface EventFilters {
   eventStatus?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
   eventType?: string;
@@ -200,6 +183,32 @@ export interface Pagination {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+// ============ HELPERS ============
+
+/** Map raw enrollment from backend to Participant type */
+function mapEnrollmentToParticipant(enrollment: any): Participant {
+  const user = enrollment.user || {};
+  const fullName = user.fullName
+    || [user.profile?.firstName, user.profile?.lastName].filter(Boolean).join(' ')
+    || user.name
+    || 'Unknown';
+  return {
+    enrollmentId: enrollment._id || enrollment.enrollmentId,
+    user: {
+      _id: user._id || '',
+      name: fullName,
+      email: user.email,
+      phone: user.phone || user.phoneNumber,
+      profile: user.profile,
+    },
+    status: enrollment.status,
+    registeredAt: enrollment.registeredAt,
+    checkedInAt: enrollment.checkedInAt,
+    completedAt: enrollment.completedAt,
+    coinsAwarded: enrollment.coinsAwarded,
+  };
 }
 
 // ============ API SERVICE ============
@@ -218,7 +227,7 @@ class SocialImpactAdminService {
       if (params?.search) queryParams.append('search', params.search);
 
       const queryString = queryParams.toString();
-      const url = queryString ? `sponsors?${queryString}` : 'sponsors';
+      const url = queryString ? `merchant/programs/social-impact/sponsors?${queryString}` : 'merchant/programs/social-impact/sponsors';
 
       const response = await apiClient.get<any>(url);
 
@@ -240,73 +249,13 @@ class SocialImpactAdminService {
    */
   async getSponsorById(sponsorId: string): Promise<Sponsor> {
     try {
-      const response = await apiClient.get<any>(`sponsors/${sponsorId}`);
+      const response = await apiClient.get<any>(`merchant/programs/social-impact/sponsors/${sponsorId}`);
       if (!response.data) {
         throw new Error('Sponsor not found');
       }
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to get sponsor');
-    }
-  }
-
-  /**
-   * Create a new sponsor
-   */
-  async createSponsor(data: CreateSponsorData): Promise<Sponsor> {
-    try {
-      const response = await apiClient.post<any>('sponsors', data);
-      if (!response.data) {
-        throw new Error('Failed to create sponsor');
-      }
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to create sponsor');
-    }
-  }
-
-  /**
-   * Update sponsor
-   */
-  async updateSponsor(sponsorId: string, data: UpdateSponsorData): Promise<Sponsor> {
-    try {
-      const response = await apiClient.put<any>(`sponsors/${sponsorId}`, data);
-      if (!response.data) {
-        throw new Error('Failed to update sponsor');
-      }
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update sponsor');
-    }
-  }
-
-  /**
-   * Deactivate sponsor
-   */
-  async deactivateSponsor(sponsorId: string): Promise<void> {
-    try {
-      await apiClient.delete(`sponsors/${sponsorId}`);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to deactivate sponsor');
-    }
-  }
-
-  /**
-   * Get sponsor analytics
-   */
-  async getSponsorAnalytics(sponsorId: string): Promise<SponsorAnalytics> {
-    try {
-      const response = await apiClient.get<any>(`sponsors/${sponsorId}/analytics`);
-      return response.data || {
-        totalEventsSponsored: 0,
-        totalParticipants: 0,
-        totalCoinsDistributed: 0,
-        activeEvents: 0,
-        completedEvents: 0,
-        events: [],
-      };
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get sponsor analytics');
     }
   }
 
@@ -325,13 +274,13 @@ class SocialImpactAdminService {
       if (filters.limit) params.append('limit', filters.limit.toString());
 
       const queryString = params.toString();
-      const url = queryString ? `programs/social-impact?${queryString}` : 'programs/social-impact';
+      const url = queryString ? `merchant/programs/social-impact?${queryString}` : 'merchant/programs/social-impact';
 
       const response = await apiClient.get<any>(url);
 
       return {
-        events: response.data || [],
-        pagination: response.pagination || null,
+        events: response.data?.events || response.data || [],
+        pagination: response.data?.pagination || null,
       };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to get events');
@@ -343,7 +292,7 @@ class SocialImpactAdminService {
    */
   async getEventById(eventId: string): Promise<SocialImpactEvent> {
     try {
-      const response = await apiClient.get<any>(`programs/social-impact/${eventId}`);
+      const response = await apiClient.get<any>(`merchant/programs/social-impact/${eventId}`);
       if (!response.data) {
         throw new Error('Event not found');
       }
@@ -358,7 +307,7 @@ class SocialImpactAdminService {
    */
   async createEvent(data: CreateEventData): Promise<SocialImpactEvent> {
     try {
-      const response = await apiClient.post<any>('programs/social-impact', data);
+      const response = await apiClient.post<any>('merchant/programs/social-impact', data);
       if (!response.data) {
         throw new Error('Failed to create event');
       }
@@ -373,7 +322,7 @@ class SocialImpactAdminService {
    */
   async updateEvent(eventId: string, data: UpdateEventData): Promise<SocialImpactEvent> {
     try {
-      const response = await apiClient.put<any>(`programs/social-impact/${eventId}`, data);
+      const response = await apiClient.put<any>(`merchant/programs/social-impact/${eventId}`, data);
       if (!response.data) {
         throw new Error('Failed to update event');
       }
@@ -400,13 +349,17 @@ class SocialImpactAdminService {
 
       const queryString = queryParams.toString();
       const url = queryString
-        ? `programs/social-impact/${eventId}/participants?${queryString}`
-        : `programs/social-impact/${eventId}/participants`;
+        ? `merchant/programs/social-impact/${eventId}/participants?${queryString}`
+        : `merchant/programs/social-impact/${eventId}/participants`;
 
       const response = await apiClient.get<any>(url);
 
+      // Backend returns raw enrollment documents - map to Participant type
+      const rawList = Array.isArray(response.data) ? response.data : [];
+      const participants: Participant[] = rawList.map(mapEnrollmentToParticipant);
+
       return {
-        participants: response.data || [],
+        participants,
         pagination: response.pagination,
       };
     } catch (error: any) {
@@ -419,11 +372,11 @@ class SocialImpactAdminService {
    */
   async checkInParticipant(eventId: string, userId: string): Promise<Participant> {
     try {
-      const response = await apiClient.post<any>(`programs/social-impact/${eventId}/check-in`, { userId });
+      const response = await apiClient.post<any>(`merchant/programs/social-impact/${eventId}/check-in`, { userId });
       if (!response.data) {
         throw new Error('Failed to check in participant');
       }
-      return response.data;
+      return mapEnrollmentToParticipant(response.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to check in participant');
     }
@@ -434,7 +387,7 @@ class SocialImpactAdminService {
    */
   async completeParticipant(eventId: string, userId: string, impactValue?: number): Promise<Participant> {
     try {
-      const response = await apiClient.post<any>(`programs/social-impact/${eventId}/complete`, {
+      const response = await apiClient.post<any>(`merchant/programs/social-impact/${eventId}/complete`, {
         userId,
         impactValue,
       });
@@ -455,10 +408,48 @@ class SocialImpactAdminService {
     userIds: string[]
   ): Promise<{ success: number; failed: number; errors: any[] }> {
     try {
-      const response = await apiClient.post<any>(`programs/social-impact/${eventId}/bulk-complete`, { userIds });
+      const response = await apiClient.post<any>(`merchant/programs/social-impact/${eventId}/bulk-complete`, { userIds });
       return response.data || { success: 0, failed: 0, errors: [] };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to bulk complete participants');
+    }
+  }
+
+  // ======== QR VERIFICATION ========
+
+  /**
+   * Generate QR token for a participant's check-in
+   */
+  async generateQRCheckIn(eventId: string, userId: string): Promise<{ qrToken: string; expiresAt: string }> {
+    try {
+      const response = await apiClient.post<any>(`merchant/programs/social-impact/${eventId}/generate-qr`, { userId });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to generate QR');
+    }
+  }
+
+  /**
+   * Verify QR code and check in participant
+   */
+  async verifyQRCheckIn(eventId: string, qrToken: string): Promise<Participant> {
+    try {
+      const response = await apiClient.post<any>(`merchant/programs/social-impact/${eventId}/verify-qr`, { qrToken });
+      return mapEnrollmentToParticipant(response.data);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to verify QR');
+    }
+  }
+
+  /**
+   * Generate event OTP for mass check-in
+   */
+  async generateEventOTP(eventId: string, userId: string): Promise<{ otpCode: string; expiresAt: string }> {
+    try {
+      const response = await apiClient.post<any>(`merchant/programs/social-impact/${eventId}/generate-otp`, { userId });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to generate OTP');
     }
   }
 
