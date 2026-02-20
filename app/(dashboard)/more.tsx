@@ -154,6 +154,16 @@ export default function MoreScreen() {
           iconColor: '#EC4899',
           route: '/social-impact',
         },
+        {
+          id: 'bonus-campaigns',
+          title: 'Bonus Campaigns',
+          subtitle: 'View active platform bonus campaigns',
+          icon: 'gift',
+          iconBg: '#FEF3C7',
+          iconColor: '#D97706',
+          route: '/(dashboard)/bonus-campaigns',
+          badge: 'NEW',
+        },
       ],
     },
     {

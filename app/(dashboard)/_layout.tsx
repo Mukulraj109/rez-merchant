@@ -285,6 +285,21 @@ export default function DashboardLayout() {
         }}
       />
       <Tabs.Screen
+        name="bonus-campaigns"
+        options={{
+          title: 'Bonus Campaigns',
+          href: null,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'gift' : 'gift-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="more"
         options={{
           title: 'More',

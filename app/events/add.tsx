@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,14 +18,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { eventService, CreateEventData, EventCategory } from '@/services/api/events';
+import { eventService, CreateEventData, EventCategory, EventScheduleItem, EventTicketType } from '@/services/api/events';
 import { uploadsService } from '@/services/api/uploads';
 import { Colors } from '@/constants/Colors';
 import { isWeb, handleWebImageUpload } from '@/utils/platform';
 import ErrorModal from '@/components/common/ErrorModal';
 import SuccessModal from '@/components/common/SuccessModal';
 
-const EVENT_CATEGORIES: { label: string; value: EventCategory }[] = [
+const FALLBACK_CATEGORIES: { label: string; value: string }[] = [
   { label: 'Music', value: 'Music' },
   { label: 'Technology', value: 'Technology' },
   { label: 'Wellness', value: 'Wellness' },
@@ -69,9 +69,27 @@ export default function AddEventScreen() {
   const [includes, setIncludes] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
 
+  // Schedule builder state
+  const [schedule, setSchedule] = useState<EventScheduleItem[]>([]);
+  // Ticket types state
+  const [ticketTypes, setTicketTypes] = useState<Array<{ name: string; price: string; maxQuantity: string; description: string }>>([]);
+  // Sponsors state
+  const [sponsors, setSponsors] = useState<Array<{ name: string; logo: string }>>([]);
+
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+
+  // Dynamic categories from backend
+  const [eventCategories, setEventCategories] = useState(FALLBACK_CATEGORIES);
+
+  useEffect(() => {
+    eventService.getEventCategories().then((cats) => {
+      if (cats.length > 0) {
+        setEventCategories(cats.map((c) => ({ label: c.name, value: c.name })));
+      }
+    });
+  }, []);
 
   // Modal states
   const [errorModal, setErrorModal] = useState({ visible: false, title: '', message: '' });
@@ -180,6 +198,16 @@ export default function AddEventScreen() {
         requirements: requirements ? requirements.split('\n').map(r => r.trim()).filter(Boolean) : undefined,
         includes: includes ? includes.split('\n').map(i => i.trim()).filter(Boolean) : undefined,
         status: submitStatus,
+        schedule: schedule.length > 0 ? schedule : undefined,
+        ticketTypes: ticketTypes.length > 0 ? ticketTypes.map(t => ({
+          name: t.name,
+          price: parseFloat(t.price) || 0,
+          maxQuantity: parseInt(t.maxQuantity) || 50,
+          description: t.description || undefined,
+        })) : undefined,
+        sponsors: sponsors.filter(s => s.name.trim()).length > 0
+          ? sponsors.filter(s => s.name.trim()).map(s => ({ name: s.name.trim(), logo: s.logo || undefined }))
+          : undefined,
       };
 
       await eventService.createEvent(eventData);
@@ -301,7 +329,7 @@ export default function AddEventScreen() {
                 </TouchableOpacity>
                 {showCategoryPicker && (
                   <View style={styles.categoryList}>
-                    {EVENT_CATEGORIES.map((cat) => (
+                    {eventCategories.map((cat) => (
                       <TouchableOpacity
                         key={cat.value}
                         style={[
@@ -564,6 +592,188 @@ export default function AddEventScreen() {
                   numberOfLines={3}
                 />
               </View>
+            </View>
+
+            {/* Schedule Builder */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={styles.sectionTitle}>Schedule / Agenda</Text>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F3FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
+                  onPress={() => setSchedule([...schedule, { title: '', startTime: '', endTime: '', description: '' }])}
+                >
+                  <Ionicons name="add" size={16} color="#7C3AED" />
+                  <Text style={{ color: '#7C3AED', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Item</Text>
+                </TouchableOpacity>
+              </View>
+              {schedule.length === 0 ? (
+                <Text style={{ color: '#9CA3AF', fontSize: 13, fontStyle: 'italic' }}>No schedule items. Add agenda items for your event.</Text>
+              ) : (
+                schedule.map((item, index) => (
+                  <View key={index} style={{ backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <Text style={{ fontWeight: '600', color: '#374151', fontSize: 13 }}>Item {index + 1}</Text>
+                      <TouchableOpacity onPress={() => setSchedule(schedule.filter((_, i) => i !== index))}>
+                        <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                    <TextInput
+                      style={[styles.input, { marginBottom: 8 }]}
+                      value={item.title}
+                      onChangeText={(text) => {
+                        const updated = [...schedule];
+                        updated[index] = { ...updated[index], title: text };
+                        setSchedule(updated);
+                      }}
+                      placeholder="Session title"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                      <TextInput
+                        style={[styles.input, { flex: 1 }]}
+                        value={item.startTime}
+                        onChangeText={(text) => {
+                          const updated = [...schedule];
+                          updated[index] = { ...updated[index], startTime: text };
+                          setSchedule(updated);
+                        }}
+                        placeholder="Start (e.g. 10:00 AM)"
+                        placeholderTextColor="#9CA3AF"
+                      />
+                      <TextInput
+                        style={[styles.input, { flex: 1 }]}
+                        value={item.endTime || ''}
+                        onChangeText={(text) => {
+                          const updated = [...schedule];
+                          updated[index] = { ...updated[index], endTime: text };
+                          setSchedule(updated);
+                        }}
+                        placeholder="End (e.g. 11:00 AM)"
+                        placeholderTextColor="#9CA3AF"
+                      />
+                    </View>
+                    <TextInput
+                      style={styles.input}
+                      value={item.description || ''}
+                      onChangeText={(text) => {
+                        const updated = [...schedule];
+                        updated[index] = { ...updated[index], description: text };
+                        setSchedule(updated);
+                      }}
+                      placeholder="Description (optional)"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  </View>
+                ))
+              )}
+            </View>
+
+            {/* Ticket Types */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={styles.sectionTitle}>Ticket Types</Text>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F3FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
+                  onPress={() => setTicketTypes([...ticketTypes, { name: '', price: '', maxQuantity: '', description: '' }])}
+                >
+                  <Ionicons name="add" size={16} color="#7C3AED" />
+                  <Text style={{ color: '#7C3AED', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Type</Text>
+                </TouchableOpacity>
+              </View>
+              {ticketTypes.length === 0 ? (
+                <Text style={{ color: '#9CA3AF', fontSize: 13, fontStyle: 'italic' }}>No ticket types. Default pricing will be used.</Text>
+              ) : (
+                ticketTypes.map((ticket, index) => (
+                  <View key={index} style={{ backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <Text style={{ fontWeight: '600', color: '#374151', fontSize: 13 }}>Ticket {index + 1}</Text>
+                      <TouchableOpacity onPress={() => setTicketTypes(ticketTypes.filter((_, i) => i !== index))}>
+                        <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                    <TextInput
+                      style={[styles.input, { marginBottom: 8 }]}
+                      value={ticket.name}
+                      onChangeText={(text) => {
+                        const updated = [...ticketTypes];
+                        updated[index] = { ...updated[index], name: text };
+                        setTicketTypes(updated);
+                      }}
+                      placeholder="e.g. VIP, General, Early Bird"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                      <TextInput
+                        style={[styles.input, { flex: 1 }]}
+                        value={ticket.price}
+                        onChangeText={(text) => {
+                          const updated = [...ticketTypes];
+                          updated[index] = { ...updated[index], price: text };
+                          setTicketTypes(updated);
+                        }}
+                        placeholder="Price"
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                      />
+                      <TextInput
+                        style={[styles.input, { flex: 1 }]}
+                        value={ticket.maxQuantity}
+                        onChangeText={(text) => {
+                          const updated = [...ticketTypes];
+                          updated[index] = { ...updated[index], maxQuantity: text };
+                          setTicketTypes(updated);
+                        }}
+                        placeholder="Max qty"
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+
+            {/* Sponsors */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={styles.sectionTitle}>Sponsors</Text>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F3FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
+                  onPress={() => setSponsors([...sponsors, { name: '', logo: '' }])}
+                >
+                  <Ionicons name="add" size={16} color="#7C3AED" />
+                  <Text style={{ color: '#7C3AED', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Sponsor</Text>
+                </TouchableOpacity>
+              </View>
+              {sponsors.map((sponsor, index) => (
+                <View key={index} style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    value={sponsor.name}
+                    onChangeText={(text) => {
+                      const updated = [...sponsors];
+                      updated[index] = { ...updated[index], name: text };
+                      setSponsors(updated);
+                    }}
+                    placeholder="Sponsor name"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    value={sponsor.logo}
+                    onChangeText={(text) => {
+                      const updated = [...sponsors];
+                      updated[index] = { ...updated[index], logo: text };
+                      setSponsors(updated);
+                    }}
+                    placeholder="Logo URL (optional)"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <TouchableOpacity onPress={() => setSponsors(sponsors.filter((_, i) => i !== index))}>
+                    <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
 
             {/* Action Buttons */}

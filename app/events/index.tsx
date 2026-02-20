@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
-  Alert,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -19,6 +18,7 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { eventService, Event, EventStatus } from '@/services/api/events';
 import { Colors } from '@/constants/Colors';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
+import { showAlert, showConfirm } from '@/utils/alert';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -50,7 +50,7 @@ export default function EventsScreen() {
       setTotalCount(response.pagination.totalCount);
     } catch (error: any) {
       console.error('Error fetching events:', error);
-      Alert.alert('Error', error.message || 'Failed to fetch events');
+      showAlert('Error', error.message || 'Failed to fetch events');
     } finally {
       setIsLoading(false);
     }
@@ -67,70 +67,50 @@ export default function EventsScreen() {
   };
 
   const handlePublish = async (event: Event) => {
-    Alert.alert(
+    showConfirm(
       'Publish Event',
       `Are you sure you want to publish "${event.title}"? It will be visible to users.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Publish',
-          onPress: async () => {
-            try {
-              await eventService.publishEvent(event._id);
-              Alert.alert('Success', 'Event published successfully');
-              fetchEvents();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to publish event');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await eventService.publishEvent(event._id);
+          showAlert('Success', 'Event published successfully');
+          fetchEvents();
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to publish event');
+        }
+      }
     );
   };
 
   const handleCancel = async (event: Event) => {
-    Alert.alert(
+    showConfirm(
       'Cancel Event',
       `Are you sure you want to cancel "${event.title}"? All bookings will be cancelled.`,
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes, Cancel',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await eventService.cancelEvent(event._id, 'Cancelled by organizer');
-              Alert.alert('Success', `Event cancelled. ${result.cancelledBookings} booking(s) affected.`);
-              fetchEvents();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to cancel event');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          const result = await eventService.cancelEvent(event._id, 'Cancelled by organizer');
+          showAlert('Success', `Event cancelled. ${result.cancelledBookings} booking(s) affected.`);
+          fetchEvents();
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to cancel event');
+        }
+      }
     );
   };
 
   const handleDelete = async (event: Event) => {
-    Alert.alert(
+    showConfirm(
       'Delete Event',
       `Are you sure you want to delete "${event.title}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await eventService.deleteEvent(event._id);
-              Alert.alert('Success', 'Event deleted successfully');
-              fetchEvents();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete event');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await eventService.deleteEvent(event._id);
+          showAlert('Success', 'Event deleted successfully');
+          fetchEvents();
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to delete event');
+        }
+      }
     );
   };
 

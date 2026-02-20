@@ -16,7 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { eventService, Event, EventCategory, UpdateEventData } from '@/services/api/events';
+import { eventService, Event, EventCategory, UpdateEventData, EventScheduleItem, EventTicketType, EventSponsor } from '@/services/api/events';
 import { uploadsService } from '@/services/api/uploads';
 import { Colors } from '@/constants/Colors';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
@@ -24,7 +24,7 @@ import ErrorModal from '@/components/common/ErrorModal';
 import SuccessModal from '@/components/common/SuccessModal';
 import { isWeb, handleWebImageUpload } from '@/utils/platform';
 
-const CATEGORIES: EventCategory[] = [
+const FALLBACK_CATEGORIES: string[] = [
   'Music',
   'Technology',
   'Wellness',
@@ -37,7 +37,7 @@ const CATEGORIES: EventCategory[] = [
   'Other',
 ];
 
-const CATEGORY_ICONS: Record<EventCategory, string> = {
+const CATEGORY_ICONS: Record<string, string> = {
   Music: 'musical-notes',
   Technology: 'hardware-chip',
   Wellness: 'fitness',
@@ -99,8 +99,14 @@ export default function EditEventScreen() {
   const [includes, setIncludes] = useState('');
   const [registrationRequired, setRegistrationRequired] = useState(false);
 
+  // Schedule, Tickets, Sponsors
+  const [schedule, setSchedule] = useState<EventScheduleItem[]>([]);
+  const [ticketTypes, setTicketTypes] = useState<{ name: string; price: number; maxQuantity: number; description: string }[]>([]);
+  const [sponsors, setSponsors] = useState<{ name: string; logo: string }[]>([]);
+
   // Category picker
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>(FALLBACK_CATEGORIES);
 
   // Modal states
   const [errorModal, setErrorModal] = useState({ visible: false, title: '', message: '' });
@@ -110,6 +116,12 @@ export default function EditEventScreen() {
     if (id) {
       loadEventData();
     }
+    // Fetch dynamic categories from backend
+    eventService.getEventCategories().then((cats) => {
+      if (cats.length > 0) {
+        setDynamicCategories(cats.map((c) => c.name));
+      }
+    });
   }, [id]);
 
   const loadEventData = async () => {
@@ -169,6 +181,17 @@ export default function EditEventScreen() {
     setRequirements(event.requirements?.join('\n') || '');
     setIncludes(event.includes?.join('\n') || '');
     setRegistrationRequired(event.registrationRequired);
+
+    // Schedule, Tickets, Sponsors
+    if (event.schedule?.length) {
+      setSchedule(event.schedule.map(s => ({ title: s.title, startTime: s.startTime, endTime: s.endTime || '', description: s.description || '' })));
+    }
+    if (event.ticketTypes?.length) {
+      setTicketTypes(event.ticketTypes.map(t => ({ name: t.name, price: t.price, maxQuantity: t.maxQuantity, description: t.description || '' })));
+    }
+    if (event.sponsors?.length) {
+      setSponsors(event.sponsors.map(s => ({ name: s.name, logo: s.logo || '' })));
+    }
   };
 
   const handleSelectImage = async () => {
@@ -295,6 +318,13 @@ export default function EditEventScreen() {
         requirements: requirements.trim() ? requirements.split('\n').map(r => r.trim()).filter(Boolean) : undefined,
         includes: includes.trim() ? includes.split('\n').map(i => i.trim()).filter(Boolean) : undefined,
         registrationRequired,
+        schedule: schedule.length > 0 ? schedule.filter(s => s.title.trim()) : undefined,
+        ticketTypes: ticketTypes.length > 0 ? ticketTypes.filter(t => t.name.trim()).map(t => ({
+          name: t.name, price: t.price, maxQuantity: t.maxQuantity, description: t.description || undefined,
+        })) : undefined,
+        sponsors: sponsors.length > 0 ? sponsors.filter(s => s.name.trim()).map(s => ({
+          name: s.name, logo: s.logo || undefined,
+        })) : undefined,
       };
 
       await eventService.updateEvent(id as string, eventData);
@@ -459,7 +489,7 @@ export default function EditEventScreen() {
                 </TouchableOpacity>
                 {showCategoryPicker && (
                   <View style={styles.categoryList}>
-                    {CATEGORIES.map((cat) => (
+                    {dynamicCategories.map((cat) => (
                       <TouchableOpacity
                         key={cat}
                         style={[
@@ -812,6 +842,101 @@ export default function EditEventScreen() {
                 </TouchableOpacity>
                 <Text style={styles.checkboxLabel}>Registration required</Text>
               </View>
+            </View>
+
+            {/* Schedule / Agenda */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={styles.sectionTitle}>Schedule / Agenda</Text>
+                <TouchableOpacity
+                  onPress={() => setSchedule([...schedule, { title: '', startTime: '', endTime: '', description: '' }])}
+                  style={{ backgroundColor: Colors.light.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}
+                >
+                  <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>+ Add Item</Text>
+                </TouchableOpacity>
+              </View>
+              {schedule.map((item, idx) => (
+                <View key={idx} style={{ backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#6B7280' }}>Item {idx + 1}</Text>
+                    <TouchableOpacity onPress={() => setSchedule(schedule.filter((_, i) => i !== idx))}>
+                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput style={styles.textInput} placeholder="Session title" value={item.title}
+                    onChangeText={v => { const s = [...schedule]; s[idx] = { ...s[idx], title: v }; setSchedule(s); }} />
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+                    <TextInput style={[styles.textInput, { flex: 1 }]} placeholder="Start time" value={item.startTime}
+                      onChangeText={v => { const s = [...schedule]; s[idx] = { ...s[idx], startTime: v }; setSchedule(s); }} />
+                    <TextInput style={[styles.textInput, { flex: 1 }]} placeholder="End time" value={item.endTime}
+                      onChangeText={v => { const s = [...schedule]; s[idx] = { ...s[idx], endTime: v }; setSchedule(s); }} />
+                  </View>
+                  <TextInput style={[styles.textInput, { marginTop: 6 }]} placeholder="Description (optional)" value={item.description}
+                    onChangeText={v => { const s = [...schedule]; s[idx] = { ...s[idx], description: v }; setSchedule(s); }} />
+                </View>
+              ))}
+              {schedule.length === 0 && <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No schedule items added</Text>}
+            </View>
+
+            {/* Ticket Types */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={styles.sectionTitle}>Ticket Types</Text>
+                <TouchableOpacity
+                  onPress={() => setTicketTypes([...ticketTypes, { name: '', price: 0, maxQuantity: 50, description: '' }])}
+                  style={{ backgroundColor: Colors.light.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}
+                >
+                  <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>+ Add Ticket</Text>
+                </TouchableOpacity>
+              </View>
+              {ticketTypes.map((ticket, idx) => (
+                <View key={idx} style={{ backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#6B7280' }}>Ticket {idx + 1}</Text>
+                    <TouchableOpacity onPress={() => setTicketTypes(ticketTypes.filter((_, i) => i !== idx))}>
+                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput style={styles.textInput} placeholder="Ticket name (e.g. VIP)" value={ticket.name}
+                    onChangeText={v => { const t = [...ticketTypes]; t[idx] = { ...t[idx], name: v }; setTicketTypes(t); }} />
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+                    <TextInput style={[styles.textInput, { flex: 1 }]} placeholder="Price" keyboardType="numeric"
+                      value={ticket.price ? ticket.price.toString() : ''}
+                      onChangeText={v => { const t = [...ticketTypes]; t[idx] = { ...t[idx], price: parseFloat(v) || 0 }; setTicketTypes(t); }} />
+                    <TextInput style={[styles.textInput, { flex: 1 }]} placeholder="Max qty" keyboardType="numeric"
+                      value={ticket.maxQuantity ? ticket.maxQuantity.toString() : ''}
+                      onChangeText={v => { const t = [...ticketTypes]; t[idx] = { ...t[idx], maxQuantity: parseInt(v) || 0 }; setTicketTypes(t); }} />
+                  </View>
+                  <TextInput style={[styles.textInput, { marginTop: 6 }]} placeholder="Description (optional)" value={ticket.description}
+                    onChangeText={v => { const t = [...ticketTypes]; t[idx] = { ...t[idx], description: v }; setTicketTypes(t); }} />
+                </View>
+              ))}
+              {ticketTypes.length === 0 && <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No ticket types added</Text>}
+            </View>
+
+            {/* Sponsors */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={styles.sectionTitle}>Sponsors</Text>
+                <TouchableOpacity
+                  onPress={() => setSponsors([...sponsors, { name: '', logo: '' }])}
+                  style={{ backgroundColor: Colors.light.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}
+                >
+                  <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>+ Add Sponsor</Text>
+                </TouchableOpacity>
+              </View>
+              {sponsors.map((sponsor, idx) => (
+                <View key={idx} style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                  <TextInput style={[styles.textInput, { flex: 1 }]} placeholder="Sponsor name" value={sponsor.name}
+                    onChangeText={v => { const s = [...sponsors]; s[idx] = { ...s[idx], name: v }; setSponsors(s); }} />
+                  <TextInput style={[styles.textInput, { flex: 1 }]} placeholder="Logo URL (optional)" value={sponsor.logo}
+                    onChangeText={v => { const s = [...sponsors]; s[idx] = { ...s[idx], logo: v }; setSponsors(s); }} />
+                  <TouchableOpacity onPress={() => setSponsors(sponsors.filter((_, i) => i !== idx))}>
+                    <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {sponsors.length === 0 && <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No sponsors added</Text>}
             </View>
 
             {/* Save Button */}

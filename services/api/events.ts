@@ -52,6 +52,30 @@ export interface EventAnalytics {
   lastViewed?: string;
 }
 
+// Event Schedule Item
+export interface EventScheduleItem {
+  title: string;
+  startTime: string;
+  endTime?: string;
+  description?: string;
+}
+
+// Event Ticket Type
+export interface EventTicketType {
+  name: string;
+  price: number;
+  currency?: string;
+  maxQuantity: number;
+  soldCount?: number;
+  description?: string;
+}
+
+// Event Sponsor
+export interface EventSponsor {
+  name: string;
+  logo?: string;
+}
+
 // Event Categories
 export type EventCategory =
   | 'Music'
@@ -100,6 +124,10 @@ export interface Event {
   analytics: EventAnalytics;
   featured: boolean;
   priority: number;
+  schedule?: EventScheduleItem[];
+  ticketTypes?: EventTicketType[];
+  sponsors?: EventSponsor[];
+  rewardConfigId?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
@@ -161,6 +189,18 @@ export interface CreateEventData {
   status?: 'draft' | 'published';
   featured?: boolean;
   priority?: number;
+  schedule?: EventScheduleItem[];
+  ticketTypes?: Array<{
+    name: string;
+    price: number;
+    currency?: string;
+    maxQuantity: number;
+    description?: string;
+  }>;
+  sponsors?: Array<{
+    name: string;
+    logo?: string;
+  }>;
 }
 
 // Update Event Data
@@ -467,6 +507,19 @@ class EventService {
       };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to get event analytics');
+    }
+  }
+
+  /**
+   * Get event categories from backend
+   */
+  async getEventCategories(): Promise<{ name: string; slug: string; icon?: string; _id: string }[]> {
+    try {
+      const response = await apiClient.get<any>('events/categories');
+      return response.data?.categories || [];
+    } catch (error: any) {
+      console.error('Failed to fetch event categories:', error.message);
+      return [];
     }
   }
 

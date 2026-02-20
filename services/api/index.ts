@@ -264,3 +264,4 @@ export * from './services';
 export * from './coinDrops';
 export * from './brandedCoins';
 export * from './earningAnalytics';
+export * from './bonusCampaigns';
