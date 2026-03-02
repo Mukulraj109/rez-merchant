@@ -14,10 +14,10 @@ import {
   RefreshControl,
   ActivityIndicator,
   TextInput,
-  Alert,
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -165,29 +165,23 @@ export default function AuditLogListScreen() {
 
   const handleExport = useCallback(async () => {
     if (!canExport) {
-      Alert.alert('Permission Denied', 'You do not have permission to export audit logs.');
+      showAlert('Permission Denied', 'You do not have permission to export audit logs.');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Export Audit Logs',
       'This will export all filtered audit logs to a CSV file. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: async () => {
-            try {
-              const result = await exportLogs();
-              if (result.data?.downloadUrl) {
-                Alert.alert('Success', 'Audit logs exported successfully.');
-              }
-            } catch (err: any) {
-              Alert.alert('Export Failed', err.message || 'Failed to export audit logs');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          const result = await exportLogs();
+          if (result.data?.downloadUrl) {
+            showAlert('Success', 'Audit logs exported successfully.');
+          }
+        } catch (err: any) {
+          showAlert('Export Failed', err.message || 'Failed to export audit logs');
+        }
+      }
     );
   }, [canExport, exportLogs]);
 

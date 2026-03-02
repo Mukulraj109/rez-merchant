@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   ActivityIndicator,
   ScrollView,
   Modal,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -166,7 +166,7 @@ export default function ServiceBookingsScreen() {
       // Refresh data
       await Promise.all([loadBookings(1, false), loadStats()]);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update booking status');
+      showAlert('Error', error.message || 'Failed to update booking status');
     } finally {
       setUpdatingBooking(null);
     }

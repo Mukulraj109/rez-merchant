@@ -70,6 +70,12 @@ const storeSchema = z.object({
   lowestPrice: z.boolean().optional(),
   mall: z.boolean().optional(),
   cashStore: z.boolean().optional(),
+  // Food & Dining specific fields
+  priceForTwo: z.string().optional().or(z.literal('')),
+  cuisineType: z.string().optional().or(z.literal('')), // Comma-separated cuisines
+  isHalal: z.boolean().optional(),
+  isVegetarian: z.boolean().optional(),
+  isVegan: z.boolean().optional(),
   // Store hours for each day
   mondayOpen: z.string().optional().or(z.literal('')),
   mondayClose: z.string().optional().or(z.literal('')),
@@ -132,6 +138,11 @@ export default function AddStoreScreen() {
   const [scDineIn, setScDineIn] = useState(false);
   const [scTableBooking, setScTableBooking] = useState(false);
   const [scStorePickup, setScStorePickup] = useState(false);
+
+  // Food-specific dietary toggles (managed outside react-hook-form for simplicity)
+  const [isHalal, setIsHalal] = useState(false);
+  const [isVegetarian, setIsVegetarian] = useState(false);
+  const [isVegan, setIsVegan] = useState(false);
 
   // Helper functions for modals
   const showError = (title: string, message: string) => {
@@ -419,9 +430,9 @@ export default function AddStoreScreen() {
       if (logoUrl) {
         createPayload.logo = logoUrl;
       }
-      // Send banner as array (or single string if only one for backward compatibility)
+      // Always send banner as array — backend schema expects [String]
       if (bannerUrls.length > 0) {
-        createPayload.banner = bannerUrls.length === 1 ? bannerUrls[0] : bannerUrls;
+        createPayload.banner = bannerUrls;
       }
 
       // Delivery radius
@@ -537,6 +548,18 @@ export default function AddStoreScreen() {
           enabled: scStorePickup,
         },
       };
+
+      // Food & Dining specific fields
+      const priceForTwo = toOptionalNumber(data.priceForTwo);
+      if (priceForTwo !== undefined) {
+        createPayload.priceForTwo = priceForTwo;
+      }
+      if (data.cuisineType && data.cuisineType.trim()) {
+        createPayload.cuisineType = data.cuisineType.split(',').map((c: string) => c.trim()).filter(Boolean);
+      }
+      if (isHalal) createPayload.isHalal = true;
+      if (isVegetarian) createPayload.isVegetarian = true;
+      if (isVegan) createPayload.isVegan = true;
 
       await createStore(createPayload);
 
@@ -1063,6 +1086,78 @@ export default function AddStoreScreen() {
                 name={scStorePickup ? "checkbox" : "checkbox-outline"}
                 size={28}
                 color={scStorePickup ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.sectionTitle}>Food & Dining</Text>
+          <Text style={styles.sectionHint}>These fields are relevant for restaurants and food stores. Leave empty if not applicable.</Text>
+
+          <FormInput
+            name="priceForTwo"
+            control={control}
+            label="Price for Two"
+            placeholder="e.g. 500"
+            keyboardType="numeric"
+            error={errors.priceForTwo?.message}
+          />
+
+          <FormInput
+            name="cuisineType"
+            control={control}
+            label="Cuisine Types"
+            placeholder="e.g. Indian, Chinese, Italian"
+            error={errors.cuisineType?.message}
+          />
+
+          {/* Dietary toggles */}
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Halal</Text>
+              <Text style={styles.categoryDescription}>Serves halal-certified food</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setIsHalal(!isHalal)}
+            >
+              <Ionicons
+                name={isHalal ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={isHalal ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Vegetarian</Text>
+              <Text style={styles.categoryDescription}>Serves vegetarian food</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setIsVegetarian(!isVegetarian)}
+            >
+              <Ionicons
+                name={isVegetarian ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={isVegetarian ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={styles.categoryInfo}>
+              <Text style={styles.switchLabel}>Vegan</Text>
+              <Text style={styles.categoryDescription}>Serves vegan food</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.switchContainer}
+              onPress={() => setIsVegan(!isVegan)}
+            >
+              <Ionicons
+                name={isVegan ? "checkbox" : "checkbox-outline"}
+                size={28}
+                color={isVegan ? "#3B82F6" : "#9CA3AF"}
               />
             </TouchableOpacity>
           </View>

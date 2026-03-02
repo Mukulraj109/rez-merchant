@@ -9,13 +9,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -76,7 +76,7 @@ export default function ProductVariantsScreen() {
       setVariants(variantsData);
     } catch (error: any) {
       console.error('Error loading data:', error);
-      Alert.alert('Error', error.message || 'Failed to load variants');
+      showAlert('Error', error.message || 'Failed to load variants');
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export default function ProductVariantsScreen() {
   };
 
   const handleDeleteVariant = (variantId: string) => {
-    Alert.alert(
+    showAlert(
       'Delete Variant',
       'Are you sure you want to delete this variant? This action cannot be undone.',
       [
@@ -109,10 +109,10 @@ export default function ProductVariantsScreen() {
           onPress: async () => {
             try {
               await productsService.deleteVariant(variantId);
-              Alert.alert('Success', 'Variant deleted successfully');
+              showAlert('Success', 'Variant deleted successfully');
               loadData();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete variant');
+              showAlert('Error', error.message || 'Failed to delete variant');
             }
           },
         },
@@ -132,13 +132,13 @@ export default function ProductVariantsScreen() {
 
   const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
     if (selectedVariants.size === 0) {
-      Alert.alert('No Selection', 'Please select at least one variant');
+      showAlert('No Selection', 'Please select at least one variant');
       return;
     }
 
     const actionText = action === 'activate' ? 'activate' : action === 'deactivate' ? 'deactivate' : 'delete';
 
-    Alert.alert(
+    showAlert(
       `Bulk ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
       `Are you sure you want to ${actionText} ${selectedVariants.size} variant(s)?`,
       [
@@ -154,7 +154,7 @@ export default function ProductVariantsScreen() {
                 Array.from(selectedVariants)
               );
 
-              Alert.alert(
+              showAlert(
                 'Success',
                 `${result.successful} variant(s) ${actionText}d successfully${
                   result.failed > 0 ? `, ${result.failed} failed` : ''
@@ -164,7 +164,7 @@ export default function ProductVariantsScreen() {
               setSelectedVariants(new Set());
               loadData();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to perform bulk action');
+              showAlert('Error', error.message || 'Failed to perform bulk action');
             } finally {
               setBulkActionLoading(false);
             }
@@ -175,7 +175,7 @@ export default function ProductVariantsScreen() {
   };
 
   const handleGenerateCombinations = () => {
-    Alert.alert(
+    showAlert(
       'Generate Combinations',
       'This will generate all possible variant combinations based on product attributes. Continue?',
       [
@@ -184,7 +184,7 @@ export default function ProductVariantsScreen() {
           text: 'Generate',
           onPress: () => {
             // Navigate to a generation wizard or modal
-            Alert.alert('Coming Soon', 'Variant combination generator will be available soon');
+            showAlert('Coming Soon', 'Variant combination generator will be available soon');
           },
         },
       ]

@@ -4,12 +4,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
   Platform
 } from 'react-native';
 import { router } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -112,7 +112,7 @@ export default function DocumentsOverviewScreen() {
 
     } catch (error) {
       console.error('Error fetching orders:', error);
-      Alert.alert('Error', 'Failed to fetch documents');
+      showAlert('Error', 'Failed to fetch documents');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -159,24 +159,18 @@ export default function DocumentsOverviewScreen() {
   };
 
   const handleBulkDownload = () => {
-    Alert.alert(
+    showConfirm(
       'Bulk Download',
       `Download ${filteredDocuments.filter(d => d.status === 'generated').length} documents?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Download',
-          onPress: () => {
-            // TODO: Implement bulk download
-            Alert.alert('Success', 'Documents downloaded successfully');
-          }
-        }
-      ]
+      () => {
+        // TODO: Implement bulk download
+        showAlert('Success', 'Documents downloaded successfully');
+      }
     );
   };
 
   const handleTemplateManagement = () => {
-    Alert.alert('Templates', 'Template management coming soon');
+    showAlert('Templates', 'Template management coming soon');
   };
 
   const onRefresh = () => {
@@ -452,7 +446,7 @@ export default function DocumentsOverviewScreen() {
 
           <TouchableOpacity
             style={styles.quickActionButton}
-            onPress={() => Alert.alert('Settings', 'Document settings coming soon')}
+            onPress={() => showAlert('Settings', 'Document settings coming soon')}
           >
             <View style={styles.quickActionIcon}>
               <Ionicons name="settings" size={24} color={Colors.light.primary} />

@@ -4,13 +4,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Platform,
   Share,
   TextInput
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 
@@ -51,7 +51,7 @@ export default function PackingSlipScreen() {
       setItems(packingItems);
     } catch (error) {
       console.error('Error fetching order:', error);
-      Alert.alert('Error', 'Failed to fetch order details');
+      showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export default function PackingSlipScreen() {
   const toggleItemPacked = (itemId: string) => {
     setItems(prevItems =>
       prevItems.map(item =>
-        item.id === itemId ? { ...item, packed: !item.packed } : item
+        (item.id || item._id) === itemId ? { ...item, packed: !item.packed } : item
       )
     );
   };
@@ -96,10 +96,10 @@ export default function PackingSlipScreen() {
       const mockUrl = `https://res.cloudinary.com/demo/image/upload/packing-slips/slip_${order.id}.pdf`;
       setSlipUrl(mockUrl);
 
-      Alert.alert('Success', 'Packing slip generated successfully!');
+      showAlert('Success', 'Packing slip generated successfully!');
     } catch (error) {
       console.error('Error generating packing slip:', error);
-      Alert.alert('Error', 'Failed to generate packing slip');
+      showAlert('Error', 'Failed to generate packing slip');
     } finally {
       setGenerating(false);
     }
@@ -107,7 +107,7 @@ export default function PackingSlipScreen() {
 
   const handleDownloadSlip = async () => {
     if (!slipUrl || !order) {
-      Alert.alert('Error', 'Please generate the packing slip first');
+      showAlert('Error', 'Please generate the packing slip first');
       return;
     }
 
@@ -123,7 +123,7 @@ export default function PackingSlipScreen() {
         const downloadResult = await FileSystem.downloadAsync(slipUrl, fileUri);
 
         if (downloadResult.status === 200) {
-          Alert.alert(
+          showAlert(
             'Success',
             `Packing slip downloaded to: ${downloadResult.uri}`,
             [
@@ -138,7 +138,7 @@ export default function PackingSlipScreen() {
       }
     } catch (error) {
       console.error('Error downloading packing slip:', error);
-      Alert.alert('Error', 'Failed to download packing slip');
+      showAlert('Error', 'Failed to download packing slip');
     } finally {
       setDownloading(false);
     }
@@ -151,7 +151,7 @@ export default function PackingSlipScreen() {
         printWindow.print();
       });
     } else {
-      Alert.alert('Print', 'Print functionality is only available on web');
+      showAlert('Print', 'Print functionality is only available on web');
     }
   };
 
@@ -159,7 +159,7 @@ export default function PackingSlipScreen() {
     try {
       const uri = fileUri || slipUrl;
       if (!uri) {
-        Alert.alert('Error', 'No packing slip available to share');
+        showAlert('Error', 'No packing slip available to share');
         return;
       }
 
@@ -260,11 +260,11 @@ export default function PackingSlipScreen() {
         <View style={styles.checklistCard}>
           <ThemedText type="subtitle" style={styles.cardTitle}>Item Checklist</ThemedText>
 
-          {items.map((item, index) => (
+          {items.map((item: any, index: number) => (
             <TouchableOpacity
-              key={item.id}
+              key={item.id || item._id || index}
               style={[styles.checklistItem, item.packed && styles.checklistItemPacked]}
-              onPress={() => toggleItemPacked(item.id)}
+              onPress={() => toggleItemPacked(item.id || item._id)}
             >
               <View style={styles.checkbox}>
                 {item.packed && (
@@ -274,12 +274,12 @@ export default function PackingSlipScreen() {
 
               <View style={styles.itemDetails}>
                 <ThemedText style={[styles.itemName, item.packed && styles.itemNamePacked]}>
-                  {item.productName}
+                  {item.productName || item.name || 'Item'}
                 </ThemedText>
                 <View style={styles.itemInfo}>
                   <ThemedText style={styles.itemQuantity}>Qty: {item.quantity}</ThemedText>
                   <ThemedText style={styles.itemSeparator}>•</ThemedText>
-                  <ThemedText style={styles.itemPrice}>{formatCurrency(item.price)}</ThemedText>
+                  <ThemedText style={styles.itemPrice}>{formatCurrency(item.price || 0)}</ThemedText>
                 </View>
                 {item.customizations && item.customizations.length > 0 && (
                   <ThemedText style={styles.itemCustomizations}>
@@ -289,7 +289,7 @@ export default function PackingSlipScreen() {
               </View>
 
               <ThemedText style={[styles.itemTotal, item.packed && styles.itemTotalPacked]}>
-                {formatCurrency(item.total)}
+                {formatCurrency(item.totalPrice || item.total || item.subtotal || (item.price || 0) * (item.quantity || 1))}
               </ThemedText>
             </TouchableOpacity>
           ))}
@@ -344,12 +344,16 @@ export default function PackingSlipScreen() {
               </View>
               <View style={styles.slipRow}>
                 <ThemedText style={styles.slipLabel}>Customer:</ThemedText>
-                <ThemedText style={styles.slipValue}>{order.customer.name}</ThemedText>
+                <ThemedText style={styles.slipValue}>{order.customer?.name || 'Customer'}</ThemedText>
               </View>
-              {order.delivery.address && (
+              {order.delivery?.address && (
                 <View style={styles.slipRow}>
                   <ThemedText style={styles.slipLabel}>Address:</ThemedText>
-                  <ThemedText style={styles.slipValue}>{order.delivery.address}</ThemedText>
+                  <ThemedText style={styles.slipValue}>
+                    {typeof order.delivery.address === 'string'
+                      ? order.delivery.address
+                      : [order.delivery.address.street || order.delivery.address.addressLine1, order.delivery.address.city, order.delivery.address.state].filter(Boolean).join(', ')}
+                  </ThemedText>
                 </View>
               )}
             </View>
@@ -363,10 +367,10 @@ export default function PackingSlipScreen() {
                 <ThemedText style={[styles.slipTableHeaderText, { flex: 1, textAlign: 'center' }]}>Qty</ThemedText>
                 <ThemedText style={[styles.slipTableHeaderText, { flex: 1, textAlign: 'center' }]}>✓</ThemedText>
               </View>
-              {items.map((item) => (
-                <View key={item.id} style={styles.slipTableRow}>
+              {items.map((item: any, index: number) => (
+                <View key={item.id || item._id || index} style={styles.slipTableRow}>
                   <ThemedText style={[styles.slipTableCell, { flex: 3 }]}>
-                    {item.productName}
+                    {item.productName || item.name || 'Item'}
                   </ThemedText>
                   <ThemedText style={[styles.slipTableCell, { flex: 1, textAlign: 'center' }]}>
                     {item.quantity}
@@ -474,11 +478,11 @@ export default function PackingSlipScreen() {
           </View>
           <View style={styles.infoRow}>
             <ThemedText style={styles.infoLabel}>Delivery Method:</ThemedText>
-            <ThemedText style={styles.infoValue}>{order.delivery.method}</ThemedText>
+            <ThemedText style={styles.infoValue}>{order.delivery?.method || 'delivery'}</ThemedText>
           </View>
           <View style={styles.infoRow}>
             <ThemedText style={styles.infoLabel}>Total Amount:</ThemedText>
-            <ThemedText style={styles.infoValue}>{formatCurrency(order.pricing.totalAmount)}</ThemedText>
+            <ThemedText style={styles.infoValue}>{formatCurrency(order.pricing?.totalAmount ?? order.totals?.total ?? 0)}</ThemedText>
           </View>
         </View>
       </ThemedView>

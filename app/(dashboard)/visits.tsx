@@ -7,13 +7,13 @@ import {
   FlatList,
   RefreshControl,
   Dimensions,
-  Alert,
   Pressable,
   Platform,
   Text,
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert, showConfirm } from '@/utils/alert';
 import Animated, {
   FadeInDown,
   FadeInRight,
@@ -411,7 +411,7 @@ export default function VisitsScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
       } else {
-        Alert.alert('Error', errorMessage);
+        showAlert('Error', errorMessage);
       }
     } finally {
       setLoading(false);
@@ -444,7 +444,7 @@ export default function VisitsScreen() {
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert('Visit checked in successfully');
         } else {
-          Alert.alert('Success', 'Visit checked in successfully');
+          showAlert('Success', 'Visit checked in successfully');
         }
         await fetchVisits();
         await fetchStats();
@@ -454,7 +454,7 @@ export default function VisitsScreen() {
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert(`Error: ${msg}`);
         } else {
-          Alert.alert('Error', msg);
+          showAlert('Error', msg);
         }
       }
     },
@@ -468,7 +468,7 @@ export default function VisitsScreen() {
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert('Visit completed successfully');
         } else {
-          Alert.alert('Success', 'Visit completed successfully');
+          showAlert('Success', 'Visit completed successfully');
         }
         await fetchVisits();
         await fetchStats();
@@ -478,7 +478,7 @@ export default function VisitsScreen() {
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert(`Error: ${msg}`);
         } else {
-          Alert.alert('Error', msg);
+          showAlert('Error', msg);
         }
       }
     },
@@ -493,7 +493,7 @@ export default function VisitsScreen() {
           if (Platform.OS === 'web' && typeof window !== 'undefined') {
             window.alert('Visit cancelled');
           } else {
-            Alert.alert('Success', 'Visit cancelled');
+            showAlert('Success', 'Visit cancelled');
           }
           await fetchVisits();
           await fetchStats();
@@ -503,21 +503,12 @@ export default function VisitsScreen() {
           if (Platform.OS === 'web' && typeof window !== 'undefined') {
             window.alert(`Error: ${msg}`);
           } else {
-            Alert.alert('Error', msg);
+            showAlert('Error', msg);
           }
         }
       };
 
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        if (window.confirm('Are you sure you want to cancel this visit?')) {
-          await doCancel();
-        }
-      } else {
-        Alert.alert('Confirm', 'Are you sure you want to cancel this visit?', [
-          { text: 'No', style: 'cancel' },
-          { text: 'Yes, Cancel', style: 'destructive', onPress: doCancel },
-        ]);
-      }
+      showConfirm('Confirm', 'Are you sure you want to cancel this visit?', doCancel);
     },
     [fetchVisits, fetchStats]
   );

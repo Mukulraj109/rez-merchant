@@ -2,13 +2,13 @@ import React, { useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -48,7 +48,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (state.error) {
-      Alert.alert('Login Error', state.error);
+      showAlert('Login Error', state.error);
       clearError();
     }
   }, [state.error]);
@@ -57,7 +57,7 @@ export default function LoginScreen() {
     try {
       await login(data.email, data.password);
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'An error occurred during login');
+      showAlert('Login Failed', error.message || 'An error occurred during login');
     }
   };
 

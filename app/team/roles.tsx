@@ -10,11 +10,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -43,14 +43,14 @@ export default function RolesScreen() {
 
       // Only owner can access this screen
       if (permissions.role !== 'owner') {
-        Alert.alert(
+        showAlert(
           'Access Denied',
           'Only the account owner can view role management.',
           [{ text: 'OK', onPress: () => router.back() }]
         );
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to check permissions');
+      showAlert('Error', error.message || 'Failed to check permissions');
       router.back();
     } finally {
       setLoading(false);

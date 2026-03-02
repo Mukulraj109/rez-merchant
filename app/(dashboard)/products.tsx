@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   RefreshControl,
-  Alert,
   ActivityIndicator,
   Image,
   Pressable,
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Colors, Spacing, Shadows, BorderRadius } from '@/constants/DesignTokens';
@@ -89,7 +89,7 @@ export default function ProductsScreen() {
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-      Alert.alert('Error', 'Failed to load products. Please try again.');
+      showAlert('Error', 'Failed to load products. Please try again.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -117,50 +117,23 @@ export default function ProductsScreen() {
     
     if (!token) {
       console.error('❌ [DELETE LIST] No token available');
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('Error: Authentication required. Please log in again.');
-      } else {
-        Alert.alert('Error', 'Authentication required. Please log in again.');
-      }
+      showAlert('Error', 'Authentication required. Please log in again.');
       return;
     }
 
     const confirmMessage = 'Are you sure you want to delete this product? This will delete the product, all images, videos, and related data. This action cannot be undone.';
-    
-    // Use window.confirm for web, Alert.alert for native
-    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.confirm) {
-      console.log('🗑️ [DELETE LIST] Using window.confirm for web');
-      const confirmed = window.confirm(confirmMessage);
-      if (confirmed) {
-        console.log('🗑️ [DELETE LIST] User confirmed deletion via window.confirm');
-        await handleDeleteConfirmed(productId);
-      } else {
-        console.log('🗑️ [DELETE LIST] User cancelled deletion via window.confirm');
+
+    showConfirm(
+      'Delete Product',
+      confirmMessage,
+      () => {
+        console.log('🗑️ [DELETE LIST] User confirmed deletion');
+        handleDeleteConfirmed(productId);
+      },
+      () => {
+        console.log('🗑️ [DELETE LIST] User cancelled deletion');
       }
-    } else {
-      console.log('🗑️ [DELETE LIST] Using Alert.alert for native');
-      Alert.alert(
-        'Delete Product',
-        confirmMessage,
-        [
-          { 
-            text: 'Cancel', 
-            style: 'cancel',
-            onPress: () => {
-              console.log('🗑️ [DELETE LIST] User cancelled deletion');
-            }
-          },
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: () => {
-              console.log('🗑️ [DELETE LIST] User confirmed deletion via Alert');
-              handleDeleteConfirmed(productId);
-            },
-          },
-        ]
-      );
-    }
+    );
   };
 
   const handleDeleteConfirmed = async (productId: string) => {
@@ -181,11 +154,7 @@ export default function ProductsScreen() {
       console.log('✅ [DELETE LIST] Product removed from local state');
       
       // Show success message
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('Product and all related data deleted successfully');
-      } else {
-        Alert.alert('Success', 'Product and all related data deleted successfully');
-      }
+      showAlert('Success', 'Product and all related data deleted successfully');
       
       // Refresh the list to ensure consistency
       console.log('🗑️ [DELETE LIST] Refreshing product list...');
@@ -198,11 +167,7 @@ export default function ProductsScreen() {
       
       const errorMessage = error?.message || 'Failed to delete product. Please try again.';
       
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(`Error: ${errorMessage}`);
-      } else {
-        Alert.alert('Error', errorMessage);
-      }
+      showAlert('Error', errorMessage);
     }
   };
 
@@ -316,11 +281,7 @@ export default function ProductsScreen() {
                   } else {
                     console.error('❌ [DELETE LIST] Product ID not found');
                     const errorMsg = 'Product ID not found';
-                    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                      window.alert(`Error: ${errorMsg}`);
-                    } else {
-                      Alert.alert('Error', errorMsg);
-                    }
+                    showAlert('Error', errorMsg);
                   }
                 }}
                 activeOpacity={0.7}

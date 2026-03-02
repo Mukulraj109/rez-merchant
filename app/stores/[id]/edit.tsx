@@ -72,6 +72,12 @@ const storeSchema = z.object({
   lowestPrice: z.boolean().optional(),
   mall: z.boolean().optional(),
   cashStore: z.boolean().optional(),
+  // Food & Dining specific fields
+  priceForTwo: z.string().optional().or(z.literal('')),
+  cuisineType: z.string().optional().or(z.literal('')),
+  isHalal: z.boolean().optional(),
+  isVegetarian: z.boolean().optional(),
+  isVegan: z.boolean().optional(),
   // Store hours for each day
   mondayOpen: z.string().optional().or(z.literal('')),
   mondayClose: z.string().optional().or(z.literal('')),
@@ -152,6 +158,11 @@ export default function EditStoreScreen() {
   const [tableBookingCapEnabled, setTableBookingCapEnabled] = useState(false);
   const [storePickupEnabled, setStorePickupEnabled] = useState(false);
   const [storePickupTime, setStorePickupTime] = useState('');
+
+  // Food-specific dietary toggles
+  const [isHalal, setIsHalal] = useState(false);
+  const [isVegetarian, setIsVegetarian] = useState(false);
+  const [isVegan, setIsVegan] = useState(false);
 
   // Table booking configuration
   const [bookingEnabled, setBookingEnabled] = useState(false);
@@ -266,6 +277,9 @@ export default function EditStoreScreen() {
           lowestPrice: s.deliveryCategories?.lowestPrice || false,
           mall: s.deliveryCategories?.mall || false,
           cashStore: s.deliveryCategories?.cashStore || false,
+          // Food & Dining specific
+          priceForTwo: s.priceForTwo?.toString() || '',
+          cuisineType: Array.isArray(s.cuisineType) ? s.cuisineType.join(', ') : (s.cuisineType || ''),
           // Store hours
           mondayOpen: getDayHours('monday').open,
           mondayClose: getDayHours('monday').close,
@@ -339,6 +353,11 @@ export default function EditStoreScreen() {
             setStorePickupTime(sc.storePickup.estimatedTime || '');
           }
         }
+
+        // Load food-specific dietary flags
+        setIsHalal(s.isHalal || false);
+        setIsVegetarian(s.isVegetarian || false);
+        setIsVegan(s.isVegan || false);
 
         // Load booking configuration
         if (s.bookingConfig) {
@@ -557,13 +576,11 @@ export default function EditStoreScreen() {
       if (logoUrl) {
         updatePayload.logo = logoUrl;
       }
-      // Send banner as array (or single string if only one for backward compatibility)
-      // IMPORTANT: Always include banner if there are any URLs to prevent clearing existing banners
-      // Use bannerUrls if available, otherwise preserve existing banners from store
+      // Always send banner as array — backend schema expects [String]
       if (bannerUrls.length > 0) {
-        updatePayload.banner = bannerUrls.length === 1 ? bannerUrls[0] : bannerUrls;
+        updatePayload.banner = bannerUrls;
       } else if (store?.banner) {
-        // If no new banners uploaded but store has existing banners, preserve them
+        // Preserve existing banners, normalize to array
         updatePayload.banner = Array.isArray(store.banner) ? store.banner : [store.banner];
       }
       
@@ -748,6 +765,18 @@ export default function EditStoreScreen() {
           end: bookingHoursEnd || '21:00',
         },
       };
+
+      // Food & Dining specific fields
+      const priceForTwo = toOptionalNumber(data.priceForTwo);
+      if (priceForTwo !== undefined) {
+        updatePayload.priceForTwo = priceForTwo;
+      }
+      if (data.cuisineType && data.cuisineType.trim()) {
+        updatePayload.cuisineType = data.cuisineType.split(',').map((c: string) => c.trim()).filter(Boolean);
+      }
+      updatePayload.isHalal = isHalal;
+      updatePayload.isVegetarian = isVegetarian;
+      updatePayload.isVegan = isVegan;
 
       await updateStore(id, updatePayload);
 
@@ -1708,6 +1737,78 @@ export default function EditStoreScreen() {
           error={errors.tags?.message}
         />
         <Text style={styles.hintText}>Separate tags with commas</Text>
+
+        <Text style={styles.sectionTitle}>Food & Dining</Text>
+        <Text style={styles.sectionHint}>These fields are relevant for restaurants and food stores. Leave empty if not applicable.</Text>
+
+        <FormInput
+          name="priceForTwo"
+          control={control}
+          label="Price for Two"
+          placeholder="e.g. 500"
+          keyboardType="numeric"
+          error={errors.priceForTwo?.message}
+        />
+
+        <FormInput
+          name="cuisineType"
+          control={control}
+          label="Cuisine Types"
+          placeholder="e.g. Indian, Chinese, Italian"
+          error={errors.cuisineType?.message}
+        />
+
+        {/* Dietary toggles */}
+        <View style={styles.switchRow}>
+          <View style={styles.categoryInfo}>
+            <Text style={styles.switchLabel}>Halal</Text>
+            <Text style={styles.categoryDescription}>Serves halal-certified food</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.switchContainer}
+            onPress={() => setIsHalal(!isHalal)}
+          >
+            <Ionicons
+              name={isHalal ? "checkbox" : "checkbox-outline"}
+              size={28}
+              color={isHalal ? "#3B82F6" : "#9CA3AF"}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.switchRow}>
+          <View style={styles.categoryInfo}>
+            <Text style={styles.switchLabel}>Vegetarian</Text>
+            <Text style={styles.categoryDescription}>Serves vegetarian food</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.switchContainer}
+            onPress={() => setIsVegetarian(!isVegetarian)}
+          >
+            <Ionicons
+              name={isVegetarian ? "checkbox" : "checkbox-outline"}
+              size={28}
+              color={isVegetarian ? "#3B82F6" : "#9CA3AF"}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.switchRow}>
+          <View style={styles.categoryInfo}>
+            <Text style={styles.switchLabel}>Vegan</Text>
+            <Text style={styles.categoryDescription}>Serves vegan food</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.switchContainer}
+            onPress={() => setIsVegan(!isVegan)}
+          >
+            <Ionicons
+              name={isVegan ? "checkbox" : "checkbox-outline"}
+              size={28}
+              color={isVegan ? "#3B82F6" : "#9CA3AF"}
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}

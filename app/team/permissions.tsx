@@ -10,12 +10,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -58,14 +58,14 @@ export default function PermissionsScreen() {
 
       // Only owner can access this screen
       if (permissions.role !== 'owner') {
-        Alert.alert(
+        showAlert(
           'Access Denied',
           'Only the account owner can view the permissions matrix.',
           [{ text: 'OK', onPress: () => router.back() }]
         );
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to check permissions');
+      showAlert('Error', error.message || 'Failed to check permissions');
       router.back();
     } finally {
       setLoading(false);

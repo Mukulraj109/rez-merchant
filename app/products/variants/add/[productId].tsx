@@ -9,13 +9,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Image,
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -119,7 +119,7 @@ export default function AddVariantScreen() {
       setProduct(productData);
     } catch (error: any) {
       console.error('Error loading product:', error);
-      Alert.alert('Error', error.message || 'Failed to load product');
+      showAlert('Error', error.message || 'Failed to load product');
     } finally {
       setLoading(false);
     }
@@ -131,7 +131,7 @@ export default function AddVariantScreen() {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please grant camera roll permissions to upload images.'
         );
@@ -155,7 +155,7 @@ export default function AddVariantScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      showAlert('Error', 'Failed to pick image');
     }
   };
 
@@ -174,10 +174,10 @@ export default function AddVariantScreen() {
       setVariantImage(result.url);
 
       // Show success feedback
-      Alert.alert('Success', 'Image uploaded successfully');
+      showAlert('Success', 'Image uploaded successfully');
     } catch (error: any) {
       console.error('❌ Failed to upload variant image:', error);
-      Alert.alert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
+      showAlert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
       // Reset image on upload failure
       setVariantImage(null);
     } finally {
@@ -197,7 +197,7 @@ export default function AddVariantScreen() {
 
   const onSubmit = async (data: VariantFormData) => {
     if (!canEdit) {
-      Alert.alert('Permission Denied', 'You do not have permission to add variants');
+      showAlert('Permission Denied', 'You do not have permission to add variants');
       return;
     }
 
@@ -240,7 +240,7 @@ export default function AddVariantScreen() {
       const productIdStr = Array.isArray(productId) ? productId[0] : productId;
       await productsService.createVariant(productIdStr, variantData);
 
-      Alert.alert('Success', 'Variant created successfully', [
+      showAlert('Success', 'Variant created successfully', [
         {
           text: 'OK',
           onPress: () => {
@@ -255,7 +255,7 @@ export default function AddVariantScreen() {
       ]);
     } catch (error: any) {
       console.error('Error creating variant:', error);
-      Alert.alert('Error', error.message || 'Failed to create variant');
+      showAlert('Error', error.message || 'Failed to create variant');
     } finally {
       setSaving(false);
     }

@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   RefreshControl,
   Share,
   Linking,
@@ -12,6 +11,7 @@ import {
   Image
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -85,7 +85,7 @@ export default function OrderDetailScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
       } else {
-        Alert.alert('Error', errorMessage);
+        showAlert('Error', errorMessage);
       }
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ export default function OrderDetailScreen() {
       await fetchOrderDetails();
     } catch (error) {
       console.error('❌ Error updating order status:', error);
-      Alert.alert('Error', 'Failed to update order status');
+      showAlert('Error', 'Failed to update order status');
     } finally {
       setUpdating(false);
     }

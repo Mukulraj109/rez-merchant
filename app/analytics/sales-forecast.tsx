@@ -12,10 +12,10 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert } from '@/utils/alert';
 import { useQuery } from '@tanstack/react-query';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -72,7 +72,7 @@ export default function SalesForecastScreen() {
 
   const handleExport = async () => {
     if (!canExport) {
-      Alert.alert('Permission Denied', 'You do not have permission to export data.');
+      showAlert('Permission Denied', 'You do not have permission to export data.');
       return;
     }
 
@@ -83,7 +83,7 @@ export default function SalesForecastScreen() {
         includeCharts: true,
       });
 
-      Alert.alert(
+      showAlert(
         'Export Successful',
         `Your forecast has been exported. File: ${exportResponse.filename}`,
         [
@@ -92,7 +92,7 @@ export default function SalesForecastScreen() {
         ]
       );
     } catch (err: any) {
-      Alert.alert('Export Failed', err.message);
+      showAlert('Export Failed', err.message);
     }
   };
 

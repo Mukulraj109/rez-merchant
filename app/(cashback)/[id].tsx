@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -33,12 +34,12 @@ export default function CashbackDetailScreen() {
         setRequest(requestData);
         setCustomAmount(requestData.requestedAmount.toString());
       } else {
-        Alert.alert('Error', 'Cashback request not found');
+        showAlert('Error', 'Cashback request not found');
         router.back();
       }
     } catch (error) {
       console.error('Error fetching cashback request:', error);
-      Alert.alert('Error', 'Failed to load cashback request');
+      showAlert('Error', 'Failed to load cashback request');
       router.back();
     } finally {
       setIsLoading(false);
@@ -49,7 +50,7 @@ export default function CashbackDetailScreen() {
     try {
       const approvedAmount = parseFloat(customAmount);
       if (isNaN(approvedAmount) || approvedAmount <= 0) {
-        Alert.alert('Error', 'Please enter a valid amount');
+        showAlert('Error', 'Please enter a valid amount');
         return;
       }
 
@@ -60,16 +61,16 @@ export default function CashbackDetailScreen() {
       
       setRequest(updatedRequest);
       setShowApprovalModal(false);
-      Alert.alert('Success', 'Cashback request approved successfully');
+      showAlert('Success', 'Cashback request approved successfully');
     } catch (error: any) {
       console.error('Error approving cashback request:', error);
-      Alert.alert('Error', error.message || 'Failed to approve request');
+      showAlert('Error', error.message || 'Failed to approve request');
     }
   };
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      Alert.alert('Error', 'Please provide a rejection reason');
+      showAlert('Error', 'Please provide a rejection reason');
       return;
     }
 
@@ -81,37 +82,31 @@ export default function CashbackDetailScreen() {
       
       setRequest(updatedRequest);
       setShowRejectionModal(false);
-      Alert.alert('Success', 'Cashback request rejected');
+      showAlert('Success', 'Cashback request rejected');
     } catch (error: any) {
       console.error('Error rejecting cashback request:', error);
-      Alert.alert('Error', error.message || 'Failed to reject request');
+      showAlert('Error', error.message || 'Failed to reject request');
     }
   };
 
   const handleMarkAsPaid = async () => {
-    Alert.alert(
+    showConfirm(
       'Mark as Paid',
       'Mark this cashback as paid to the customer?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Mark Paid', 
-          onPress: async () => {
-            try {
-              const updatedRequest = await cashbackService.markCashbackPaid(id, {
-                paymentMethod: 'wallet',
-                paymentReference: `AUTO-${Date.now()}`
-              });
-              
-              setRequest(updatedRequest);
-              Alert.alert('Success', 'Cashback marked as paid');
-            } catch (error: any) {
-              console.error('Error marking cashback as paid:', error);
-              Alert.alert('Error', error.message || 'Failed to mark as paid');
-            }
-          }
+      async () => {
+        try {
+          const updatedRequest = await cashbackService.markCashbackPaid(id, {
+            paymentMethod: 'wallet',
+            paymentReference: `AUTO-${Date.now()}`
+          });
+
+          setRequest(updatedRequest);
+          showAlert('Success', 'Cashback marked as paid');
+        } catch (error: any) {
+          console.error('Error marking cashback as paid:', error);
+          showAlert('Error', error.message || 'Failed to mark as paid');
         }
-      ]
+      }
     );
   };
 

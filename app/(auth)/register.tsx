@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -67,7 +67,7 @@ export default function RegisterScreen() {
 
       await register(registrationData);
 
-      Alert.alert(
+      showAlert(
         'Success',
         'Account created successfully! Let\'s complete your merchant profile.',
         [
@@ -80,7 +80,7 @@ export default function RegisterScreen() {
         ]
       );
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
+      showAlert('Registration Failed', error.message || 'An error occurred during registration');
     }
   };
 

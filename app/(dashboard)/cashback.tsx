@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -47,7 +48,7 @@ export default function CashbackScreen() {
       setCashbackRequests(requestsData.requests || []);
     } catch (error) {
       console.error('❌ Error fetching cashback data:', error);
-      Alert.alert('Error', 'Failed to load cashback data. Please try again.');
+      showAlert('Error', 'Failed to load cashback data. Please try again.');
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -69,7 +70,7 @@ export default function CashbackScreen() {
       if (action === 'approve') {
         const request = cashbackRequests.find(r => r.id === requestId);
         if (!request) {
-          Alert.alert('Error', 'Request not found');
+          showAlert('Error', 'Request not found');
           return;
         }
         
@@ -84,10 +85,10 @@ export default function CashbackScreen() {
 
       console.log(`✅ Cashback request ${action}d successfully`);
       await fetchData();
-      Alert.alert('Success', `Cashback request ${action}d successfully`);
+      showAlert('Success', `Cashback request ${action}d successfully`);
     } catch (error) {
       console.error(`❌ Error ${action}ing request:`, error);
-      Alert.alert('Error', `Failed to ${action} request. Please try again.`);
+      showAlert('Error', `Failed to ${action} request. Please try again.`);
     }
   }, [cashbackRequests, fetchData]);
 
@@ -96,10 +97,10 @@ export default function CashbackScreen() {
       console.log('🎲 Generating sample cashback data...');
       await cashbackService.createSampleData();
       await fetchData();
-      Alert.alert('Success', 'Sample cashback requests generated successfully');
+      showAlert('Success', 'Sample cashback requests generated successfully');
     } catch (error) {
       console.error('❌ Error generating sample data:', error);
-      Alert.alert('Error', 'Failed to generate sample data. Please try again.');
+      showAlert('Error', 'Failed to generate sample data. Please try again.');
     }
   }, [fetchData]);
 

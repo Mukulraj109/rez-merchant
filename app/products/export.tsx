@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Switch,
   Platform,
@@ -13,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -94,7 +94,7 @@ export default function ProductExportScreen() {
   // Check permission
   React.useEffect(() => {
     if (!hasPermission('products:export')) {
-      Alert.alert(
+      showAlert(
         'Permission Denied',
         'You do not have permission to export products.',
         [{ text: 'OK', onPress: () => router.back() }]
@@ -122,11 +122,11 @@ export default function ProductExportScreen() {
     const selectedFields = fields.filter(f => f.selected);
 
     if (selectedFields.length === 0) {
-      Alert.alert('Error', 'Please select at least one field to export');
+      showAlert('Error', 'Please select at least one field to export');
       return;
     }
 
-    Alert.alert(
+    showAlert(
       'Confirm Export',
       `Export ${selectedFields.length} fields as ${exportFormat.toUpperCase()}?`,
       [
@@ -181,7 +181,7 @@ export default function ProductExportScreen() {
       // Download file
       if (Platform.OS === 'web') {
         // For web, create a download link
-        Alert.alert(
+        showAlert(
           'Export Ready',
           'Your export is ready for download',
           [
@@ -194,7 +194,7 @@ export default function ProductExportScreen() {
         );
       } else {
         // For mobile, open the download URL
-        Alert.alert(
+        showAlert(
           'Export Ready',
           'Your export is ready for download',
           [
@@ -207,10 +207,10 @@ export default function ProductExportScreen() {
         );
       }
 
-      Alert.alert('Success', `Export completed! ${filename}`);
+      showAlert('Success', `Export completed! ${filename}`);
     } catch (error: any) {
       console.error('Export error:', error);
-      Alert.alert('Error', error.message || 'Failed to export products');
+      showAlert('Error', error.message || 'Failed to export products');
     } finally {
       setLoading(false);
     }

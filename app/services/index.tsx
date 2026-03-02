@@ -6,13 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   Dimensions,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -80,7 +80,7 @@ export default function ServicesListScreen() {
       }
       setPagination(response.pagination);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch services');
+      showAlert('Error', error.message || 'Failed to fetch services');
     } finally {
       setIsLoading(false);
     }
@@ -119,32 +119,25 @@ export default function ServicesListScreen() {
         )
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update service');
+      showAlert('Error', error.message || 'Failed to update service');
     } finally {
       setTogglingId(null);
     }
   };
 
   const handleDelete = (service: MerchantService) => {
-    Alert.alert(
+    showConfirm(
       'Delete Service',
       `Are you sure you want to delete "${service.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await serviceManagementService.deleteService(service._id);
-              setServices(prev => prev.filter(s => s._id !== service._id));
-              Alert.alert('Success', 'Service deleted successfully');
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete service');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await serviceManagementService.deleteService(service._id);
+          setServices(prev => prev.filter(s => s._id !== service._id));
+          showAlert('Success', 'Service deleted successfully');
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to delete service');
+        }
+      }
     );
   };
 

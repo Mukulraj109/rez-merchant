@@ -12,10 +12,10 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -133,7 +133,7 @@ export default function AuditLogDetailScreen() {
         title: 'Audit Log Details',
       });
     } catch (err: any) {
-      Alert.alert('Error', 'Failed to share log details');
+      showAlert('Error', 'Failed to share log details');
     }
   };
 
@@ -141,19 +141,13 @@ export default function AuditLogDetailScreen() {
   const handleExport = async () => {
     if (!canExport || !log) return;
 
-    Alert.alert(
+    showConfirm(
       'Export Log',
       'Export this audit log entry to JSON?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: async () => {
-            const jsonData = JSON.stringify(log, null, 2);
-            Alert.alert('Success', 'Log exported. In production, this would trigger a download.');
-          },
-        },
-      ]
+      () => {
+        const jsonData = JSON.stringify(log, null, 2);
+        showAlert('Success', 'Log exported. In production, this would trigger a download.');
+      }
     );
   };
 
@@ -171,7 +165,7 @@ export default function AuditLogDetailScreen() {
     if (route) {
       router.push(route as any);
     } else {
-      Alert.alert('Navigation', `Cannot navigate to ${log.resourceType} resource`);
+      showAlert('Navigation', `Cannot navigate to ${log.resourceType} resource`);
     }
   };
 

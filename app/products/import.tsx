@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Platform,
   Linking,
@@ -12,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import * as DocumentPicker from 'expo-document-picker';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -72,7 +72,7 @@ export default function ProductImportScreen() {
   // Check permission
   React.useEffect(() => {
     if (!hasPermission('products:bulk_import')) {
-      Alert.alert(
+      showAlert(
         'Permission Denied',
         'You do not have permission to import products.',
         [{ text: 'OK', onPress: () => router.back() }]
@@ -82,7 +82,7 @@ export default function ProductImportScreen() {
 
   const handleDownloadTemplate = async () => {
     try {
-      Alert.alert(
+      showAlert(
         'Download Template',
         'Choose template format:',
         [
@@ -102,7 +102,7 @@ export default function ProductImportScreen() {
       );
     } catch (error: any) {
       console.error('Download template error:', error);
-      Alert.alert('Error', 'Failed to download template');
+      showAlert('Error', 'Failed to download template');
     }
   };
 
@@ -119,10 +119,10 @@ export default function ProductImportScreen() {
         await Linking.openURL(templateUrl);
       }
 
-      Alert.alert('Success', 'Template download started');
+      showAlert('Success', 'Template download started');
     } catch (error: any) {
       console.error('Download error:', error);
-      Alert.alert('Error', error.message || 'Failed to download template');
+      showAlert('Error', error.message || 'Failed to download template');
     } finally {
       setLoading(false);
     }
@@ -139,18 +139,18 @@ export default function ProductImportScreen() {
         const file = result.assets[0];
         setSelectedFile(file);
         setImportResult(null);
-        Alert.alert('File Selected', `${file.name} is ready to import`);
+        showAlert('File Selected', `${file.name} is ready to import`);
       }
     } catch (error: any) {
       console.error('File selection error:', error);
-      Alert.alert('Error', 'Failed to select file');
+      showAlert('Error', 'Failed to select file');
     }
   };
 
   const validateFile = (file: DocumentPicker.DocumentPickerAsset): boolean => {
     // Check file size (max 50MB)
     if (file.size && file.size > 50 * 1024 * 1024) {
-      Alert.alert('Error', 'File size must be less than 50MB');
+      showAlert('Error', 'File size must be less than 50MB');
       return false;
     }
 
@@ -159,7 +159,7 @@ export default function ProductImportScreen() {
     const hasValidExtension = validTypes.some(ext => file.name.toLowerCase().endsWith(ext));
 
     if (!hasValidExtension) {
-      Alert.alert('Error', 'Please select a CSV or Excel file');
+      showAlert('Error', 'Please select a CSV or Excel file');
       return false;
     }
 
@@ -168,7 +168,7 @@ export default function ProductImportScreen() {
 
   const handleImport = async () => {
     if (!selectedFile) {
-      Alert.alert('Error', 'Please select a file first');
+      showAlert('Error', 'Please select a file first');
       return;
     }
 
@@ -176,7 +176,7 @@ export default function ProductImportScreen() {
       return;
     }
 
-    Alert.alert(
+    showAlert(
       'Confirm Import',
       `Are you sure you want to import products from ${selectedFile.name}?`,
       [
@@ -260,16 +260,16 @@ export default function ProductImportScreen() {
       setImportHistory(prev => [newHistoryItem, ...prev]);
 
       if (mockResult.failed === 0) {
-        Alert.alert('Success', `Successfully imported ${mockResult.successful} products!`);
+        showAlert('Success', `Successfully imported ${mockResult.successful} products!`);
       } else {
-        Alert.alert(
+        showAlert(
           'Import Completed',
           `${mockResult.successful} products imported successfully. ${mockResult.failed} products failed. Please review the errors below.`
         );
       }
     } catch (error: any) {
       console.error('Import error:', error);
-      Alert.alert('Error', error.message || 'Failed to import products');
+      showAlert('Error', error.message || 'Failed to import products');
 
       setImportResult({
         successful: 0,

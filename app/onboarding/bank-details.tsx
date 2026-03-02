@@ -11,12 +11,12 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -188,7 +188,7 @@ export default function BankDetailsScreen() {
       );
 
       if (!validation.ifscValid || !validation.accountNumberValid || !validation.panValid) {
-        Alert.alert('Validation Error', 'Please check your bank details and try again');
+        showAlert('Validation Error', 'Please check your bank details and try again');
         setLoading(false);
         return;
       }
@@ -214,13 +214,13 @@ export default function BankDetailsScreen() {
       // Submit step to API
       await onboardingService.submitStep(3, stepData);
 
-      Alert.alert(
+      showAlert(
         'Success',
         'Bank details saved successfully! Proceed to document upload.',
         [{ text: 'Continue', onPress: () => router.push('/onboarding/documents') }]
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to save bank details');
+      showAlert('Error', error.message || 'Failed to save bank details');
     } finally {
       setLoading(false);
     }

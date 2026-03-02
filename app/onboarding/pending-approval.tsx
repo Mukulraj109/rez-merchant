@@ -12,9 +12,9 @@ import {
   ScrollView,
   Platform,
   Linking,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Animatable from 'react-native-animatable';
@@ -120,18 +120,12 @@ export default function PendingApprovalScreen() {
   };
 
   const handleReturnToLogin = () => {
-    Alert.alert(
+    showConfirm(
       'Return to Login',
       'You will be redirected to the login screen. You can check your application status after logging in.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Continue',
-          onPress: () => {
-            router.replace('/(auth)/login');
-          },
-        },
-      ]
+      () => {
+        router.replace('/(auth)/login');
+      }
     );
   };
 

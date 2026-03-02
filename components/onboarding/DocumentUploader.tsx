@@ -10,11 +10,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert } from '@/utils/alert';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Colors } from '@/constants/Colors';
@@ -48,7 +48,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (cameraStatus !== 'granted' || libraryStatus !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permissions Required',
           'Camera and photo library permissions are required to upload documents.'
         );
@@ -62,7 +62,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
     // Check file size (default max 10MB)
     const maxSize = (documentType.maxSize || 10) * 1024 * 1024;
     if (file.size && file.size > maxSize) {
-      Alert.alert(
+      showAlert(
         'File Too Large',
         `File size must not exceed ${documentType.maxSize || 10}MB`
       );
@@ -75,7 +75,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         file.mimeType?.includes(format)
       );
       if (!isValidFormat) {
-        Alert.alert(
+        showAlert(
           'Invalid File Type',
           `Accepted formats: ${documentType.acceptedFormats.join(', ')}`
         );
@@ -133,7 +133,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
       setUploadProgress(0);
       const errorMessage = error instanceof Error ? error.message : 'Upload failed';
       onUploadError?.(errorMessage);
-      Alert.alert('Upload Failed', errorMessage);
+      showAlert('Upload Failed', errorMessage);
     }
   };
 
@@ -156,7 +156,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to capture photo');
+      showAlert('Error', 'Failed to capture photo');
     }
   };
 
@@ -179,7 +179,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to select photo');
+      showAlert('Error', 'Failed to select photo');
     }
   };
 
@@ -197,12 +197,12 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to select document');
+      showAlert('Error', 'Failed to select document');
     }
   };
 
   const showUploadOptions = () => {
-    Alert.alert(
+    showAlert(
       'Upload Document',
       `Choose how to upload your ${documentType.label.toLowerCase()}`,
       [

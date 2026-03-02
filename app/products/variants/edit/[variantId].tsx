@@ -9,13 +9,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Image,
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -128,7 +128,7 @@ export default function EditVariantScreen() {
       });
     } catch (error: any) {
       console.error('Error loading variant:', error);
-      Alert.alert('Error', error.message || 'Failed to load variant');
+      showAlert('Error', error.message || 'Failed to load variant');
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ export default function EditVariantScreen() {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please grant camera roll permissions to upload images.'
         );
@@ -164,7 +164,7 @@ export default function EditVariantScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      showAlert('Error', 'Failed to pick image');
     }
   };
 
@@ -183,10 +183,10 @@ export default function EditVariantScreen() {
       setVariantImage(result.url);
 
       // Show success feedback
-      Alert.alert('Success', 'Image uploaded successfully');
+      showAlert('Success', 'Image uploaded successfully');
     } catch (error: any) {
       console.error('❌ Failed to upload variant image:', error);
-      Alert.alert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
+      showAlert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
       // Reset image on upload failure
       setVariantImage(null);
     } finally {
@@ -203,68 +203,55 @@ export default function EditVariantScreen() {
   const handleUpdateInventory = async () => {
     if (!variant || !canEdit) return;
 
-    Alert.alert(
+    showConfirm(
       'Update Inventory',
       'This will update the inventory for this variant only.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Update',
-          onPress: async () => {
-            try {
-              const quantity = watch('quantity');
-              await productsService.updateVariant(variant.productId, variant.id, {
-                inventory: {
-                  quantity: parseInt(quantity),
-                  trackQuantity: watch('trackQuantity'),
-                },
-              });
-              Alert.alert('Success', 'Inventory updated successfully');
-              loadVariant();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to update inventory');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          const quantity = watch('quantity');
+          await productsService.updateVariant(variant.productId, variant.id, {
+            inventory: {
+              quantity: parseInt(quantity),
+              trackQuantity: watch('trackQuantity'),
+            },
+          });
+          showAlert('Success', 'Inventory updated successfully');
+          loadVariant();
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to update inventory');
+        }
+      }
     );
   };
 
   const handleDelete = async () => {
     if (!variant || !canEdit) return;
 
-    Alert.alert(
+    showConfirm(
       'Delete Variant',
       'Are you sure you want to delete this variant? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setDeleting(true);
-              await productsService.deleteVariant(variant.id);
-              Alert.alert('Success', 'Variant deleted successfully', [
-                {
-                  text: 'OK',
-                  onPress: () => router.back(),
-                },
-              ]);
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete variant');
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setDeleting(true);
+          await productsService.deleteVariant(variant.id);
+          showAlert('Success', 'Variant deleted successfully', [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+            },
+          ]);
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to delete variant');
+        } finally {
+          setDeleting(false);
+        }
+      }
     );
   };
 
   const onSubmit = async (data: VariantFormData) => {
     if (!canEdit || !variant) {
-      Alert.alert('Permission Denied', 'You do not have permission to edit variants');
+      showAlert('Permission Denied', 'You do not have permission to edit variants');
       return;
     }
 
@@ -292,7 +279,7 @@ export default function EditVariantScreen() {
 
       await productsService.updateVariant(variant.productId, variant.id, updateData);
 
-      Alert.alert('Success', 'Variant updated successfully', [
+      showAlert('Success', 'Variant updated successfully', [
         {
           text: 'OK',
           onPress: () => router.back(),
@@ -300,7 +287,7 @@ export default function EditVariantScreen() {
       ]);
     } catch (error: any) {
       console.error('Error updating variant:', error);
-      Alert.alert('Error', error.message || 'Failed to update variant');
+      showAlert('Error', error.message || 'Failed to update variant');
     } finally {
       setSaving(false);
     }

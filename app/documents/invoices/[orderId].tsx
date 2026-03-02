@@ -4,13 +4,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Platform,
   Share,
   Linking
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 
@@ -66,7 +66,7 @@ export default function InvoiceViewerScreen() {
       setOrder(orderData);
     } catch (error) {
       console.error('Error fetching order:', error);
-      Alert.alert('Error', 'Failed to fetch order details');
+      showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
       setLoading(false);
@@ -100,10 +100,10 @@ export default function InvoiceViewerScreen() {
       const mockUrl = `https://res.cloudinary.com/demo/image/upload/invoices/invoice_${order.id}.pdf`;
       setInvoiceUrl(mockUrl);
 
-      Alert.alert('Success', 'Invoice generated successfully!');
+      showAlert('Success', 'Invoice generated successfully!');
     } catch (error) {
       console.error('Error generating invoice:', error);
-      Alert.alert('Error', 'Failed to generate invoice');
+      showAlert('Error', 'Failed to generate invoice');
     } finally {
       setGenerating(false);
     }
@@ -111,7 +111,7 @@ export default function InvoiceViewerScreen() {
 
   const handleDownloadInvoice = async () => {
     if (!invoiceUrl || !order) {
-      Alert.alert('Error', 'Please generate the invoice first');
+      showAlert('Error', 'Please generate the invoice first');
       return;
     }
 
@@ -129,7 +129,7 @@ export default function InvoiceViewerScreen() {
         const downloadResult = await FileSystem.downloadAsync(invoiceUrl, fileUri);
 
         if (downloadResult.status === 200) {
-          Alert.alert(
+          showAlert(
             'Success',
             `Invoice downloaded to: ${downloadResult.uri}`,
             [
@@ -144,7 +144,7 @@ export default function InvoiceViewerScreen() {
       }
     } catch (error) {
       console.error('Error downloading invoice:', error);
-      Alert.alert('Error', 'Failed to download invoice');
+      showAlert('Error', 'Failed to download invoice');
     } finally {
       setDownloading(false);
     }
@@ -168,10 +168,10 @@ export default function InvoiceViewerScreen() {
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      Alert.alert('Success', `Invoice sent to ${order.customer.email}`);
+      showAlert('Success', `Invoice sent to ${order.customer?.email || 'customer'}`);
     } catch (error) {
       console.error('Error emailing invoice:', error);
-      Alert.alert('Error', 'Failed to send invoice via email');
+      showAlert('Error', 'Failed to send invoice via email');
     } finally {
       setEmailing(false);
     }
@@ -185,7 +185,7 @@ export default function InvoiceViewerScreen() {
         printWindow.print();
       });
     } else {
-      Alert.alert('Print', 'Print functionality is only available on web');
+      showAlert('Print', 'Print functionality is only available on web');
     }
   };
 
@@ -193,7 +193,7 @@ export default function InvoiceViewerScreen() {
     try {
       const uri = fileUri || invoiceUrl;
       if (!uri) {
-        Alert.alert('Error', 'No invoice available to share');
+        showAlert('Error', 'No invoice available to share');
         return;
       }
 
@@ -309,11 +309,15 @@ export default function InvoiceViewerScreen() {
             {/* Customer Info */}
             <View style={styles.customerInfo}>
               <ThemedText style={styles.sectionTitle}>Bill To:</ThemedText>
-              <ThemedText style={styles.customerName}>{order.customer.name}</ThemedText>
-              <ThemedText style={styles.customerDetails}>{order.customer.email}</ThemedText>
-              <ThemedText style={styles.customerDetails}>{order.customer.phone}</ThemedText>
-              {order.delivery.address && (
-                <ThemedText style={styles.customerDetails}>{order.delivery.address}</ThemedText>
+              <ThemedText style={styles.customerName}>{order.customer?.name || 'Customer'}</ThemedText>
+              <ThemedText style={styles.customerDetails}>{order.customer?.email || ''}</ThemedText>
+              <ThemedText style={styles.customerDetails}>{order.customer?.phone || ''}</ThemedText>
+              {order.delivery?.address && (
+                <ThemedText style={styles.customerDetails}>
+                  {typeof order.delivery.address === 'string'
+                    ? order.delivery.address
+                    : [order.delivery.address.street || order.delivery.address.addressLine1, order.delivery.address.city, order.delivery.address.state].filter(Boolean).join(', ')}
+                </ThemedText>
               )}
             </View>
 
@@ -327,12 +331,12 @@ export default function InvoiceViewerScreen() {
                 <ThemedText style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Price</ThemedText>
                 <ThemedText style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Total</ThemedText>
               </View>
-              {order.items.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <ThemedText style={[styles.tableCell, { flex: 2 }]}>{item.productName}</ThemedText>
+              {(order.items || []).map((item: any, index: number) => (
+                <View key={item.id || item._id || index} style={styles.tableRow}>
+                  <ThemedText style={[styles.tableCell, { flex: 2 }]}>{item.productName || item.name || 'Item'}</ThemedText>
                   <ThemedText style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity}</ThemedText>
-                  <ThemedText style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{formatCurrency(item.price)}</ThemedText>
-                  <ThemedText style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{formatCurrency(item.total)}</ThemedText>
+                  <ThemedText style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{formatCurrency(item.price || 0)}</ThemedText>
+                  <ThemedText style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{formatCurrency(item.totalPrice || item.total || item.subtotal || (item.price || 0) * (item.quantity || 1))}</ThemedText>
                 </View>
               ))}
             </View>
@@ -343,21 +347,21 @@ export default function InvoiceViewerScreen() {
             <View style={styles.totalsSection}>
               <View style={styles.totalRow}>
                 <ThemedText style={styles.totalLabel}>Subtotal:</ThemedText>
-                <ThemedText style={styles.totalValue}>{formatCurrency(order.pricing.subtotal)}</ThemedText>
+                <ThemedText style={styles.totalValue}>{formatCurrency(order.pricing?.subtotal ?? order.totals?.subtotal ?? 0)}</ThemedText>
               </View>
               {settings.showTaxBreakdown && (
                 <View style={styles.totalRow}>
                   <ThemedText style={styles.totalLabel}>Tax:</ThemedText>
-                  <ThemedText style={styles.totalValue}>{formatCurrency(order.pricing.tax)}</ThemedText>
+                  <ThemedText style={styles.totalValue}>{formatCurrency(order.pricing?.tax ?? order.totals?.tax ?? 0)}</ThemedText>
                 </View>
               )}
               <View style={styles.totalRow}>
                 <ThemedText style={styles.totalLabel}>Delivery:</ThemedText>
-                <ThemedText style={styles.totalValue}>{formatCurrency(order.pricing.delivery)}</ThemedText>
+                <ThemedText style={styles.totalValue}>{formatCurrency(order.pricing?.delivery ?? order.totals?.delivery ?? 0)}</ThemedText>
               </View>
               <View style={[styles.totalRow, styles.grandTotalRow]}>
                 <ThemedText style={styles.grandTotalLabel}>Total:</ThemedText>
-                <ThemedText style={styles.grandTotalValue}>{formatCurrency(order.pricing.totalAmount)}</ThemedText>
+                <ThemedText style={styles.grandTotalValue}>{formatCurrency(order.pricing?.totalAmount ?? order.totals?.total ?? 0)}</ThemedText>
               </View>
             </View>
 

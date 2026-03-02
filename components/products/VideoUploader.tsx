@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert, showConfirm } from '@/utils/alert';
 import * as ImagePicker from 'expo-image-picker';
 import { Video } from 'expo-av';
 import { ThemedText } from '@/components/ThemedText';
@@ -49,7 +49,7 @@ export default function VideoUploader({
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please grant camera roll permissions to upload videos.'
         );
@@ -67,7 +67,7 @@ export default function VideoUploader({
         const remainingSlots = maxVideos - videos.length;
         
         if (remainingSlots <= 0) {
-          Alert.alert(
+          showAlert(
             'Maximum Videos Reached',
             `You can only add ${maxVideos} videos per product.`
           );
@@ -78,7 +78,7 @@ export default function VideoUploader({
 
         // Check video duration (max 2 minutes = 120 seconds)
         if (asset.duration && asset.duration > 120000) {
-          Alert.alert(
+          showAlert(
             'Video Too Long',
             'Please select a video that is 2 minutes or less.'
           );
@@ -106,7 +106,7 @@ export default function VideoUploader({
       }
     } catch (error) {
       console.error('Error picking video:', error);
-      Alert.alert('Error', 'Failed to pick video. Please try again.');
+      showAlert('Error', 'Failed to pick video. Please try again.');
     }
   };
 
@@ -176,27 +176,20 @@ export default function VideoUploader({
   };
 
   const removeVideo = (uri: string) => {
-    Alert.alert(
+    showConfirm(
       'Remove Video',
       'Are you sure you want to remove this video?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            let updatedVideos = videos.filter(video => video.uri !== uri);
-            
-            // Update sort order
-            updatedVideos = updatedVideos.map((video, index) => ({
-              ...video,
-              sortOrder: index,
-            }));
-            
-            onVideosChange(updatedVideos);
-          },
-        },
-      ]
+      () => {
+        let updatedVideos = videos.filter(video => video.uri !== uri);
+
+        // Update sort order
+        updatedVideos = updatedVideos.map((video, index) => ({
+          ...video,
+          sortOrder: index,
+        }));
+
+        onVideosChange(updatedVideos);
+      }
     );
   };
 

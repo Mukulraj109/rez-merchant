@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Image,
   Dimensions,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -75,7 +75,7 @@ export default function ProductDetailScreen() {
       }
     } catch (error: any) {
       console.error('❌ [PRODUCT] Failed to load product:', error);
-      Alert.alert('Error', `Failed to load product details: ${error?.message || 'Unknown error'}`);
+      showAlert('Error', `Failed to load product details: ${error?.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -93,13 +93,13 @@ export default function ProductDetailScreen() {
     
     if (!token) {
       console.error('❌ [DELETE] No token available');
-      Alert.alert('Error', 'Authentication required. Please log in again.');
+      showAlert('Error', 'Authentication required. Please log in again.');
       return;
     }
     
     if (!product) {
       console.error('❌ [DELETE] No product available');
-      Alert.alert('Error', 'Product not found.');
+      showAlert('Error', 'Product not found.');
       return;
     }
 
@@ -119,7 +119,7 @@ export default function ProductDetailScreen() {
       }
     } else {
       console.log('🗑️ [DELETE] Using Alert.alert for native');
-      Alert.alert(
+      showAlert(
         'Delete Product',
         'Are you sure you want to delete this product? This action cannot be undone.',
         [
@@ -160,7 +160,7 @@ export default function ProductDetailScreen() {
         console.log('🗑️ [DELETE] Redirecting to products list page');
         router.replace('/products');
       } else {
-        Alert.alert('Success', 'Product and all related data deleted successfully', [
+        showAlert('Success', 'Product and all related data deleted successfully', [
           { 
             text: 'OK', 
             onPress: () => {
@@ -181,7 +181,7 @@ export default function ProductDetailScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
       } else {
-        Alert.alert('Error', errorMessage);
+        showAlert('Error', errorMessage);
       }
     }
   };
@@ -392,7 +392,7 @@ export default function ProductDetailScreen() {
               onPress={() => {
                 const productId = product.id || (product as any)._id;
                 if (!productId) {
-                  Alert.alert('Error', 'Product ID not found');
+                  showAlert('Error', 'Product ID not found');
                   return;
                 }
                 router.push(`/products/${productId}/images` as any);
@@ -409,7 +409,7 @@ export default function ProductDetailScreen() {
                 console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
                 if (!productId) {
                   console.error('❌ [EDIT] No product ID available');
-                  Alert.alert('Error', 'Product ID not found. Cannot edit product.');
+                  showAlert('Error', 'Product ID not found. Cannot edit product.');
                   return;
                 }
                 const editRoute = `/products/edit/${productId}`;
@@ -700,7 +700,7 @@ export default function ProductDetailScreen() {
                 console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
                 if (!productId) {
                   console.error('❌ [EDIT] No product ID available');
-                  Alert.alert('Error', 'Product ID not found. Cannot edit product.');
+                  showAlert('Error', 'Product ID not found. Cannot edit product.');
                   return;
                 }
                 const editRoute = `/products/edit/${productId}`;
@@ -719,7 +719,7 @@ export default function ProductDetailScreen() {
               onPress={() => {
                 const productId = product.id || (product as any)._id;
                 if (!productId) {
-                  Alert.alert('Error', 'Product ID not found');
+                  showAlert('Error', 'Product ID not found');
                   return;
                 }
                 router.push(`/products/${productId}/images` as any);

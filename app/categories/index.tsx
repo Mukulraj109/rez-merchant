@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   TextInput,
   RefreshControl,
-  Alert,
   ActivityIndicator,
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -115,7 +115,7 @@ export default function CategoriesScreen() {
 
     } catch (error) {
       console.error('Error fetching categories:', error);
-      Alert.alert('Error', 'Failed to load categories. Please try again.');
+      showAlert('Error', 'Failed to load categories. Please try again.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -149,7 +149,7 @@ export default function CategoriesScreen() {
 
   const handleBulkAction = async (action: string) => {
     if (selectedCategories.length === 0) {
-      Alert.alert('No Selection', 'Please select categories first.');
+      showAlert('No Selection', 'Please select categories first.');
       return;
     }
 
@@ -164,16 +164,15 @@ export default function CategoriesScreen() {
         await handleExport();
         break;
       default:
-        Alert.alert('Action', `${action} action for ${selectedCategories.length} categories`);
+        showAlert('Action', `${action} action for ${selectedCategories.length} categories`);
     }
   };
 
   const handleAutoCategorize = async () => {
     // For now, show a placeholder message since this advanced feature would need backend implementation
-    Alert.alert(
+    showAlert(
       'Feature Coming Soon',
-      'Auto-categorization functionality will be available in a future update.',
-      [{ text: 'OK' }]
+      'Auto-categorization functionality will be available in a future update.'
     );
     setIsSelectionMode(false);
     setSelectedCategories([]);
@@ -193,7 +192,7 @@ export default function CategoriesScreen() {
       totalCategories: categories.length,
     };
     
-    Alert.alert(
+    showAlert(
       'Export Complete',
       `Exported ${categories.length} categories. Data logged to console.`,
       [

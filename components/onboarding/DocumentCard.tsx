@@ -10,9 +10,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
-  Alert,
   Image,
 } from 'react-native';
+import { showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { DocumentUpload } from '@/types/onboarding';
@@ -125,17 +125,10 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showConfirm(
       'Delete Document',
       `Are you sure you want to delete this ${getDocumentLabel(document.type).toLowerCase()}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: onDelete,
-        },
-      ]
+      onDelete
     );
   };
 

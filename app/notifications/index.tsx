@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showConfirm } from '@/utils/alert';
 import { router } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -130,17 +130,10 @@ export default function NotificationsScreen() {
 
   const handleDelete = (notificationId: string, event: any) => {
     event.stopPropagation();
-    Alert.alert(
+    showConfirm(
       'Delete Notification',
       'Are you sure you want to delete this notification?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteNotificationMutation.mutate(notificationId),
-        },
-      ]
+      () => deleteNotificationMutation.mutate(notificationId)
     );
   };
 

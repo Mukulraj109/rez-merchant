@@ -7,10 +7,10 @@ import {
   Switch,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert } from '@/utils/alert';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {
   useNotificationPreferences,
@@ -114,7 +114,7 @@ export default function NotificationPreferencesScreen() {
   };
 
   const handleSave = () => {
-    Alert.alert('Success', 'Notification preferences saved successfully!');
+    showAlert('Success', 'Notification preferences saved successfully!');
   };
 
   if (isLoading) {

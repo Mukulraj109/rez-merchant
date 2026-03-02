@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ViewStyle, Alert } from 'react-native';
+import { View, Text, TextInput, ViewStyle } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { InviteTeamMemberRequest, MerchantRole } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
 import { Button } from '../ui/DesignSystemComponents';
@@ -177,7 +178,7 @@ export const InvitationForm: React.FC<InvitationFormProps> = ({
   // Handle form submission
   const handleSubmit = () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fix the errors before submitting');
+      showAlert('Validation Error', 'Please fix the errors before submitting');
       return;
     }
 

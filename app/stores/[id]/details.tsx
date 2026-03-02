@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   FlatList,
   Dimensions,
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '@/contexts/StoreContext';
 import { storeService, Store } from '@/services/api/stores';
@@ -75,7 +75,7 @@ export default function StoreDetailsScreen() {
       const storeData = await storeService.getStoreById(id as string);
       setStore(storeData);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load store details');
+      showAlert('Error', error.message || 'Failed to load store details');
       router.back();
     } finally {
       setLoading(false);
@@ -852,9 +852,9 @@ export default function StoreDetailsScreen() {
                     await activateStoreById(store._id);
                     // Reload store details to get updated status
                     await loadStoreDetails();
-                    Alert.alert('Success', `${store.name} is now active and visible to customers.`);
+                    showAlert('Success', `${store.name} is now active and visible to customers.`);
                   } catch (error: any) {
-                    Alert.alert('Error', error.message || 'Failed to activate store');
+                    showAlert('Error', error.message || 'Failed to activate store');
                   }
                 }}
               >
@@ -899,9 +899,9 @@ export default function StoreDetailsScreen() {
             await deactivateStoreById(store._id);
             await loadStoreDetails();
             setDeactivateModalVisible(false);
-            Alert.alert('Success', `${store.name} has been deactivated.`);
+            showAlert('Success', `${store.name} has been deactivated.`);
           } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to deactivate store');
+            showAlert('Error', error.message || 'Failed to deactivate store');
           } finally {
             setDeactivating(false);
           }

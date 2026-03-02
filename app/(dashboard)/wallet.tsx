@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, TextInput, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Modal } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -40,7 +41,7 @@ export default function WalletScreen() {
       }
     } catch (error: any) {
       console.error('Error fetching wallet data:', error);
-      Alert.alert('Error', error.message || 'Failed to load wallet data');
+      showAlert('Error', error.message || 'Failed to load wallet data');
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -54,34 +55,34 @@ export default function WalletScreen() {
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid amount');
+      showAlert('Invalid Amount', 'Please enter a valid amount');
       return;
     }
 
     if (walletData && amount > walletData.balance.available) {
-      Alert.alert('Insufficient Balance', 'Withdrawal amount exceeds available balance');
+      showAlert('Insufficient Balance', 'Withdrawal amount exceeds available balance');
       return;
     }
 
     if (walletData && amount < walletData.minWithdrawalAmount) {
-      Alert.alert('Minimum Amount', `Minimum withdrawal amount is ${formatCurrency(walletData.minWithdrawalAmount)}`);
+      showAlert('Minimum Amount', `Minimum withdrawal amount is ${formatCurrency(walletData.minWithdrawalAmount)}`);
       return;
     }
 
     try {
       const result = await walletService.requestWithdrawal(amount);
-      Alert.alert('Success', result.message);
+      showAlert('Success', result.message);
       setShowWithdrawModal(false);
       setWithdrawAmount('');
       fetchWalletData();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to request withdrawal');
+      showAlert('Error', error.message || 'Failed to request withdrawal');
     }
   };
 
   const handleUpdateBankDetails = async () => {
     if (!bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.accountHolderName || !bankDetails.bankName) {
-      Alert.alert('Missing Information', 'Please fill all required fields');
+      showAlert('Missing Information', 'Please fill all required fields');
       return;
     }
 
@@ -94,11 +95,11 @@ export default function WalletScreen() {
         branchName: bankDetails.branchName,
         upiId: bankDetails.upiId,
       });
-      Alert.alert('Success', result.message);
+      showAlert('Success', result.message);
       setShowBankModal(false);
       fetchWalletData();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update bank details');
+      showAlert('Error', error.message || 'Failed to update bank details');
     }
   };
 

@@ -11,9 +11,9 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/contexts/StoreContext';
@@ -169,29 +169,22 @@ export default function CoinDropsScreen() {
 
   const handleDelete = (coinDrop: MerchantCoinDrop) => {
     if (coinDrop.status === 'running') {
-      Alert.alert('Cannot Delete', 'Cannot delete a currently running CoinDrop. Deactivate it first.');
+      showAlert('Cannot Delete', 'Cannot delete a currently running CoinDrop. Deactivate it first.');
       return;
     }
-    Alert.alert('Delete CoinDrop', 'Are you sure you want to delete this CoinDrop?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const response = await coinDropService.deleteCoinDrop(storeId!, coinDrop._id);
-            if (response.success) {
-              Alert.alert('Success', 'CoinDrop deleted successfully');
-              loadCoinDrops();
-            } else {
-              Alert.alert('Error', response.message || 'Failed to delete CoinDrop');
-            }
-          } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to delete CoinDrop');
-          }
-        },
-      },
-    ]);
+    showConfirm('Delete CoinDrop', 'Are you sure you want to delete this CoinDrop?', async () => {
+      try {
+        const response = await coinDropService.deleteCoinDrop(storeId!, coinDrop._id);
+        if (response.success) {
+          showAlert('Success', 'CoinDrop deleted successfully');
+          loadCoinDrops();
+        } else {
+          showAlert('Error', response.message || 'Failed to delete CoinDrop');
+        }
+      } catch (err: any) {
+        showAlert('Error', err.message || 'Failed to delete CoinDrop');
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -200,26 +193,26 @@ export default function CoinDropsScreen() {
     const normalCashback = parseFloat(formData.normalCashback);
 
     if (isNaN(multiplier) || multiplier < 1.5 || multiplier > 5) {
-      Alert.alert('Validation Error', 'Multiplier must be between 1.5 and 5');
+      showAlert('Validation Error', 'Multiplier must be between 1.5 and 5');
       return;
     }
     if (isNaN(normalCashback) || normalCashback < 0 || normalCashback > 100) {
-      Alert.alert('Validation Error', 'Normal cashback must be between 0 and 100');
+      showAlert('Validation Error', 'Normal cashback must be between 0 and 100');
       return;
     }
     if (!formData.category) {
-      Alert.alert('Validation Error', 'Please select a category');
+      showAlert('Validation Error', 'Please select a category');
       return;
     }
     if (!formData.startTime || !formData.endTime) {
-      Alert.alert('Validation Error', 'Please set both start and end times');
+      showAlert('Validation Error', 'Please set both start and end times');
       return;
     }
 
     const startDate = new Date(formData.startTime);
     const endDate = new Date(formData.endTime);
     if (endDate <= startDate) {
-      Alert.alert('Validation Error', 'End time must be after start time');
+      showAlert('Validation Error', 'End time must be after start time');
       return;
     }
 
@@ -245,14 +238,14 @@ export default function CoinDropsScreen() {
       }
 
       if (response.success) {
-        Alert.alert('Success', editingId ? 'CoinDrop updated successfully' : 'CoinDrop created successfully');
+        showAlert('Success', editingId ? 'CoinDrop updated successfully' : 'CoinDrop created successfully');
         setShowModal(false);
         loadCoinDrops();
       } else {
-        Alert.alert('Error', response.message || 'Failed to save CoinDrop');
+        showAlert('Error', response.message || 'Failed to save CoinDrop');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to save CoinDrop');
+      showAlert('Error', err.message || 'Failed to save CoinDrop');
     } finally {
       setSubmitting(false);
     }

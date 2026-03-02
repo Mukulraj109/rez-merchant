@@ -10,9 +10,9 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/contexts/StoreContext';
@@ -104,12 +104,12 @@ export default function BrandedCoinsScreen() {
 
   const handleAward = async () => {
     if (!awardUserId.trim()) {
-      Alert.alert('Validation Error', 'Please enter a customer ID');
+      showAlert('Validation Error', 'Please enter a customer ID');
       return;
     }
     const amount = parseFloat(awardAmount);
     if (isNaN(amount) || amount <= 0) {
-      Alert.alert('Validation Error', 'Please enter a valid positive amount');
+      showAlert('Validation Error', 'Please enter a valid positive amount');
       return;
     }
 
@@ -123,17 +123,17 @@ export default function BrandedCoinsScreen() {
       );
 
       if (response.success) {
-        Alert.alert('Success', response.message || `${amount} branded coins awarded successfully`);
+        showAlert('Success', response.message || `${amount} branded coins awarded successfully`);
         setShowAwardModal(false);
         setAwardUserId('');
         setAwardAmount('');
         setAwardReason('');
         loadData();
       } else {
-        Alert.alert('Error', response.message || 'Failed to award coins');
+        showAlert('Error', response.message || 'Failed to award coins');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to award coins');
+      showAlert('Error', err.message || 'Failed to award coins');
     } finally {
       setAwarding(false);
     }

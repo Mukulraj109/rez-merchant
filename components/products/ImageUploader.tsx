@@ -6,13 +6,13 @@ import {
   Image,
   TextInput,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '@/components/ThemedText';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Colors } from '@/constants/Colors';
 import { uploadsService } from '@/services';
 
@@ -48,7 +48,7 @@ export default function ImageUploader({
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please grant camera roll permissions to upload images.'
         );
@@ -68,7 +68,7 @@ export default function ImageUploader({
         const selectedImages = result.assets.slice(0, remainingSlots);
 
         if (result.assets.length > remainingSlots) {
-          Alert.alert(
+          showAlert(
             'Too Many Images',
             `You can only add ${remainingSlots} more image(s). Maximum is ${maxImages} images per product.`
           );
@@ -95,7 +95,7 @@ export default function ImageUploader({
       }
     } catch (error) {
       console.error('Error picking images:', error);
-      Alert.alert('Error', 'Failed to pick images. Please try again.');
+      showAlert('Error', 'Failed to pick images. Please try again.');
     }
   };
 
@@ -182,41 +182,34 @@ export default function ImageUploader({
     
     const imageToRemove = images[index];
     
-    Alert.alert(
+    showConfirm(
       'Remove Image',
       'Are you sure you want to remove this image?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            console.log('🗑️ [IMAGE] Removing image at index:', index, { 
-              uri: imageToRemove.uri, 
-              url: imageToRemove.url 
-            });
-            console.log('🗑️ [IMAGE] Images before removal:', images.length);
-            
-            // Remove image by index
-            let updatedImages = images.filter((_, i) => i !== index);
-            
-            console.log('🗑️ [IMAGE] Images after removal:', updatedImages.length);
-            
-            // If removed image was main, make first image main
-            if (updatedImages.length > 0 && !updatedImages.some(img => img.isMain)) {
-              updatedImages[0].isMain = true;
-            }
-            
-            // Update sort order
-            updatedImages = updatedImages.map((img, i) => ({
-              ...img,
-              sortOrder: i,
-            }));
-            
-            onImagesChange(updatedImages);
-          },
-        },
-      ]
+      () => {
+        console.log('🗑️ [IMAGE] Removing image at index:', index, {
+          uri: imageToRemove.uri,
+          url: imageToRemove.url
+        });
+        console.log('🗑️ [IMAGE] Images before removal:', images.length);
+
+        // Remove image by index
+        let updatedImages = images.filter((_, i) => i !== index);
+
+        console.log('🗑️ [IMAGE] Images after removal:', updatedImages.length);
+
+        // If removed image was main, make first image main
+        if (updatedImages.length > 0 && !updatedImages.some(img => img.isMain)) {
+          updatedImages[0].isMain = true;
+        }
+
+        // Update sort order
+        updatedImages = updatedImages.map((img, i) => ({
+          ...img,
+          sortOrder: i,
+        }));
+
+        onImagesChange(updatedImages);
+      }
     );
   };
 

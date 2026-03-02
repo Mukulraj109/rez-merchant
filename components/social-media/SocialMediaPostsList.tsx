@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
@@ -47,7 +48,7 @@ export function SocialMediaPostsList({ storeId, onStatsUpdate }: SocialMediaPost
       onStatsUpdate?.(statsData);
     } catch (error) {
       console.error('❌ Error fetching social media data:', error);
-      Alert.alert('Error', 'Failed to load social media posts. Please try again.');
+      showAlert('Error', 'Failed to load social media posts. Please try again.');
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -85,13 +86,13 @@ export function SocialMediaPostsList({ storeId, onStatsUpdate }: SocialMediaPost
       console.log('🔄 Approving post:', selectedPost._id);
       await socialMediaService.approveSocialMediaPost(selectedPost._id, notes);
       console.log('✅ Post approved successfully');
-      Alert.alert('Success', `Post approved! ${selectedPost.cashbackAmount} REZ Coins credited to user.`);
+      showAlert('Success', `Post approved! ${selectedPost.cashbackAmount} REZ Coins credited to user.`);
       setSelectedPost(null);
       setModalAction(null);
       await fetchData();
     } catch (error: any) {
       console.error('❌ Error approving post:', error);
-      Alert.alert('Error', error.message || 'Failed to approve post. Please try again.');
+      showAlert('Error', error.message || 'Failed to approve post. Please try again.');
     }
   };
 
@@ -102,13 +103,13 @@ export function SocialMediaPostsList({ storeId, onStatsUpdate }: SocialMediaPost
       console.log('🔄 Rejecting post:', selectedPost._id);
       await socialMediaService.rejectSocialMediaPost(selectedPost._id, reason);
       console.log('✅ Post rejected successfully');
-      Alert.alert('Success', 'Post has been rejected.');
+      showAlert('Success', 'Post has been rejected.');
       setSelectedPost(null);
       setModalAction(null);
       await fetchData();
     } catch (error: any) {
       console.error('❌ Error rejecting post:', error);
-      Alert.alert('Error', error.message || 'Failed to reject post. Please try again.');
+      showAlert('Error', error.message || 'Failed to reject post. Please try again.');
     }
   };
 

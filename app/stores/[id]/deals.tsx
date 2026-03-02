@@ -6,10 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
@@ -96,7 +96,7 @@ export default function StoreDealsScreen() {
   };
 
   const handleDeleteDeal = async (dealId: string) => {
-    Alert.alert(
+    showAlert(
       'Delete Deal',
       'Are you sure you want to delete this deal?',
       [
@@ -108,13 +108,13 @@ export default function StoreDealsScreen() {
             try {
               const response = await offersService.deleteOffer(dealId);
               if (response.success) {
-                Alert.alert('Success', 'Deal deleted successfully');
+                showAlert('Success', 'Deal deleted successfully');
                 loadDeals();
               } else {
-                Alert.alert('Error', response.message || 'Failed to delete deal');
+                showAlert('Error', response.message || 'Failed to delete deal');
               }
             } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete deal');
+              showAlert('Error', err.message || 'Failed to delete deal');
             }
           }
         }

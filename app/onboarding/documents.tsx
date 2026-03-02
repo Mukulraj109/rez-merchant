@@ -11,11 +11,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { onboardingService } from '../../services/api/onboarding';
@@ -97,7 +97,7 @@ export default function DocumentsScreen() {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please grant camera roll permissions to upload documents.'
         );
@@ -133,7 +133,7 @@ export default function DocumentsScreen() {
       }
     } catch (error: any) {
       console.error('Failed to pick document:', error);
-      Alert.alert('Error', 'Failed to select document. Please try again.');
+      showAlert('Error', 'Failed to select document. Please try again.');
     }
   };
 
@@ -173,10 +173,10 @@ export default function DocumentsScreen() {
         setDocuments([...documents, newDocument]);
       }
 
-      Alert.alert('Success', `${type.replace('_', ' ')} uploaded successfully!`);
+      showAlert('Success', `${type.replace('_', ' ')} uploaded successfully!`);
     } catch (error: any) {
       console.error('Failed to upload document:', error);
-      Alert.alert('Upload Failed', error.message || 'Failed to upload document');
+      showAlert('Upload Failed', error.message || 'Failed to upload document');
     } finally {
       setUploadingTypes(prev => {
         const newSet = new Set(prev);
@@ -192,29 +192,22 @@ export default function DocumentsScreen() {
   };
 
   const deleteDocument = async (documentType: string) => {
-    Alert.alert(
+    showConfirm(
       'Delete Document',
       'Are you sure you want to delete this document?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const index = documents.findIndex(doc => doc.type === documentType);
-              if (index >= 0) {
-                await onboardingService.deleteDocument(index);
-                setDocuments(documents.filter((_, i) => i !== index));
-                Alert.alert('Success', 'Document deleted successfully');
-              }
-            } catch (error: any) {
-              console.error('Failed to delete document:', error);
-              Alert.alert('Error', 'Failed to delete document');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          const index = documents.findIndex(doc => doc.type === documentType);
+          if (index >= 0) {
+            await onboardingService.deleteDocument(index);
+            setDocuments(documents.filter((_, i) => i !== index));
+            showAlert('Success', 'Document deleted successfully');
+          }
+        } catch (error: any) {
+          console.error('Failed to delete document:', error);
+          showAlert('Error', 'Failed to delete document');
+        }
+      }
     );
   };
 
@@ -230,7 +223,7 @@ export default function DocumentsScreen() {
 
   const handleNext = async () => {
     if (!isRequiredDocumentsUploaded()) {
-      Alert.alert(
+      showAlert(
         'Required Documents',
         'Please upload all required documents (PAN Card and Aadhar Card) before proceeding.'
       );
@@ -249,7 +242,7 @@ export default function DocumentsScreen() {
       router.push('/onboarding/review-submit');
     } catch (error: any) {
       console.error('Failed to save documents:', error);
-      Alert.alert('Error', error.message || 'Failed to save documents');
+      showAlert('Error', error.message || 'Failed to save documents');
     } finally {
       setLoading(false);
     }

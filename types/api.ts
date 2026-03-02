@@ -104,17 +104,18 @@ export interface ApiError {
 
 // Common enums
 // Canonical order status — must match backend Order model schema
-export type OrderStatus = 'placed' | 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'delivered' | 'cancelled' | 'returned' | 'refunded';
+export type OrderStatus = 'placed' | 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'out_for_delivery' | 'delivered' | 'cancelling' | 'cancelled' | 'returned' | 'refunded';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'partial';
 export type CashbackStatus = 'pending' | 'approved' | 'rejected' | 'paid' | 'expired';
 export type RiskLevel = 'low' | 'medium' | 'high';
 export type PaymentMethod = 'credit_card' | 'debit_card' | 'bank_transfer' | 'digital_wallet' | 'cash' | 'other';
 
-// Order types
+// Order types — matches backend transformOrderForMerchant() output
 export interface Order {
   id: string;
+  _id?: string;
   orderNumber: string;
-  merchantId: string;
+  merchantId?: string;
   customer: {
     id: string;
     name: string;
@@ -127,35 +128,72 @@ export interface Order {
   pricing: {
     subtotal: number;
     tax: number;
+    taxAmount: number;
     delivery: number;
+    shippingAmount: number;
+    discount: number;
+    discountAmount: number;
     totalAmount: number;
   };
-  delivery: {
-    method: 'pickup' | 'delivery';
-    address?: string;
-    estimatedTime?: string;
+  payment?: {
+    method: string;
+    status: string;
+    transactionId?: string;
   };
-  priority: 'normal' | 'high' | 'urgent';
+  cashback?: {
+    amount: number;
+    status: string;
+  };
+  delivery?: {
+    method: string;
+    address?: {
+      street?: string;
+      addressLine1?: string;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+      pincode?: string;
+      country?: string;
+    };
+    estimatedTime?: string;
+    instructions?: string;
+    deliveredAt?: string;
+  };
+  totals?: {
+    subtotal: number;
+    tax: number;
+    delivery: number;
+    discount: number;
+    total: number;
+  };
+  priority?: 'normal' | 'high' | 'urgent';
   createdAt: string;
   updatedAt: string;
+  confirmedAt?: string;
+  deliveredAt?: string;
   notes?: string;
+  specialInstructions?: string;
   store?: {
     _id: string;
     name: string;
-    location?: {
-      city?: string;
-      state?: string;
-    };
+    location?: any;
   };
 }
 
 export interface OrderItem {
-  id: string;
-  productId: string;
+  id?: string;
+  _id?: string;
+  productId?: string;
   productName: string;
+  name?: string;
+  sku?: string;
   quantity: number;
   price: number;
-  total: number;
+  total?: number;
+  totalPrice?: number;
+  subtotal?: number;
+  notes?: string;
+  specialInstructions?: string;
   customizations?: string[];
 }
 

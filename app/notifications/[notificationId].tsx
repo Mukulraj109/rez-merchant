@@ -6,9 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import {
@@ -117,23 +117,16 @@ export default function NotificationDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showConfirm(
       'Delete Notification',
       'Are you sure you want to delete this notification?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            deleteNotificationMutation.mutate(notificationId, {
-              onSuccess: () => {
-                router.back();
-              },
-            });
+      () => {
+        deleteNotificationMutation.mutate(notificationId, {
+          onSuccess: () => {
+            router.back();
           },
-        },
-      ]
+        });
+      }
     );
   };
 

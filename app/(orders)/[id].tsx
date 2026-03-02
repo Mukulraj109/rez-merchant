@@ -4,12 +4,12 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  Alert,
   Linking,
   Modal,
   TextInput
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -25,6 +25,7 @@ const statusColors: Record<string, string> = {
   preparing: '#FF5722',
   ready: '#4CAF50',
   dispatched: '#9C27B0',
+  out_for_delivery: '#0EA5E9',
   delivered: '#4CAF50',
   cancelled: '#F44336',
   returned: '#795548',
@@ -37,6 +38,7 @@ const statusLabels: Record<string, string> = {
   preparing: 'Preparing',
   ready: 'Ready',
   dispatched: 'Dispatched',
+  out_for_delivery: 'Out for Delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
   returned: 'Returned',
@@ -65,7 +67,8 @@ const StatusUpdateModal = ({
     placed: ['confirmed', 'cancelled'],
     confirmed: ['preparing', 'cancelled'],
     preparing: ['ready', 'cancelled'],
-    ready: ['dispatched', 'delivered'],
+    ready: ['out_for_delivery', 'dispatched', 'delivered'],
+    out_for_delivery: ['delivered'],
     dispatched: ['delivered'],
     delivered: ['returned', 'refunded'],
     cancelled: ['refunded'],
@@ -251,12 +254,12 @@ export default function OrderDetailsScreen() {
         const result = await response.json();
         setOrder(result.data);
       } else {
-        Alert.alert('Error', 'Failed to fetch order details');
+        showAlert('Error', 'Failed to fetch order details');
         router.back();
       }
     } catch (error) {
       console.error('Error fetching order:', error);
-      Alert.alert('Error', 'Failed to fetch order details');
+      showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
       setLoading(false);
@@ -286,20 +289,25 @@ export default function OrderDetailsScreen() {
         const result = await response.json();
         setOrder(result.data);
         setShowStatusModal(false);
-        Alert.alert('Success', 'Order status updated successfully');
+        showAlert('Success', 'Order status updated successfully');
       } else {
-        Alert.alert('Error', 'Failed to update order status');
+        showAlert('Error', 'Failed to update order status');
       }
     } catch (error) {
       console.error('Error updating order status:', error);
-      Alert.alert('Error', 'Failed to update order status');
+      showAlert('Error', 'Failed to update order status');
     } finally {
       setStatusUpdateLoading(false);
     }
   };
 
   const formatAddress = (address: any) => {
-    return `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
+    if (!address) return 'No address available';
+    const street = address.street || address.addressLine1 || '';
+    const city = address.city || '';
+    const state = address.state || '';
+    const zip = address.zipCode || address.pincode || '';
+    return [street, city, state, zip].filter(Boolean).join(', ');
   };
 
   const openMaps = (address: any) => {
@@ -360,14 +368,14 @@ export default function OrderDetailsScreen() {
               })}
             </ThemedText>
             <ThemedText style={styles.orderTotal}>
-              Total: ₹${order.pricing.totalAmount.toFixed(2)}
+              Total: {(order.pricing?.totalAmount ?? order.totals?.total ?? 0).toFixed(2)}
             </ThemedText>
           </View>
         </View>
 
-        {order.priority !== 'normal' && (
-          <View style={[styles.priorityBadge, { 
-            backgroundColor: order.priority === 'urgent' ? '#F44336' : '#FF9800' 
+        {order.priority && order.priority !== 'normal' && (
+          <View style={[styles.priorityBadge, {
+            backgroundColor: order.priority === 'urgent' ? '#F44336' : '#FF9800'
           }]}>
             <ThemedText style={styles.priorityText}>
               {order.priority.toUpperCase()} PRIORITY
@@ -388,25 +396,31 @@ export default function OrderDetailsScreen() {
         <View style={styles.customerDetails}>
           <View style={styles.customerAvatar}>
             <ThemedText style={styles.customerInitial}>
-              {order.customer.name.charAt(0).toUpperCase()}
+              {(order.customer?.name || 'C').charAt(0).toUpperCase()}
             </ThemedText>
           </View>
           <View style={styles.customerInfo}>
-            <ThemedText style={styles.customerName}>{order.customer.name}</ThemedText>
-            <TouchableOpacity onPress={() => Linking.openURL(`tel:${order.customer.phone}`)}>
-              <ThemedText style={styles.customerContact}>{order.customer.phone}</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => Linking.openURL(`mailto:${order.customer.email}`)}>
-              <ThemedText style={styles.customerContact}>{order.customer.email}</ThemedText>
-            </TouchableOpacity>
+            <ThemedText style={styles.customerName}>{order.customer?.name || 'Customer'}</ThemedText>
+            {order.customer?.phone ? (
+              <TouchableOpacity onPress={() => Linking.openURL(`tel:${order.customer.phone}`)}>
+                <ThemedText style={styles.customerContact}>{order.customer.phone}</ThemedText>
+              </TouchableOpacity>
+            ) : null}
+            {order.customer?.email ? (
+              <TouchableOpacity onPress={() => Linking.openURL(`mailto:${order.customer.email}`)}>
+                <ThemedText style={styles.customerContact}>{order.customer.email}</ThemedText>
+              </TouchableOpacity>
+            ) : null}
           </View>
           <View style={styles.customerActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => Linking.openURL(`tel:${order.customer.phone}`)}
-            >
-              <Ionicons name="call" size={20} color="#4CAF50" />
-            </TouchableOpacity>
+            {order.customer?.phone ? (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => Linking.openURL(`tel:${order.customer.phone}`)}
+              >
+                <Ionicons name="call" size={20} color="#4CAF50" />
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       </View>
@@ -414,19 +428,19 @@ export default function OrderDetailsScreen() {
       {/* Order Items */}
       <View style={styles.card}>
         <ThemedText style={styles.cardTitle}>Order Items</ThemedText>
-        {order.items.map((item) => (
-          <View key={item.id} style={styles.orderItem}>
+        {(order.items || []).map((item: any, index: number) => (
+          <View key={item.id || item._id || index} style={styles.orderItem}>
             <View style={styles.itemInfo}>
-              <ThemedText style={styles.itemName}>{item.productName}</ThemedText>
-              <ThemedText style={styles.itemSku}>SKU: {item.sku}</ThemedText>
-              {item.notes && (
-                <ThemedText style={styles.itemNotes}>Note: {item.notes}</ThemedText>
-              )}
+              <ThemedText style={styles.itemName}>{item.productName || item.name || 'Item'}</ThemedText>
+              {item.sku ? <ThemedText style={styles.itemSku}>SKU: {item.sku}</ThemedText> : null}
+              {(item.notes || item.specialInstructions) ? (
+                <ThemedText style={styles.itemNotes}>Note: {item.notes || item.specialInstructions}</ThemedText>
+              ) : null}
             </View>
             <View style={styles.itemPricing}>
               <ThemedText style={styles.itemQuantity}>Qty: {item.quantity}</ThemedText>
-              <ThemedText style={styles.itemPrice}>₹${item.price.toFixed(2)} each</ThemedText>
-              <ThemedText style={styles.itemTotal}>₹${item.totalPrice.toFixed(2)}</ThemedText>
+              <ThemedText style={styles.itemPrice}>{(item.price || 0).toFixed(2)} each</ThemedText>
+              <ThemedText style={styles.itemTotal}>{(item.totalPrice || item.subtotal || (item.price || 0) * (item.quantity || 1)).toFixed(2)}</ThemedText>
             </View>
           </View>
         ))}
@@ -435,27 +449,27 @@ export default function OrderDetailsScreen() {
         <View style={styles.orderSummary}>
           <View style={styles.summaryRow}>
             <ThemedText style={styles.summaryLabel}>Subtotal</ThemedText>
-            <ThemedText style={styles.summaryValue}>₹${order.pricing.subtotal.toFixed(2)}</ThemedText>
+            <ThemedText style={styles.summaryValue}>{(order.pricing?.subtotal ?? 0).toFixed(2)}</ThemedText>
           </View>
-          {order.pricing.discountAmount > 0 && (
+          {(order.pricing?.discountAmount ?? order.pricing?.discount ?? 0) > 0 && (
             <View style={styles.summaryRow}>
               <ThemedText style={styles.summaryLabel}>Discount</ThemedText>
               <ThemedText style={[styles.summaryValue, { color: '#4CAF50' }]}>
-                -₹${order.pricing.discountAmount.toFixed(2)}
+                -{(order.pricing?.discountAmount ?? order.pricing?.discount ?? 0).toFixed(2)}
               </ThemedText>
             </View>
           )}
           <View style={styles.summaryRow}>
             <ThemedText style={styles.summaryLabel}>Tax</ThemedText>
-            <ThemedText style={styles.summaryValue}>₹${order.pricing.taxAmount.toFixed(2)}</ThemedText>
+            <ThemedText style={styles.summaryValue}>{(order.pricing?.taxAmount ?? order.pricing?.tax ?? 0).toFixed(2)}</ThemedText>
           </View>
           <View style={styles.summaryRow}>
             <ThemedText style={styles.summaryLabel}>Shipping</ThemedText>
-            <ThemedText style={styles.summaryValue}>₹${order.pricing.shippingAmount.toFixed(2)}</ThemedText>
+            <ThemedText style={styles.summaryValue}>{(order.pricing?.shippingAmount ?? order.pricing?.delivery ?? 0).toFixed(2)}</ThemedText>
           </View>
           <View style={[styles.summaryRow, styles.totalRow]}>
             <ThemedText style={styles.totalLabel}>Total</ThemedText>
-            <ThemedText style={styles.totalValue}>₹${order.pricing.totalAmount.toFixed(2)}</ThemedText>
+            <ThemedText style={styles.totalValue}>{(order.pricing?.totalAmount ?? 0).toFixed(2)}</ThemedText>
           </View>
         </View>
       </View>
@@ -465,35 +479,40 @@ export default function OrderDetailsScreen() {
         <ThemedText style={styles.cardTitle}>Delivery Information</ThemedText>
         
         <View style={styles.deliveryMethodBadge}>
-          <Ionicons 
-            name={order.delivery.method === 'delivery' ? 'bicycle' : 'storefront'} 
-            size={16} 
-            color="#2196F3" 
+          <Ionicons
+            name={order.delivery?.method === 'pickup' ? 'storefront' : 'bicycle'}
+            size={16}
+            color="#2196F3"
           />
           <ThemedText style={styles.deliveryMethodText}>
-            {order.delivery.method === 'delivery' ? 'Delivery' : 'Pickup'}
+            {order.delivery?.method === 'pickup' ? 'Pickup'
+              : order.delivery?.method === 'dine_in' ? 'Dine In'
+              : order.delivery?.method === 'drive_thru' ? 'Drive Thru'
+              : 'Delivery'}
           </ThemedText>
         </View>
 
-        <View style={styles.deliveryAddress}>
-          <Ionicons name="location" size={16} color="#757575" />
-          <ThemedText style={styles.addressText}>
-            {formatAddress(order.delivery.address)}
-          </ThemedText>
-          <TouchableOpacity
-            onPress={() => openMaps(order.delivery.address)}
-            style={styles.mapButton}
-          >
-            <Ionicons name="map" size={16} color="#2196F3" />
-          </TouchableOpacity>
-        </View>
-
-        {order.delivery.instructions && (
-          <View style={styles.deliveryInstructions}>
-            <ThemedText style={styles.instructionsLabel}>Delivery Instructions:</ThemedText>
-            <ThemedText style={styles.instructionsText}>{order.delivery.instructions}</ThemedText>
+        {order.delivery?.address && (
+          <View style={styles.deliveryAddress}>
+            <Ionicons name="location" size={16} color="#757575" />
+            <ThemedText style={styles.addressText}>
+              {formatAddress(order.delivery.address)}
+            </ThemedText>
+            <TouchableOpacity
+              onPress={() => openMaps(order.delivery.address)}
+              style={styles.mapButton}
+            >
+              <Ionicons name="map" size={16} color="#2196F3" />
+            </TouchableOpacity>
           </View>
         )}
+
+        {(order.delivery?.instructions || order.specialInstructions) ? (
+          <View style={styles.deliveryInstructions}>
+            <ThemedText style={styles.instructionsLabel}>Delivery Instructions:</ThemedText>
+            <ThemedText style={styles.instructionsText}>{order.delivery?.instructions || order.specialInstructions}</ThemedText>
+          </View>
+        ) : null}
       </View>
 
       {/* Payment & Cashback */}
@@ -504,29 +523,29 @@ export default function OrderDetailsScreen() {
           <View style={styles.paymentRow}>
             <ThemedText style={styles.paymentLabel}>Payment Method</ThemedText>
             <ThemedText style={styles.paymentValue}>
-              {order.payment.method.replace('_', ' ').toUpperCase()}
+              {(order.payment?.method || 'unknown').replace('_', ' ').toUpperCase()}
             </ThemedText>
           </View>
-          
-          {order.payment.transactionId && (
+
+          {order.payment?.transactionId ? (
             <View style={styles.paymentRow}>
               <ThemedText style={styles.paymentLabel}>Transaction ID</ThemedText>
               <ThemedText style={styles.paymentValue}>{order.payment.transactionId}</ThemedText>
             </View>
-          )}
+          ) : null}
 
-          {order.cashback.amount > 0 && (
+          {(order.cashback?.amount ?? 0) > 0 && (
             <View style={styles.cashbackRow}>
               <ThemedText style={styles.paymentLabel}>Cashback</ThemedText>
               <View style={styles.cashbackInfo}>
                 <ThemedText style={styles.cashbackAmount}>
-                  ₹${order.cashback.amount.toFixed(2)}
+                  {(order.cashback?.amount ?? 0).toFixed(2)}
                 </ThemedText>
-                <View style={[styles.cashbackStatus, { 
-                  backgroundColor: order.cashback.status === 'approved' ? '#4CAF50' : '#FF9800' 
+                <View style={[styles.cashbackStatus, {
+                  backgroundColor: order.cashback?.status === 'approved' ? '#4CAF50' : '#FF9800'
                 }]}>
                   <ThemedText style={styles.cashbackStatusText}>
-                    {order.cashback.status.toUpperCase()}
+                    {(order.cashback?.status || 'pending').toUpperCase()}
                   </ThemedText>
                 </View>
               </View>

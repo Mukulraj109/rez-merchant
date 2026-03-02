@@ -15,6 +15,7 @@ export interface OrderSearchParams {
   orderNumber?: string;
   storeId?: string;
   sortBy?: 'createdAt' | 'total' | 'status' | 'orderNumber';
+  order?: 'asc' | 'desc';
   page?: number;
   limit?: number;
   dateStart?: string;
@@ -37,9 +38,11 @@ export interface BulkOrderActionRequest {
 export interface OrderListResponse {
   orders: Order[];
   totalCount: number;
+  total: number;
   page: number;
   limit: number;
   totalPages: number;
+  hasMore: boolean;
 }
 
 class OrdersService {
@@ -357,8 +360,8 @@ class OrdersService {
       paymentStatus: filters.paymentStatus,
       customerId: filters.customerId,
       orderNumber: filters.orderNumber,
-      sortBy: filters.sortBy || 'created',
-      sortOrder: filters.sortOrder || 'desc',
+      sortBy: filters.sortBy || 'createdAt',
+      order: filters.sortOrder || 'desc',
       page: filters.page || 1,
       limit: filters.limit || 20,
       dateStart: filters.dateStart,
@@ -371,8 +374,8 @@ class OrdersService {
   // Get recent orders (shortcut for dashboard)
   async getRecentOrders(limit: number = 10): Promise<Order[]> {
     const result = await this.getOrders({
-      sortBy: 'created',
-      sortOrder: 'desc',
+      sortBy: 'createdAt',
+      order: 'desc',
       limit,
       page: 1
     });
@@ -390,14 +393,14 @@ class OrdersService {
       status,
       page,
       limit,
-      sortBy: 'created',
-      sortOrder: 'desc'
+      sortBy: 'createdAt',
+      order: 'desc'
     });
   }
 
   // Get pending orders count
   async getPendingOrdersCount(): Promise<number> {
-    const result = await this.getOrdersByStatus('pending', 1, 1);
+    const result = await this.getOrdersByStatus('placed', 1, 1);
     return result.totalCount || 0;
   }
 
@@ -431,7 +434,7 @@ class OrdersService {
   // Get order status options
   getOrderStatusOptions(): Array<{ label: string; value: OrderStatus; color: string }> {
     return [
-      { label: 'Pending', value: 'pending', color: '#f59e0b' },
+      { label: 'Placed', value: 'placed', color: '#f59e0b' },
       { label: 'Confirmed', value: 'confirmed', color: '#3b82f6' },
       { label: 'Preparing', value: 'preparing', color: '#8b5cf6' },
       { label: 'Ready', value: 'ready', color: '#06b6d4' },

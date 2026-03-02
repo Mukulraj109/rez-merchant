@@ -10,13 +10,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -67,14 +67,14 @@ export default function InviteTeamMemberScreen() {
       // Validate
       const validation = teamService.validateInviteData(inviteData);
       if (!validation.valid) {
-        Alert.alert('Validation Error', validation.errors.join('\n'));
+        showAlert('Validation Error', validation.errors.join('\n'));
         return;
       }
 
       // Send invitation
       const response = await teamService.inviteTeamMember(inviteData);
 
-      Alert.alert(
+      showAlert(
         'Invitation Sent',
         `An invitation has been sent to ${data.email}. They will receive an email with instructions to join your team.`,
         [
@@ -88,7 +88,7 @@ export default function InviteTeamMemberScreen() {
         ]
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send invitation');
+      showAlert('Error', error.message || 'Failed to send invitation');
     } finally {
       setSubmitting(false);
     }

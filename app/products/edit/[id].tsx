@@ -5,7 +5,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Switch,
   Platform,
@@ -13,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -273,7 +273,7 @@ export default function EditProductScreen() {
           window.alert('Error: Failed to load product. Please try again.');
           router.back();
         } else {
-          Alert.alert('Error', 'Failed to load product. Please try again.', [
+          showAlert('Error', 'Failed to load product. Please try again.', [
             { text: 'OK', onPress: () => router.back() }
           ]);
         }
@@ -286,7 +286,7 @@ export default function EditProductScreen() {
         window.alert('Error: Failed to load product. Please try again.');
         router.back();
       } else {
-        Alert.alert('Error', 'Failed to load product. Please try again.', [
+        showAlert('Error', 'Failed to load product. Please try again.', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       }
@@ -405,7 +405,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Missing Images: Please add at least one product image.');
       } else {
-        Alert.alert('Missing Images', 'Please add at least one product image.');
+        showAlert('Missing Images', 'Please add at least one product image.');
       }
     }
 
@@ -415,7 +415,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Upload in Progress: Please wait for all images to finish uploading.');
       } else {
-        Alert.alert('Upload in Progress', 'Please wait for all images to finish uploading.');
+        showAlert('Upload in Progress', 'Please wait for all images to finish uploading.');
       }
     }
 
@@ -425,7 +425,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Upload Error: Some images failed to upload. Please retry or remove them.');
       } else {
-        Alert.alert('Upload Error', 'Some images failed to upload. Please retry or remove them.');
+        showAlert('Upload Error', 'Some images failed to upload. Please retry or remove them.');
       }
     }
 
@@ -435,7 +435,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Upload in Progress: Please wait for all videos to finish uploading.');
       } else {
-        Alert.alert('Upload in Progress', 'Please wait for all videos to finish uploading.');
+        showAlert('Upload in Progress', 'Please wait for all videos to finish uploading.');
       }
     }
 
@@ -445,7 +445,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Upload Error: Some videos failed to upload. Please retry or remove them.');
       } else {
-        Alert.alert('Upload Error', 'Some videos failed to upload. Please retry or remove them.');
+        showAlert('Upload Error', 'Some videos failed to upload. Please retry or remove them.');
       }
     }
 
@@ -458,7 +458,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Validation Error: Please fix all errors before submitting.');
       } else {
-        Alert.alert('Validation Error', 'Please fix all errors before submitting.');
+        showAlert('Validation Error', 'Please fix all errors before submitting.');
       }
       return;
     }
@@ -554,7 +554,7 @@ export default function EditProductScreen() {
         // Navigate to products list page
         router.push('/products');
       } else {
-        Alert.alert(
+        showAlert(
           'Success',
           'Product updated successfully!',
           [
@@ -595,7 +595,7 @@ export default function EditProductScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
       } else {
-        Alert.alert('Error', errorMessage);
+        showAlert('Error', errorMessage);
       }
     } finally {
       setSaving(false);

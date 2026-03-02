@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -37,7 +38,7 @@ export default function BulkActionsScreen() {
       }
     } catch (error) {
       console.error('Error fetching cashback requests:', error);
-      Alert.alert('Error', 'Failed to load cashback requests');
+      showAlert('Error', 'Failed to load cashback requests');
     } finally {
       setIsLoading(false);
     }
@@ -63,66 +64,60 @@ export default function BulkActionsScreen() {
 
   const handleBulkAction = async (action: 'approve' | 'reject') => {
     if (selectedRequests.size === 0) {
-      Alert.alert('Error', 'Please select at least one request');
+      showAlert('Error', 'Please select at least one request');
       return;
     }
 
     if (action === 'reject' && !rejectionReason.trim()) {
-      Alert.alert('Error', 'Please provide a rejection reason');
+      showAlert('Error', 'Please provide a rejection reason');
       return;
     }
 
     const actionText = action === 'approve' ? 'approve' : 'reject';
     const confirmMessage = `Are you sure you want to ${actionText} ${selectedRequests.size} cashback request(s)?`;
 
-    Alert.alert(
+    showConfirm(
       'Confirm Bulk Action',
       confirmMessage,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Confirm', 
-          onPress: async () => {
-            try {
-              setIsProcessing(true);
-              
-              const requestBody = {
-                requestIds: Array.from(selectedRequests),
-                action,
-                notes: bulkNotes || undefined,
-                rejectionReason: action === 'reject' ? rejectionReason : undefined
-              };
+      async () => {
+        try {
+          setIsProcessing(true);
 
-              const response = await fetch('/api/cashback/bulk-action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-              });
+          const requestBody = {
+            requestIds: Array.from(selectedRequests),
+            action,
+            notes: bulkNotes || undefined,
+            rejectionReason: action === 'reject' ? rejectionReason : undefined
+          };
 
-              const data = await response.json();
-              if (data.success) {
-                const { summary } = data.data;
-                Alert.alert(
-                  'Bulk Action Complete',
-                  `Successfully ${actionText}d ${summary.successful} request(s). ${summary.failed} failed.`,
-                  [{ text: 'OK', onPress: () => {
-                    setSelectedRequests(new Set());
-                    setBulkNotes('');
-                    setRejectionReason('');
-                    fetchCashbackRequests();
-                  }}]
-                );
-              } else {
-                Alert.alert('Error', data.message || `Failed to ${actionText} requests`);
-              }
-            } catch (error) {
-              Alert.alert('Error', `Failed to ${actionText} requests`);
-            } finally {
-              setIsProcessing(false);
-            }
+          const response = await fetch('/api/cashback/bulk-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            const { summary } = data.data;
+            showAlert(
+              'Bulk Action Complete',
+              `Successfully ${actionText}d ${summary.successful} request(s). ${summary.failed} failed.`,
+              [{ text: 'OK', onPress: () => {
+                setSelectedRequests(new Set());
+                setBulkNotes('');
+                setRejectionReason('');
+                fetchCashbackRequests();
+              }}]
+            );
+          } else {
+            showAlert('Error', data.message || `Failed to ${actionText} requests`);
           }
+        } catch (error) {
+          showAlert('Error', `Failed to ${actionText} requests`);
+        } finally {
+          setIsProcessing(false);
         }
-      ]
+      }
     );
   };
 

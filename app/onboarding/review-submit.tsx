@@ -10,11 +10,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { onboardingService } from '../../services/api/onboarding';
 import { OnboardingStatus } from '../../types/onboarding';
@@ -47,7 +47,7 @@ export default function ReviewSubmitScreen() {
       setOnboardingData(data);
     } catch (error: any) {
       console.error('Failed to load onboarding data:', error);
-      Alert.alert('Error', 'Failed to load your information. Please try again.');
+      showAlert('Error', 'Failed to load your information. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -136,41 +136,35 @@ export default function ReviewSubmitScreen() {
 
   const handleEdit = (section: SectionData) => {
     // Navigate back to appropriate step for editing
-    Alert.alert(
+    showConfirm(
       'Edit Information',
       'You will be redirected to edit this section. Your progress will be saved.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Continue',
-          onPress: () => {
-            // Navigate to the appropriate screen based on section
-            if (section.title === 'Business Information') {
-              router.push('/onboarding/business-info' as any);
-            } else if (section.title === 'Store Details') {
-              router.push('/onboarding/store-details' as any);
-            } else if (section.title === 'Bank Details') {
-              router.push('/onboarding/bank-details' as any);
-            } else if (section.title === 'Uploaded Documents') {
-              router.push('/onboarding/documents');
-            }
-          },
-        },
-      ]
+      () => {
+        // Navigate to the appropriate screen based on section
+        if (section.title === 'Business Information') {
+          router.push('/onboarding/business-info' as any);
+        } else if (section.title === 'Store Details') {
+          router.push('/onboarding/store-details' as any);
+        } else if (section.title === 'Bank Details') {
+          router.push('/onboarding/bank-details' as any);
+        } else if (section.title === 'Uploaded Documents') {
+          router.push('/onboarding/documents');
+        }
+      }
     );
   };
 
   const validateSubmission = (): boolean => {
     if (!agreedToTerms) {
-      Alert.alert('Required', 'Please agree to Terms & Conditions');
+      showAlert('Required', 'Please agree to Terms & Conditions');
       return false;
     }
     if (!agreedToPrivacy) {
-      Alert.alert('Required', 'Please agree to Privacy Policy');
+      showAlert('Required', 'Please agree to Privacy Policy');
       return false;
     }
     if (!agreedToDataProcessing) {
-      Alert.alert('Required', 'Please agree to Data Processing');
+      showAlert('Required', 'Please agree to Data Processing');
       return false;
     }
     return true;
@@ -179,16 +173,10 @@ export default function ReviewSubmitScreen() {
   const handleSubmit = () => {
     if (!validateSubmission()) return;
 
-    Alert.alert(
+    showConfirm(
       'Submit Application',
       'Are you sure you want to submit your onboarding application? You will not be able to make changes after submission.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Submit',
-          onPress: submitOnboarding,
-        },
-      ]
+      submitOnboarding
     );
   };
 
@@ -215,7 +203,7 @@ export default function ReviewSubmitScreen() {
       router.replace('/onboarding/pending-approval');
     } catch (error: any) {
       console.error('Failed to submit onboarding:', error);
-      Alert.alert(
+      showAlert(
         'Submission Failed',
         error.message || 'Failed to submit your application. Please try again.'
       );
@@ -334,7 +322,7 @@ export default function ReviewSubmitScreen() {
               agreedToTerms,
               () => setAgreedToTerms(!agreedToTerms),
               'Terms & Conditions',
-              () => Alert.alert('Terms & Conditions', 'Terms & Conditions would open here')
+              () => showAlert('Terms & Conditions', 'Terms & Conditions would open here')
             )}
 
             {renderCheckbox(
@@ -342,7 +330,7 @@ export default function ReviewSubmitScreen() {
               agreedToPrivacy,
               () => setAgreedToPrivacy(!agreedToPrivacy),
               'Privacy Policy',
-              () => Alert.alert('Privacy Policy', 'Privacy Policy would open here')
+              () => showAlert('Privacy Policy', 'Privacy Policy would open here')
             )}
 
             {renderCheckbox(
@@ -350,7 +338,7 @@ export default function ReviewSubmitScreen() {
               agreedToDataProcessing,
               () => setAgreedToDataProcessing(!agreedToDataProcessing),
               'Data Processing Agreement',
-              () => Alert.alert('Data Processing', 'Data Processing Agreement would open here')
+              () => showAlert('Data Processing', 'Data Processing Agreement would open here')
             )}
 
             {renderCheckbox(

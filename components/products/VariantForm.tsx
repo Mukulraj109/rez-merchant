@@ -12,10 +12,10 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useForm } from 'react-hook-form';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import FormInput from '../forms/FormInput';
@@ -108,7 +108,7 @@ const VariantForm: React.FC<VariantFormProps> = ({
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please grant camera roll permissions to upload images.'
         );
@@ -132,7 +132,7 @@ const VariantForm: React.FC<VariantFormProps> = ({
       }
     } catch (error: any) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
+      showAlert('Error', 'Failed to pick image. Please try again.');
     }
   };
 
@@ -155,10 +155,10 @@ const VariantForm: React.FC<VariantFormProps> = ({
       console.log('✅ Variant image uploaded successfully:', result.url);
 
       setUploadedImageUrl(result.url);
-      Alert.alert('Success', 'Image uploaded successfully');
+      showAlert('Success', 'Image uploaded successfully');
     } catch (error: any) {
       console.error('❌ Failed to upload variant image:', error);
-      Alert.alert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
+      showAlert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
       // Reset selected image on upload failure
       setSelectedImage(undefined);
     } finally {
@@ -168,20 +168,13 @@ const VariantForm: React.FC<VariantFormProps> = ({
   };
 
   const handleRemoveImage = () => {
-    Alert.alert(
+    showConfirm(
       'Remove Image',
       'Are you sure you want to remove this image?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            setSelectedImage(undefined);
-            setUploadedImageUrl(undefined);
-          },
-        },
-      ]
+      () => {
+        setSelectedImage(undefined);
+        setUploadedImageUrl(undefined);
+      }
     );
   };
 

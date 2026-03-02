@@ -11,11 +11,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -151,7 +151,7 @@ export default function BusinessInfoScreen() {
       // Navigate to next step
       router.push('/onboarding/store-details');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to save business information');
+      showAlert('Error', error.message || 'Failed to save business information');
     } finally {
       setLoading(false);
     }

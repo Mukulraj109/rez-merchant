@@ -10,7 +10,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
   RefreshControl,
@@ -18,6 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -69,7 +69,7 @@ export default function TeamMembersScreen() {
       const response = await teamService.getTeamMembers();
       setTeamMembers(response.data.teamMembers);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load team members');
+      showAlert('Error', error.message || 'Failed to load team members');
     } finally {
       setLoading(false);
     }

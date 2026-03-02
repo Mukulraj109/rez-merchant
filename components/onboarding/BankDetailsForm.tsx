@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, useColorScheme, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useColorScheme, Switch } from 'react-native';
 import { useForm } from 'react-hook-form';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect, { SelectOption } from '@/components/forms/FormSelect';

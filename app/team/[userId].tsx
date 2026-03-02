@@ -10,11 +10,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -67,7 +67,7 @@ export default function TeamMemberDetailScreen() {
       );
       setCanEdit(canEditMember);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load team member details');
+      showAlert('Error', error.message || 'Failed to load team member details');
       router.back();
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ export default function TeamMemberDetailScreen() {
   const handleChangeRole = async (newRole: Exclude<MerchantRole, 'owner'>) => {
     if (!member || !canEdit) return;
 
-    Alert.alert(
+    showAlert(
       'Change Role',
       `Are you sure you want to change ${member.name}'s role to ${teamService.formatRoleLabel(newRole)}?`,
       [
@@ -88,10 +88,10 @@ export default function TeamMemberDetailScreen() {
             try {
               setActionLoading(true);
               await teamService.updateTeamMemberRole(member.id, { role: newRole });
-              Alert.alert('Success', 'Role updated successfully');
+              showAlert('Success', 'Role updated successfully');
               fetchMemberDetails();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to update role');
+              showAlert('Error', error.message || 'Failed to update role');
             } finally {
               setActionLoading(false);
             }
@@ -105,7 +105,7 @@ export default function TeamMemberDetailScreen() {
     if (!member || !canEdit) return;
 
     const statusLabel = teamService.getStatusLabel(newStatus);
-    Alert.alert(
+    showAlert(
       'Change Status',
       `Are you sure you want to change ${member.name}'s status to ${statusLabel}?`,
       [
@@ -116,10 +116,10 @@ export default function TeamMemberDetailScreen() {
             try {
               setActionLoading(true);
               await teamService.updateTeamMemberStatus(member.id, { status: newStatus });
-              Alert.alert('Success', 'Status updated successfully');
+              showAlert('Success', 'Status updated successfully');
               fetchMemberDetails();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to update status');
+              showAlert('Error', error.message || 'Failed to update status');
             } finally {
               setActionLoading(false);
             }
@@ -135,9 +135,9 @@ export default function TeamMemberDetailScreen() {
     try {
       setActionLoading(true);
       await teamService.resendInvitation(member.id);
-      Alert.alert('Success', 'Invitation resent successfully');
+      showAlert('Success', 'Invitation resent successfully');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to resend invitation');
+      showAlert('Error', error.message || 'Failed to resend invitation');
     } finally {
       setActionLoading(false);
     }
@@ -146,7 +146,7 @@ export default function TeamMemberDetailScreen() {
   const handleRemoveMember = async () => {
     if (!member || !canEdit) return;
 
-    Alert.alert(
+    showAlert(
       'Remove Team Member',
       `Are you sure you want to remove ${member.name} from your team? This action cannot be undone.`,
       [
@@ -158,11 +158,11 @@ export default function TeamMemberDetailScreen() {
             try {
               setActionLoading(true);
               await teamService.removeTeamMember(member.id);
-              Alert.alert('Success', 'Team member removed successfully', [
+              showAlert('Success', 'Team member removed successfully', [
                 { text: 'OK', onPress: () => router.back() },
               ]);
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to remove team member');
+              showAlert('Error', error.message || 'Failed to remove team member');
               setActionLoading(false);
             }
           },

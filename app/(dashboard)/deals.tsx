@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   TextInput,
   Modal,
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert } from '@/utils/alert';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -59,7 +59,7 @@ export default function DealsScreen() {
       }
     } catch (error) {
       console.error('Error fetching deal data:', error);
-      Alert.alert('Error', 'Failed to load data. Please try again.');
+      showAlert('Error', 'Failed to load data. Please try again.');
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -79,7 +79,7 @@ export default function DealsScreen() {
   // Verify code
   const handleVerifyCode = async () => {
     if (!codeInput.trim()) {
-      Alert.alert('Error', 'Please enter a redemption code');
+      showAlert('Error', 'Please enter a redemption code');
       return;
     }
 
@@ -89,7 +89,7 @@ export default function DealsScreen() {
       setVerifyResult(result);
       setShowResultModal(true);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to verify code');
+      showAlert('Error', error.message || 'Failed to verify code');
     } finally {
       setIsVerifying(false);
     }
@@ -98,7 +98,7 @@ export default function DealsScreen() {
   // Mark code as used
   const handleMarkAsUsed = async () => {
     if (!verifyResult?.redemption || !activeStore) {
-      Alert.alert('Error', 'No active store selected');
+      showAlert('Error', 'No active store selected');
       return;
     }
 
@@ -108,7 +108,7 @@ export default function DealsScreen() {
         storeId: activeStore._id,
       });
 
-      Alert.alert('Success', 'Deal redeemed successfully!', [
+      showAlert('Success', 'Deal redeemed successfully!', [
         {
           text: 'OK',
           onPress: () => {
@@ -119,7 +119,7 @@ export default function DealsScreen() {
         }
       ]);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to mark code as used');
+      showAlert('Error', error.message || 'Failed to mark code as used');
     } finally {
       setIsMarking(false);
     }

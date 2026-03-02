@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
-  Alert,
   ScrollView,
   Dimensions,
   NativeScrollEvent,
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeIn, Layout } from 'react-native-reanimated';
@@ -63,9 +63,9 @@ export default function StoresScreen() {
       await deactivateStoreById(storeToDeactivate._id);
       setDeactivateModalVisible(false);
       setStoreToDeactivate(null);
-      Alert.alert('Success', `${storeToDeactivate.name} has been deactivated.`);
+      showAlert('Success', `${storeToDeactivate.name} has been deactivated.`);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to deactivate store');
+      showAlert('Error', error.message || 'Failed to deactivate store');
     } finally {
       setDeactivating(false);
     }
@@ -78,23 +78,16 @@ export default function StoresScreen() {
   };
 
   const handleDelete = (store: Store) => {
-    Alert.alert(
+    showConfirm(
       'Delete Store',
       `Are you sure you want to delete "${store.name}"? This will deactivate the store.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteStore(store._id);
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete store');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await deleteStore(store._id);
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to delete store');
+        }
+      }
     );
   };
 
@@ -400,9 +393,9 @@ export default function StoresScreen() {
                 e.stopPropagation();
                 try {
                   await activateStoreById(item._id);
-                  Alert.alert('Success', `${item.name} is now active and visible to customers.`);
+                  showAlert('Success', `${item.name} is now active and visible to customers.`);
                 } catch (error: any) {
-                  Alert.alert('Error', error.message || 'Failed to activate store');
+                  showAlert('Error', error.message || 'Failed to activate store');
                 }
               }}
             >

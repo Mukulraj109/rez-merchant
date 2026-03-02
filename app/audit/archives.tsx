@@ -12,10 +12,10 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert,
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -93,26 +93,20 @@ export default function ArchivesScreen() {
 
   const handleDownload = useCallback((archive: ArchiveItem) => {
     if (!canExport) {
-      Alert.alert(
+      showAlert(
         'Permission Denied',
         'You do not have permission to download archive files.'
       );
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Download Archive',
       `Download ${archive.filename}?\n\nSize: ${archive.fileSize}\nRecords: ${archive.recordCount.toLocaleString()}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Download',
-          onPress: () => {
-            // In a real app, trigger the download here
-            Alert.alert('Download Started', 'Your archive file is being prepared for download.');
-          },
-        },
-      ]
+      () => {
+        // In a real app, trigger the download here
+        showAlert('Download Started', 'Your archive file is being prepared for download.');
+      }
     );
   }, [canExport]);
 

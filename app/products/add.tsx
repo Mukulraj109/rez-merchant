@@ -5,7 +5,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Switch,
   Platform,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert } from '@/utils/alert';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -298,7 +298,7 @@ export default function AddProductScreen() {
 
         // Show suggestion in alert
         if (result.suggestion) {
-          Alert.alert(
+          showAlert(
             'SKU Already Exists',
             `${result.message}\n\nSuggested SKU: ${result.suggestion}`,
             [
@@ -329,7 +329,7 @@ export default function AddProductScreen() {
     // Validate the generated SKU
     await validateSku(sku);
 
-    Alert.alert('SKU Generated', `Auto-generated SKU: ${sku}`);
+    showAlert('SKU Generated', `Auto-generated SKU: ${sku}`);
   };
 
   // Validation function
@@ -424,35 +424,35 @@ export default function AddProductScreen() {
     // Media validation
     if (images.length === 0) {
       newErrors.images = 'At least one product image is required';
-      Alert.alert('Missing Images', 'Please add at least one product image.');
+      showAlert('Missing Images', 'Please add at least one product image.');
     }
 
     // Check if any images are still uploading
     const uploadingImages = images.filter(img => img.uploading);
     if (uploadingImages.length > 0) {
       newErrors.images = 'Please wait for all images to finish uploading';
-      Alert.alert('Upload in Progress', 'Please wait for all images to finish uploading.');
+      showAlert('Upload in Progress', 'Please wait for all images to finish uploading.');
     }
 
     // Check for image upload errors
     const imageErrors = images.filter(img => img.error);
     if (imageErrors.length > 0) {
       newErrors.images = 'Some images failed to upload. Please retry or remove them.';
-      Alert.alert('Upload Error', 'Some images failed to upload. Please retry or remove them.');
+      showAlert('Upload Error', 'Some images failed to upload. Please retry or remove them.');
     }
 
     // Check if any videos are still uploading
     const uploadingVideos = videos.filter(video => video.uploading);
     if (uploadingVideos.length > 0) {
       newErrors.videos = 'Please wait for all videos to finish uploading';
-      Alert.alert('Upload in Progress', 'Please wait for all videos to finish uploading.');
+      showAlert('Upload in Progress', 'Please wait for all videos to finish uploading.');
     }
 
     // Check for video upload errors
     const videoErrors = videos.filter(video => video.error);
     if (videoErrors.length > 0) {
       newErrors.videos = 'Some videos failed to upload. Please retry or remove them.';
-      Alert.alert('Upload Error', 'Some videos failed to upload. Please retry or remove them.');
+      showAlert('Upload Error', 'Some videos failed to upload. Please retry or remove them.');
     }
 
     setErrors(newErrors);
@@ -461,7 +461,7 @@ export default function AddProductScreen() {
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fix all errors before submitting.');
+      showAlert('Validation Error', 'Please fix all errors before submitting.');
       return;
     }
 
@@ -469,7 +469,7 @@ export default function AddProductScreen() {
     if (formData.sku && formData.sku.trim()) {
       const skuResult = await productsService.validateSku(formData.sku);
       if (!skuResult.isAvailable) {
-        Alert.alert(
+        showAlert(
           'Invalid SKU',
           skuResult.message || 'SKU is already in use. Please use a different SKU.',
           [
@@ -589,7 +589,7 @@ export default function AddProductScreen() {
         // Clear the draft on successful submission
         await clearDraft();
 
-        Alert.alert(
+        showAlert(
           'Success',
           'Product created successfully!',
           [
@@ -650,7 +650,7 @@ export default function AddProductScreen() {
       }
     } catch (error: any) {
       console.error('Product creation error:', error);
-      Alert.alert('Error', error.message || 'Failed to create product');
+      showAlert('Error', error.message || 'Failed to create product');
     } finally {
       setLoading(false);
     }
@@ -758,7 +758,7 @@ export default function AddProductScreen() {
         <TouchableOpacity
           style={styles.headerRight}
           onPress={async () => {
-            Alert.alert(
+            showAlert(
               'Discard Draft?',
               'Are you sure you want to discard the saved draft?',
               [
@@ -768,7 +768,7 @@ export default function AddProductScreen() {
                   style: 'destructive',
                   onPress: async () => {
                     await clearDraft();
-                    Alert.alert('Draft Discarded', 'Your draft has been deleted.');
+                    showAlert('Draft Discarded', 'Your draft has been deleted.');
                   },
                 },
               ]

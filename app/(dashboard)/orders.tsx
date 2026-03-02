@@ -7,7 +7,6 @@ import {
   FlatList,
   RefreshControl,
   Dimensions,
-  Alert,
   Pressable,
   Platform,
   Modal,
@@ -15,6 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { 
   FadeInDown, 
@@ -635,7 +635,7 @@ export default function OrdersScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
       } else {
-        Alert.alert('Error', errorMessage);
+        showAlert('Error', errorMessage);
       }
     } finally {
       setLoading(false);
@@ -649,7 +649,7 @@ export default function OrdersScreen() {
       await fetchOrders();
     } catch (error) {
       console.error('❌ Error creating sample data:', error);
-      Alert.alert('Error', 'Failed to create sample orders. Please try again.');
+      showAlert('Error', 'Failed to create sample orders. Please try again.');
     }
   }, [fetchOrders]);
 
@@ -673,7 +673,7 @@ export default function OrdersScreen() {
       await fetchOrders(); // Refresh the orders list
     } catch (error) {
       console.error('❌ Error updating order status:', error);
-      Alert.alert('Error', 'Failed to update order status. Please try again.');
+      showAlert('Error', 'Failed to update order status. Please try again.');
     }
   }, [fetchOrders]);
 
@@ -696,7 +696,7 @@ export default function OrdersScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Order status updated to ${newStatus.replace(/_/g, ' ')}`);
       } else {
-        Alert.alert('Success', `Order status updated to ${newStatus.replace(/_/g, ' ')}`);
+        showAlert('Success', `Order status updated to ${newStatus.replace(/_/g, ' ')}`);
       }
     } catch (error: any) {
       console.error('❌ Error updating order status:', error);
@@ -704,7 +704,7 @@ export default function OrdersScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${msg}`);
       } else {
-        Alert.alert('Error', msg);
+        showAlert('Error', msg);
       }
     } finally {
       setProcessingStatus(false);
@@ -732,7 +732,7 @@ export default function OrdersScreen() {
             setOrders(prev => [latestEvent.data, ...prev]);
             setNewOrdersCount(prev => prev + 1);
             
-            Alert.alert(
+            showAlert(
               'New Order Received',
               `Order #${latestEvent.data.orderNumber} has been placed.`,
               [{ text: 'OK', onPress: () => setNewOrdersCount(0) }]

@@ -4,12 +4,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Platform,
   Share
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 
@@ -52,12 +52,12 @@ export default function ShippingLabelScreen() {
       setOrder(orderData);
 
       // Pre-fill tracking number if available
-      if (orderData.delivery.address) {
+      if (orderData.delivery?.address) {
         setTrackingNumber(orderData.orderNumber.replace('-', ''));
       }
     } catch (error) {
       console.error('Error fetching order:', error);
-      Alert.alert('Error', 'Failed to fetch order details');
+      showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
       setLoading(false);
@@ -72,7 +72,7 @@ export default function ShippingLabelScreen() {
     if (!order) return;
 
     if (!trackingNumber.trim()) {
-      Alert.alert('Error', 'Please enter a tracking number');
+      showAlert('Error', 'Please enter a tracking number');
       return;
     }
 
@@ -100,10 +100,10 @@ export default function ShippingLabelScreen() {
       const mockUrl = `https://res.cloudinary.com/demo/image/upload/labels/label_${order.id}.pdf`;
       setLabelUrl(mockUrl);
 
-      Alert.alert('Success', 'Shipping label generated successfully!');
+      showAlert('Success', 'Shipping label generated successfully!');
     } catch (error) {
       console.error('Error generating label:', error);
-      Alert.alert('Error', 'Failed to generate shipping label');
+      showAlert('Error', 'Failed to generate shipping label');
     } finally {
       setGenerating(false);
     }
@@ -111,7 +111,7 @@ export default function ShippingLabelScreen() {
 
   const handleDownloadLabel = async () => {
     if (!labelUrl || !order) {
-      Alert.alert('Error', 'Please generate the label first');
+      showAlert('Error', 'Please generate the label first');
       return;
     }
 
@@ -127,7 +127,7 @@ export default function ShippingLabelScreen() {
         const downloadResult = await FileSystem.downloadAsync(labelUrl, fileUri);
 
         if (downloadResult.status === 200) {
-          Alert.alert(
+          showAlert(
             'Success',
             `Label downloaded to: ${downloadResult.uri}`,
             [
@@ -142,7 +142,7 @@ export default function ShippingLabelScreen() {
       }
     } catch (error) {
       console.error('Error downloading label:', error);
-      Alert.alert('Error', 'Failed to download label');
+      showAlert('Error', 'Failed to download label');
     } finally {
       setDownloading(false);
     }
@@ -155,7 +155,7 @@ export default function ShippingLabelScreen() {
         printWindow.print();
       });
     } else {
-      Alert.alert('Print', 'Print functionality is only available on web');
+      showAlert('Print', 'Print functionality is only available on web');
     }
   };
 
@@ -163,7 +163,7 @@ export default function ShippingLabelScreen() {
     try {
       const uri = fileUri || labelUrl;
       if (!uri) {
-        Alert.alert('Error', 'No label available to share');
+        showAlert('Error', 'No label available to share');
         return;
       }
 
@@ -307,18 +307,22 @@ export default function ShippingLabelScreen() {
               <View style={styles.labelSection}>
                 <ThemedText style={styles.labelSectionTitle}>TO:</ThemedText>
                 <ThemedText style={[styles.labelText, styles.labelTextBold]}>
-                  {order.customer.name}
+                  {order.customer?.name || 'Customer'}
                 </ThemedText>
-                {order.delivery.address ? (
-                  <ThemedText style={styles.labelText}>{order.delivery.address}</ThemedText>
+                {order.delivery?.address ? (
+                  <ThemedText style={styles.labelText}>
+                    {typeof order.delivery.address === 'string'
+                      ? order.delivery.address
+                      : [order.delivery.address.street || order.delivery.address.addressLine1, order.delivery.address.city, order.delivery.address.state, order.delivery.address.zipCode || order.delivery.address.pincode].filter(Boolean).join(', ')}
+                  </ThemedText>
                 ) : (
                   <ThemedText style={[styles.labelText, styles.labelTextMuted]}>
                     No delivery address
                   </ThemedText>
                 )}
-                {order.customer.phone && (
+                {order.customer?.phone ? (
                   <ThemedText style={styles.labelText}>Ph: {order.customer.phone}</ThemedText>
-                )}
+                ) : null}
               </View>
 
               <View style={styles.labelDivider} />
@@ -420,7 +424,7 @@ export default function ShippingLabelScreen() {
           </View>
           <View style={styles.infoRow}>
             <ThemedText style={styles.infoLabel}>Delivery Method:</ThemedText>
-            <ThemedText style={styles.infoValue}>{order.delivery.method}</ThemedText>
+            <ThemedText style={styles.infoValue}>{order.delivery?.method || 'delivery'}</ThemedText>
           </View>
           <View style={styles.infoRow}>
             <ThemedText style={styles.infoLabel}>Status:</ThemedText>

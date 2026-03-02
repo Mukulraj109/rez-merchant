@@ -5,10 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { router } from 'expo-router';
 import {
   useNotificationPreferences,
@@ -61,60 +61,47 @@ export default function NotificationSettingsScreen() {
     try {
       // Simulate sending a test notification via backend
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      Alert.alert('Success', 'Test notification sent! Check your notifications.');
+      showAlert('Success', 'Test notification sent! Check your notifications.');
     } catch (error) {
-      Alert.alert('Error', 'Failed to send test notification');
+      showAlert('Error', 'Failed to send test notification');
     } finally {
       setTestingNotification(false);
     }
   };
 
   const handleClearAllNotifications = () => {
-    Alert.alert(
+    showConfirm(
       'Clear All Notifications',
       'Are you sure you want to delete all notifications? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearAllMutation.mutateAsync();
-              Alert.alert('Success', 'All notifications have been cleared');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear notifications');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await clearAllMutation.mutateAsync();
+          showAlert('Success', 'All notifications have been cleared');
+        } catch (error) {
+          showAlert('Error', 'Failed to clear notifications');
+        }
+      }
     );
   };
 
   const handleExportHistory = async () => {
     if (!canExport) {
-      Alert.alert('Permission Denied', 'You do not have permission to export notification history');
+      showAlert('Permission Denied', 'You do not have permission to export notification history');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Export Notification History',
       'Your notification history will be exported as a CSV file and emailed to you.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: async () => {
-            try {
-              // Call export API
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              Alert.alert('Success', 'Export started. You will receive an email with the file.');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to export notification history');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          // Call export API
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          showAlert('Success', 'Export started. You will receive an email with the file.');
+        } catch (error) {
+          showAlert('Error', 'Failed to export notification history');
+        }
+      }
     );
   };
 

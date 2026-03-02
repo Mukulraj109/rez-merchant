@@ -14,7 +14,6 @@ import {
   StatusBar,
   Modal,
   TextInput,
-  Alert,
   KeyboardAvoidingView,
   Image,
   Linking,
@@ -23,6 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import apiClient from '@/services/api';
+import { showAlert } from '@/utils/alert';
 
 // ============================================
 // TYPES
@@ -180,7 +180,7 @@ export default function CreatorAnalyticsPage() {
     if (!approveModal || !storeId) return;
 
     if (rewardType !== 'none' && (!rewardAmount || Number(rewardAmount) <= 0)) {
-      Alert.alert('Invalid Amount', 'Please enter a valid reward amount.');
+      showAlert('Invalid Amount', 'Please enter a valid reward amount.');
       return;
     }
 
@@ -203,10 +203,10 @@ export default function CreatorAnalyticsPage() {
         setApproveModal(null);
         setRewardType('none');
         setRewardAmount('');
-        Alert.alert('Pick Approved', 'The creator pick has been approved and sent for admin review.');
+        showAlert('Pick Approved', 'The creator pick has been approved and sent for admin review.');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to approve pick');
+      showAlert('Error', err.message || 'Failed to approve pick');
     } finally {
       setActionLoading(false);
     }
@@ -216,7 +216,7 @@ export default function CreatorAnalyticsPage() {
     if (!rejectModal || !storeId) return;
 
     if (!rejectReason.trim()) {
-      Alert.alert('Reason Required', 'Please provide a reason for rejection.');
+      showAlert('Reason Required', 'Please provide a reason for rejection.');
       return;
     }
 
@@ -232,10 +232,10 @@ export default function CreatorAnalyticsPage() {
         setPendingCount(prev => Math.max(0, prev - 1));
         setRejectModal(null);
         setRejectReason('');
-        Alert.alert('Pick Rejected', 'The creator has been notified.');
+        showAlert('Pick Rejected', 'The creator has been notified.');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to reject pick');
+      showAlert('Error', err.message || 'Failed to reject pick');
     } finally {
       setActionLoading(false);
     }

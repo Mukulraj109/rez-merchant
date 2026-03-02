@@ -5,13 +5,13 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   Modal,
   FlatList,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert, showConfirm } from '@/utils/alert';
 import { router } from 'expo-router';
 import { getApiUrl } from '@/config/api';
 
@@ -100,7 +100,7 @@ export default function OrganizeCategoriesScreen() {
       setCategories(data.data.categories);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      Alert.alert('Error', 'Failed to load categories. Please try again.');
+      showAlert('Error', 'Failed to load categories. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -108,17 +108,17 @@ export default function OrganizeCategoriesScreen() {
 
   const addOperation = () => {
     if (selectedCategories.length === 0) {
-      Alert.alert('Error', 'Please select at least one category.');
+      showAlert('Error', 'Please select at least one category.');
       return;
     }
 
     if ((operationType === 'rename_category' || operationType === 'merge_categories') && !newCategoryName.trim()) {
-      Alert.alert('Error', 'Please enter a new category name.');
+      showAlert('Error', 'Please enter a new category name.');
       return;
     }
 
     if (operationType === 'move_to_subcategory' && !targetCategory.trim()) {
-      Alert.alert('Error', 'Please select a target category.');
+      showAlert('Error', 'Please select a target category.');
       return;
     }
 
@@ -181,95 +181,88 @@ export default function OrganizeCategoriesScreen() {
 
   const executeOperations = async () => {
     if (operations.length === 0) {
-      Alert.alert('No Operations', 'Please add some operations first.');
+      showAlert('No Operations', 'Please add some operations first.');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Execute Operations',
       `This will execute ${operations.length} operations and may affect your product categories. This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Execute',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setSaving(true);
+      async () => {
+        try {
+          setSaving(true);
 
-              // Convert operations to API format
-              const apiOperations: CategoryOperation[] = operations.map(op => {
-                const baseOp: CategoryOperation = {
-                  type: op.type,
+          // Convert operations to API format
+          const apiOperations: CategoryOperation[] = operations.map(op => {
+            const baseOp: CategoryOperation = {
+              type: op.type,
+            };
+
+            switch (op.type) {
+              case 'rename_category':
+                return {
+                  ...baseOp,
+                  oldCategory: op.categories[0],
+                  newCategory: op.newName,
                 };
-
-                switch (op.type) {
-                  case 'rename_category':
-                    return {
-                      ...baseOp,
-                      oldCategory: op.categories[0],
-                      newCategory: op.newName,
-                    };
-                  case 'merge_categories':
-                    return {
-                      ...baseOp,
-                      sourceCategories: op.categories,
-                      newCategory: op.newName,
-                    };
-                  case 'move_to_subcategory':
-                    return {
-                      ...baseOp,
-                      oldCategory: op.categories[0],
-                      subcategory: op.targetCategory,
-                    };
-                  case 'delete_category':
-                    return {
-                      ...baseOp,
-                      oldCategory: op.categories[0],
-                    };
-                  default:
-                    return baseOp;
-                }
-              });
-
-              const response = await fetch(getApiUrl('merchant/categories/bulk-update'), {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ operations: apiOperations }),
-              });
-
-              if (!response.ok) {
-                throw new Error('Failed to execute operations');
-              }
-
-              const data = await response.json();
-              const successCount = data.data.results.filter((r: any) => r.success).length;
-
-              Alert.alert(
-                'Operations Complete',
-                `Successfully executed ${successCount} out of ${operations.length} operations.`,
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      setOperations([]);
-                      fetchCategories();
-                    },
-                  },
-                ]
-              );
-            } catch (error) {
-              console.error('Error executing operations:', error);
-              Alert.alert('Error', 'Failed to execute operations. Please try again.');
-            } finally {
-              setSaving(false);
+              case 'merge_categories':
+                return {
+                  ...baseOp,
+                  sourceCategories: op.categories,
+                  newCategory: op.newName,
+                };
+              case 'move_to_subcategory':
+                return {
+                  ...baseOp,
+                  oldCategory: op.categories[0],
+                  subcategory: op.targetCategory,
+                };
+              case 'delete_category':
+                return {
+                  ...baseOp,
+                  oldCategory: op.categories[0],
+                };
+              default:
+                return baseOp;
             }
-          },
-        },
-      ]
+          });
+
+          const response = await fetch(getApiUrl('merchant/categories/bulk-update'), {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ operations: apiOperations }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to execute operations');
+          }
+
+          const data = await response.json();
+          const successCount = data.data.results.filter((r: any) => r.success).length;
+
+          showAlert(
+            'Operations Complete',
+            `Successfully executed ${successCount} out of ${operations.length} operations.`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  setOperations([]);
+                  fetchCategories();
+                },
+              },
+            ]
+          );
+        } catch (error) {
+          console.error('Error executing operations:', error);
+          showAlert('Error', 'Failed to execute operations. Please try again.');
+        } finally {
+          setSaving(false);
+        }
+      }
     );
   };
 

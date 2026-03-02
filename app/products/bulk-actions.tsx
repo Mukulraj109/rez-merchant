@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
   FlatList,
@@ -12,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/alert';
 import { useForm } from 'react-hook-form';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -92,7 +92,7 @@ export default function BulkActionsScreen() {
   // Check permission
   useEffect(() => {
     if (!hasPermission('products:bulk_edit')) {
-      Alert.alert(
+      showAlert(
         'Permission Denied',
         'You do not have permission to perform bulk actions.',
         [{ text: 'OK', onPress: () => router.back() }]
@@ -121,7 +121,7 @@ export default function BulkActionsScreen() {
       setProducts(result.products);
     } catch (error: any) {
       console.error('Load products error:', error);
-      Alert.alert('Error', 'Failed to load products');
+      showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
     }
@@ -149,34 +149,34 @@ export default function BulkActionsScreen() {
 
   const handleBulkAction = async () => {
     if (selectedProducts.size === 0) {
-      Alert.alert('Error', 'Please select at least one product');
+      showAlert('Error', 'Please select at least one product');
       return;
     }
 
     if (!bulkAction.type) {
-      Alert.alert('Error', 'Please select an action');
+      showAlert('Error', 'Please select an action');
       return;
     }
 
     // Validate action-specific fields
     if (bulkAction.type === 'change_category' && !bulkAction.category) {
-      Alert.alert('Error', 'Please enter a category');
+      showAlert('Error', 'Please enter a category');
       return;
     }
 
     if (bulkAction.type === 'update_price' && !bulkAction.price) {
-      Alert.alert('Error', 'Please enter a price adjustment');
+      showAlert('Error', 'Please enter a price adjustment');
       return;
     }
 
     if (bulkAction.type === 'apply_discount' && !bulkAction.discount) {
-      Alert.alert('Error', 'Please enter a discount value');
+      showAlert('Error', 'Please enter a discount value');
       return;
     }
 
     const actionDescription = getActionDescription();
 
-    Alert.alert(
+    showAlert(
       'Confirm Bulk Action',
       `${actionDescription}\n\nThis will affect ${selectedProducts.size} product(s).`,
       [
@@ -273,7 +273,7 @@ export default function BulkActionsScreen() {
       };
       setActionHistory(prev => [newHistoryItem, ...prev]);
 
-      Alert.alert(
+      showAlert(
         'Success',
         `Bulk action completed successfully for ${selectedProducts.size} product(s)!`,
         [{ text: 'OK', onPress: () => {
@@ -284,7 +284,7 @@ export default function BulkActionsScreen() {
       );
     } catch (error: any) {
       console.error('Bulk action error:', error);
-      Alert.alert('Error', error.message || 'Failed to perform bulk action');
+      showAlert('Error', error.message || 'Failed to perform bulk action');
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -292,7 +292,7 @@ export default function BulkActionsScreen() {
   };
 
   const handleUndo = async (historyItemId: string) => {
-    Alert.alert(
+    showAlert(
       'Undo Action',
       'Are you sure you want to undo this action?',
       [
@@ -312,10 +312,10 @@ export default function BulkActionsScreen() {
                 )
               );
 
-              Alert.alert('Success', 'Action undone successfully');
+              showAlert('Success', 'Action undone successfully');
               loadProducts();
             } catch (error: any) {
-              Alert.alert('Error', 'Failed to undo action');
+              showAlert('Error', 'Failed to undo action');
             }
           },
         },
