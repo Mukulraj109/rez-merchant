@@ -24,6 +24,7 @@ const STATUS_TABS = [
   { key: 'confirmed', label: 'Confirmed' },
   { key: 'completed', label: 'Completed' },
   { key: 'cancelled', label: 'Cancelled' },
+  { key: 'no_show', label: 'No Show' },
 ];
 
 const BOOKING_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
@@ -31,6 +32,7 @@ const BOOKING_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   confirmed: { bg: '#D1FAE5', text: '#10B981' },
   cancelled: { bg: '#FEE2E2', text: '#EF4444' },
   completed: { bg: '#E0E7FF', text: '#6366F1' },
+  no_show: { bg: '#FEE2E2', text: '#9CA3AF' },
 };
 
 export default function AllTableBookingsScreen() {
@@ -52,7 +54,7 @@ export default function AllTableBookingsScreen() {
   const [actionModal, setActionModal] = useState<{
     visible: boolean;
     booking: TableBooking | null;
-    action: 'confirmed' | 'completed' | 'cancelled' | null;
+    action: 'confirmed' | 'completed' | 'cancelled' | 'no_show' | null;
   }>({ visible: false, booking: null, action: null });
 
   useEffect(() => {
@@ -98,12 +100,12 @@ export default function AllTableBookingsScreen() {
     }
   };
 
-  const handleUpdateStatus = async (booking: TableBooking, status: 'confirmed' | 'completed' | 'cancelled') => {
+  const handleUpdateStatus = async (booking: TableBooking, status: 'confirmed' | 'completed' | 'cancelled' | 'no_show') => {
     try {
       setUpdatingBooking(booking._id);
       await tableBookingService.updateBookingStatus(booking._id, status);
       setActionModal({ visible: false, booking: null, action: null });
-      const labels = { confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled' };
+      const labels = { confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled', no_show: 'No Show' };
       setSuccessModal({
         visible: true,
         title: `Booking ${labels[status]}`,
@@ -140,6 +142,7 @@ export default function AllTableBookingsScreen() {
     const canConfirm = item.status === 'pending';
     const canComplete = item.status === 'confirmed';
     const canCancel = item.status === 'pending' || item.status === 'confirmed';
+    const canNoShow = item.status === 'confirmed';
 
     return (
       <View style={styles.bookingCard}>
@@ -195,7 +198,7 @@ export default function AllTableBookingsScreen() {
         </View>
 
         {/* Actions */}
-        {(canConfirm || canComplete || canCancel) && (
+        {(canConfirm || canComplete || canCancel || canNoShow) && (
           <View style={styles.actionsRow}>
             {canConfirm && (
               <TouchableOpacity
@@ -213,6 +216,15 @@ export default function AllTableBookingsScreen() {
               >
                 <Ionicons name="checkbox-outline" size={18} color="#fff" />
                 <Text style={styles.actionButtonText}>Complete</Text>
+              </TouchableOpacity>
+            )}
+            {canNoShow && (
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: '#9CA3AF' }]}
+                onPress={() => setActionModal({ visible: true, booking: item, action: 'no_show' })}
+              >
+                <Ionicons name="person-remove-outline" size={18} color="#fff" />
+                <Text style={styles.actionButtonText}>No Show</Text>
               </TouchableOpacity>
             )}
             {canCancel && (
@@ -336,6 +348,7 @@ export default function AllTableBookingsScreen() {
     confirmed: { title: 'Confirm Booking', message: 'Are you sure you want to confirm this booking?' },
     completed: { title: 'Complete Booking', message: 'Mark this booking as completed?' },
     cancelled: { title: 'Cancel Booking', message: 'Are you sure you want to cancel this booking? This cannot be undone.' },
+    no_show: { title: 'Mark No Show', message: 'Mark this customer as a no-show? They did not arrive for their booking.' },
   };
 
   return (
@@ -382,9 +395,9 @@ export default function AllTableBookingsScreen() {
           visible={actionModal.visible}
           title={actionLabels[actionModal.action].title}
           message={`${actionLabels[actionModal.action].message}\n\nBooking: #${actionModal.booking?.bookingNumber}\nStore: ${actionModal.booking ? getStoreName(actionModal.booking) : ''}\nCustomer: ${actionModal.booking ? getCustomerName(actionModal.booking) : ''}\nParty: ${actionModal.booking?.partySize} guests`}
-          confirmText={actionModal.action === 'cancelled' ? 'Cancel Booking' : actionModal.action === 'confirmed' ? 'Confirm' : 'Complete'}
+          confirmText={actionModal.action === 'cancelled' ? 'Cancel Booking' : actionModal.action === 'confirmed' ? 'Confirm' : actionModal.action === 'no_show' ? 'Mark No Show' : 'Complete'}
           cancelText="Go Back"
-          type={actionModal.action === 'cancelled' ? 'danger' : 'info'}
+          type={actionModal.action === 'cancelled' || actionModal.action === 'no_show' ? 'danger' : 'info'}
           loading={updatingBooking === actionModal.booking?._id}
           onConfirm={() => actionModal.booking && actionModal.action && handleUpdateStatus(actionModal.booking, actionModal.action)}
           onCancel={() => setActionModal({ visible: false, booking: null, action: null })}
