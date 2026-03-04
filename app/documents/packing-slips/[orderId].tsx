@@ -17,7 +17,7 @@ import * as FileSystem from 'expo-file-system';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { ordersService } from '@/services';
+import { ordersService, documentsService } from '@/services';
 import { Order, OrderItem } from '@/types/api';
 
 interface PackingSlipItem extends OrderItem {
@@ -76,25 +76,8 @@ export default function PackingSlipScreen() {
     try {
       setGenerating(true);
 
-      // TODO: Replace with actual API call to backend
-      // const response = await fetch(`${API_URL}/merchant/documents/packing-slip/${order.id}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     items: items.filter(item => item.packed),
-      //     notes: packingNotes
-      //   })
-      // });
-
-      // Mock response for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mock Cloudinary URL
-      const mockUrl = `https://res.cloudinary.com/demo/image/upload/packing-slips/slip_${order.id}.pdf`;
-      setSlipUrl(mockUrl);
+      const result = await documentsService.generatePackingSlip(order.id);
+      setSlipUrl(result.fileUrl);
 
       showAlert('Success', 'Packing slip generated successfully!');
     } catch (error) {

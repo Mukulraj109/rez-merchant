@@ -24,6 +24,7 @@ import { useStore } from '@/contexts/StoreContext';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useDashboardRealTime } from '@/hooks/useRealTimeUpdates';
 import { dashboardService } from '@/services/api/dashboard';
+import paymentsService, { StorePaymentRecord } from '@/services/api/payments';
 import { runOfflineTests } from '@/utils/testOfflineFeatures';
 
 const { width } = Dimensions.get('window');
@@ -80,6 +81,7 @@ export default function DashboardScreen() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [recentPayments, setRecentPayments] = useState<StorePaymentRecord[]>([]);
 
   const fetchDashboardData = useCallback(async (showRefreshing = false) => {
     try {
@@ -172,9 +174,21 @@ export default function DashboardScreen() {
     }
   }, [activeStore]);
 
+  const fetchRecentPayments = useCallback(async () => {
+    const storeId = activeStore?._id;
+    if (!storeId) return;
+    try {
+      const response = await paymentsService.getRecentPayments(storeId, 5);
+      setRecentPayments(response.data.transactions || []);
+    } catch (err) {
+      // Non-critical — don't block dashboard
+    }
+  }, [activeStore]);
+
   useEffect(() => {
     fetchDashboardData();
     loadAnalytics();
+    fetchRecentPayments();
   }, [fetchDashboardData]);
 
   // Real-time updates logic (simplified from original)
@@ -847,6 +861,62 @@ export default function DashboardScreen() {
             </View>
           </View>
         </Animated.View>
+
+        {/* Recent In-Store Payments */}
+        {recentPayments.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(580).springify()}>
+            <View style={styles.recentActivitySection}>
+              <View style={styles.recentActivityHeader}>
+                <View style={styles.recentActivityTitleRow}>
+                  <View style={[styles.recentActivityIconBg, { backgroundColor: '#10B981' }]}>
+                    <Ionicons name="cash" size={18} color="#fff" />
+                  </View>
+                  <Heading3 style={styles.recentActivityTitle}>Recent Payments</Heading3>
+                </View>
+                <TouchableOpacity
+                  onPress={() => router.push('/(dashboard)/payments')}
+                  style={styles.recentActivityViewAll}
+                >
+                  <BodyText style={styles.recentActivityViewAllText}>View All</BodyText>
+                  <Ionicons name="chevron-forward" size={16} color="#6366F1" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.recentActivityList}>
+                {recentPayments.map((payment, index) => (
+                  <View
+                    key={payment.paymentId}
+                    style={[
+                      styles.recentActivityItem,
+                      index === recentPayments.length - 1 && { borderBottomWidth: 0 },
+                    ]}
+                  >
+                    <View style={styles.recentActivityItemLeft}>
+                      <View style={[styles.recentActivityItemIcon, { backgroundColor: '#10B98115' }]}>
+                        <Ionicons name="cash-outline" size={18} color="#10B981" />
+                      </View>
+                      <View style={styles.recentActivityItemInfo}>
+                        <BodyText style={styles.recentActivityItemTitle}>
+                          ₹{payment.amount.toLocaleString()}
+                        </BodyText>
+                        <Caption style={styles.recentActivityItemSubtitle}>
+                          {payment.paymentMethod === 'upi' ? 'UPI' : payment.paymentMethod === 'coins_only' ? 'Coins' : 'Card'}
+                          {payment.coinsUsed > 0 ? ` + ${payment.coinsUsed} coins` : ''}
+                        </Caption>
+                      </View>
+                    </View>
+                    <Caption style={styles.recentActivityItemTime}>
+                      {new Date(payment.completedAt || payment.createdAt).toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Caption>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Recent Activity - Premium Design */}
         <Animated.View entering={FadeInDown.delay(600).springify()}>

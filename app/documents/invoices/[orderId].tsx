@@ -17,7 +17,7 @@ import * as FileSystem from 'expo-file-system';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { ordersService } from '@/services';
+import { ordersService, documentsService } from '@/services';
 import { Order } from '@/types/api';
 
 interface InvoiceSettings {
@@ -83,22 +83,8 @@ export default function InvoiceViewerScreen() {
     try {
       setGenerating(true);
 
-      // TODO: Replace with actual API call to backend
-      // const response = await fetch(`${API_URL}/merchant/documents/invoice/${order.id}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ settings })
-      // });
-
-      // Mock response for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mock Cloudinary URL
-      const mockUrl = `https://res.cloudinary.com/demo/image/upload/invoices/invoice_${order.id}.pdf`;
-      setInvoiceUrl(mockUrl);
+      const result = await documentsService.generateInvoice(order.id);
+      setInvoiceUrl(result.fileUrl);
 
       showAlert('Success', 'Invoice generated successfully!');
     } catch (error) {

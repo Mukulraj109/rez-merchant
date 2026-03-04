@@ -86,6 +86,15 @@ export default function MoreScreen() {
       title: 'Finance',
       items: [
         {
+          id: 'payments',
+          title: 'In-Store Payments',
+          subtitle: 'View payment history & transactions',
+          icon: 'cash',
+          iconBg: '#ECFDF5',
+          iconColor: '#10B981',
+          route: '/(dashboard)/payments',
+        },
+        {
           id: 'cashback',
           title: 'Cashback',
           subtitle: 'Manage cashback offers & redemptions',

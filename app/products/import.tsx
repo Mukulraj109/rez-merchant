@@ -19,6 +19,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { productsService } from '@/services';
+import { buildApiUrl } from '@/config/api';
 
 interface ImportError {
   line: number;
@@ -50,24 +51,7 @@ export default function ProductImportScreen() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [importHistory, setImportHistory] = useState<ImportHistory[]>([
-    {
-      id: '1',
-      filename: 'products_batch_1.csv',
-      date: '2025-11-15 14:30',
-      successful: 245,
-      failed: 5,
-      status: 'partial',
-    },
-    {
-      id: '2',
-      filename: 'products_batch_2.xlsx',
-      date: '2025-11-14 10:15',
-      successful: 500,
-      failed: 0,
-      status: 'completed',
-    },
-  ]);
+  const [importHistory, setImportHistory] = useState<ImportHistory[]>([]);
 
   // Check permission
   React.useEffect(() => {
@@ -110,8 +94,7 @@ export default function ProductImportScreen() {
     try {
       setLoading(true);
 
-      // In a real implementation, this would call the backend API
-      const templateUrl = `https://api.example.com/merchant/products/template?format=${format}`;
+      const templateUrl = buildApiUrl(`merchant/bulk/products/template?format=${format}`);
 
       if (Platform.OS === 'web') {
         window.open(templateUrl, '_blank');
@@ -213,7 +196,7 @@ export default function ProductImportScreen() {
         } as any);
       }
 
-      // Simulate progress for demo
+      // Show progress indicator
       const progressInterval = setInterval(() => {
         setImportProgress(prev => {
           if (prev >= 90) {
@@ -224,47 +207,40 @@ export default function ProductImportScreen() {
         });
       }, 500);
 
-      // In a real implementation, call the backend API
-      // const result = await productsService.importProducts(formData);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      const result = await productsService.importProducts(formData);
       clearInterval(progressInterval);
       setImportProgress(100);
 
-      // Simulate result
-      const mockResult: ImportResult = {
-        successful: 245,
-        failed: 5,
-        totalProcessed: 250,
-        errors: [
-          { line: 12, field: 'price', message: 'Invalid price format' },
-          { line: 45, field: 'sku', message: 'SKU already exists' },
-          { line: 78, field: 'category', message: 'Category not found' },
-          { line: 120, field: 'name', message: 'Product name is required' },
-          { line: 203, field: 'price', message: 'Price must be greater than 0' },
-        ],
+      const importData: ImportResult = {
+        successful: result.successful ?? 0,
+        failed: result.failed ?? 0,
+        totalProcessed: result.totalProcessed ?? 0,
+        errors: (result.errors ?? []).map((e: any) => ({
+          line: e.line ?? 0,
+          field: e.field ?? 'unknown',
+          message: e.message ?? 'Unknown error',
+        })),
       };
 
-      setImportResult(mockResult);
+      setImportResult(importData);
 
       // Add to history
       const newHistoryItem: ImportHistory = {
         id: Date.now().toString(),
         filename: selectedFile.name,
         date: new Date().toLocaleString(),
-        successful: mockResult.successful,
-        failed: mockResult.failed,
-        status: mockResult.failed > 0 ? 'partial' : 'completed',
+        successful: importData.successful,
+        failed: importData.failed,
+        status: importData.failed > 0 ? 'partial' : 'completed',
       };
       setImportHistory(prev => [newHistoryItem, ...prev]);
 
-      if (mockResult.failed === 0) {
-        showAlert('Success', `Successfully imported ${mockResult.successful} products!`);
+      if (importData.failed === 0) {
+        showAlert('Success', `Successfully imported ${importData.successful} products!`);
       } else {
         showAlert(
           'Import Completed',
-          `${mockResult.successful} products imported successfully. ${mockResult.failed} products failed. Please review the errors below.`
+          `${importData.successful} products imported successfully. ${importData.failed} products failed. Please review the errors below.`
         );
       }
     } catch (error: any) {

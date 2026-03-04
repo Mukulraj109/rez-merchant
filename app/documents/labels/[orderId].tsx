@@ -16,7 +16,7 @@ import * as FileSystem from 'expo-file-system';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { ordersService } from '@/services';
+import { ordersService, documentsService } from '@/services';
 import { Order } from '@/types/api';
 
 interface ShippingCarrier {
@@ -79,26 +79,8 @@ export default function ShippingLabelScreen() {
     try {
       setGenerating(true);
 
-      // TODO: Replace with actual API call to backend
-      // const response = await fetch(`${API_URL}/merchant/documents/label/${order.id}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     carrier: selectedCarrier,
-      //     trackingNumber,
-      //     format: '4x6'
-      //   })
-      // });
-
-      // Mock response for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mock Cloudinary URL
-      const mockUrl = `https://res.cloudinary.com/demo/image/upload/labels/label_${order.id}.pdf`;
-      setLabelUrl(mockUrl);
+      const result = await documentsService.generateShippingLabel(order.id, selectedCarrier as any);
+      setLabelUrl(result.fileUrl);
 
       showAlert('Success', 'Shipping label generated successfully!');
     } catch (error) {

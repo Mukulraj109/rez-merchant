@@ -497,6 +497,44 @@ class ProductsService {
     }
   }
 
+  async importProducts(formData: FormData): Promise<{
+    successful: number;
+    failed: number;
+    totalProcessed: number;
+    errors: Array<{ line: number; field: string; message: string }>;
+  }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout for large files
+
+    try {
+      const response = await fetch(buildApiUrl('merchant/bulk/products/import'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${await this.getAuthToken()}`,
+          // Do NOT set Content-Type — browser sets multipart/form-data boundary automatically
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.data ?? data;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Import timed out — the file may be too large. Try splitting it into smaller batches.');
+      }
+      throw new Error(error.message || 'Failed to import products');
+    }
+  }
+
   // Get product status options
   getProductStatusOptions(): Array<{ label: string; value: string; color: string }> {
     return [

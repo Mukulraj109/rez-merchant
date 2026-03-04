@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   Linking,
   Modal,
-  TextInput
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { showAlert } from '@/utils/alert';
@@ -238,6 +239,7 @@ export default function OrderDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [refundLoading, setRefundLoading] = useState(false);
 
   const fetchOrder = async () => {
     if (!id) return;
@@ -299,6 +301,52 @@ export default function OrderDetailsScreen() {
     } finally {
       setStatusUpdateLoading(false);
     }
+  };
+
+  const handleInitiateRefund = async () => {
+    if (!order) return;
+
+    showAlert(
+      'Initiate Refund',
+      `Are you sure you want to initiate a refund for this order?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Refund',
+          style: 'destructive',
+          onPress: async () => {
+            setRefundLoading(true);
+            try {
+              const response = await fetch(getApiUrl(`merchant/orders/${order.id}/refund`), {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${state.token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  reason: 'Merchant initiated refund',
+                  notifyCustomer: true,
+                }),
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                setOrder(result.data || { ...order, status: 'refunded' as OrderStatus });
+                showAlert('Success', 'Refund has been initiated successfully');
+              } else {
+                const errorData = await response.json().catch(() => ({}));
+                showAlert('Error', errorData.message || 'Failed to process refund');
+              }
+            } catch (error) {
+              console.error('Error initiating refund:', error);
+              showAlert('Error', 'Failed to process refund. Please try again.');
+            } finally {
+              setRefundLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const formatAddress = (address: any) => {
@@ -569,6 +617,23 @@ export default function OrderDetailsScreen() {
             Update Status
           </ThemedText>
         </TouchableOpacity>
+
+        {/* Refund Button — shown for delivered/returned/cancelled orders */}
+        {['delivered', 'returned', 'cancelled'].includes(order.status) && (
+          <TouchableOpacity
+            style={[styles.primaryButton, { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FCA5A5' }]}
+            onPress={handleInitiateRefund}
+            disabled={refundLoading}
+          >
+            {refundLoading ? (
+              <ActivityIndicator size="small" color="#EF4444" />
+            ) : (
+              <ThemedText style={[styles.primaryButtonText, { color: '#EF4444' }]}>
+                Initiate Refund
+              </ThemedText>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Status Update Modal */}

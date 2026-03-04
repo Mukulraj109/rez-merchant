@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { showConfirm } from '@/utils/alert';
+import { onboardingService } from '@/services/api/onboarding';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Animatable from 'react-native-animatable';
@@ -103,6 +104,21 @@ export default function PendingApprovalScreen() {
       day: 'numeric',
       year: 'numeric',
     }));
+
+    // Poll onboarding status every 30s — navigate to dashboard on approval
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await onboardingService.getOnboardingStatus();
+        if (status?.status === 'approved') {
+          clearInterval(pollInterval);
+          router.replace('/(tabs)' as any);
+        }
+      } catch {
+        // Silently ignore polling errors
+      }
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
   }, []);
 
   const handleContactSupport = (option: typeof SUPPORT_OPTIONS[0]) => {

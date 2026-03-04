@@ -300,6 +300,21 @@ export default function DashboardLayout() {
         }}
       />
       <Tabs.Screen
+        name="payments"
+        options={{
+          title: 'Payments',
+          href: null,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'cash' : 'cash-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="more"
         options={{
           title: 'More',
