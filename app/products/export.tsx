@@ -72,24 +72,7 @@ export default function ProductExportScreen() {
     { id: 'updatedAt', label: 'Updated Date', selected: false },
   ]);
 
-  const [exportHistory, setExportHistory] = useState<ExportHistory[]>([
-    {
-      id: '1',
-      filename: 'products_export_2025-11-17.csv',
-      date: '2025-11-17 10:30',
-      format: 'csv',
-      recordCount: 1234,
-      status: 'completed',
-    },
-    {
-      id: '2',
-      filename: 'products_export_2025-11-15.xlsx',
-      date: '2025-11-15 14:20',
-      format: 'excel',
-      recordCount: 980,
-      status: 'completed',
-    },
-  ]);
+  const [exportHistory, setExportHistory] = useState<ExportHistory[]>([]);
 
   // Check permission
   React.useEffect(() => {
@@ -155,17 +138,12 @@ export default function ProductExportScreen() {
         },
       };
 
-      console.log('Export request:', exportRequest);
+      const result = await productsService.exportProducts(
+        exportRequest.filters,
+        exportRequest.format
+      );
 
-      // In a real implementation, call the backend API
-      // const result = await productsService.exportProducts(exportRequest.filters, exportRequest.format);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Simulate download
-      const filename = `products_export_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
-      const downloadUrl = `https://api.example.com/downloads/${filename}`;
+      const { url: downloadUrl, filename } = result;
 
       // Add to history
       const newHistoryItem: ExportHistory = {
@@ -173,41 +151,29 @@ export default function ProductExportScreen() {
         filename,
         date: new Date().toLocaleString(),
         format: exportFormat,
-        recordCount: 1234, // Mock count
+        recordCount: 0,
         status: 'completed',
       };
       setExportHistory(prev => [newHistoryItem, ...prev]);
 
       // Download file
-      if (Platform.OS === 'web') {
-        // For web, create a download link
-        showAlert(
-          'Export Ready',
-          'Your export is ready for download',
-          [
-            {
-              text: 'Download',
-              onPress: () => window.open(downloadUrl, '_blank'),
+      showAlert(
+        'Export Ready',
+        'Your export is ready for download',
+        [
+          {
+            text: 'Download',
+            onPress: () => {
+              if (Platform.OS === 'web') {
+                window.open(downloadUrl, '_blank');
+              } else {
+                Linking.openURL(downloadUrl);
+              }
             },
-            { text: 'Cancel', style: 'cancel' },
-          ]
-        );
-      } else {
-        // For mobile, open the download URL
-        showAlert(
-          'Export Ready',
-          'Your export is ready for download',
-          [
-            {
-              text: 'Download',
-              onPress: () => Linking.openURL(downloadUrl),
-            },
-            { text: 'Cancel', style: 'cancel' },
-          ]
-        );
-      }
-
-      showAlert('Success', `Export completed! ${filename}`);
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
     } catch (error: any) {
       console.error('Export error:', error);
       showAlert('Error', error.message || 'Failed to export products');

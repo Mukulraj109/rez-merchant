@@ -66,24 +66,7 @@ export default function BulkActionsScreen() {
   const [progress, setProgress] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
 
-  const [actionHistory, setActionHistory] = useState<ActionHistoryItem[]>([
-    {
-      id: '1',
-      action: 'Changed category to Electronics',
-      productCount: 45,
-      date: '2025-11-17 10:30',
-      status: 'completed',
-      canUndo: true,
-    },
-    {
-      id: '2',
-      action: 'Applied 10% discount',
-      productCount: 120,
-      date: '2025-11-16 15:20',
-      status: 'completed',
-      canUndo: false,
-    },
-  ]);
+  const [actionHistory, setActionHistory] = useState<ActionHistoryItem[]>([]);
 
   const searchQuery = watch('search');
   const categoryFilter = watch('category');
@@ -252,13 +235,7 @@ export default function BulkActionsScreen() {
           break;
       }
 
-      console.log('Bulk action request:', actionRequest);
-
-      // In a real implementation, call the backend API
-      // const result = await productsService.bulkProductAction(actionRequest);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await productsService.bulkProductAction(actionRequest);
       clearInterval(progressInterval);
       setProgress(100);
 

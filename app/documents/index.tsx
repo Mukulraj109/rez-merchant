@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { ordersService } from '@/services';
+import { ordersService, documentsService } from '@/services';
 import { Order } from '@/types/api';
 
 type DocumentType = 'all' | 'invoice' | 'label' | 'packing_slip';
@@ -53,66 +53,88 @@ export default function DocumentsOverviewScreen() {
     packingSlips: 0
   });
 
-  const fetchOrders = useCallback(async () => {
+  const fetchDocuments = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await ordersService.getOrders({ limit: 50, sortBy: 'created', sortOrder: 'desc' });
-      setOrders(result.orders || []);
-
-      // Generate mock documents from orders
-      const mockDocuments: DocumentItem[] = [];
-      result.orders?.forEach((order) => {
-        // Invoice
-        mockDocuments.push({
-          id: `inv-${order.id}`,
-          type: 'invoice',
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          customerName: order.customer.name,
-          date: order.createdAt,
-          status: Math.random() > 0.3 ? 'generated' : 'pending'
-        });
-
-        // Label (only for delivery orders)
-        if (order.delivery.method === 'delivery') {
-          mockDocuments.push({
-            id: `lbl-${order.id}`,
-            type: 'label',
-            orderId: order.id,
-            orderNumber: order.orderNumber,
-            customerName: order.customer.name,
-            date: order.createdAt,
-            status: Math.random() > 0.5 ? 'generated' : 'pending'
-          });
-        }
-
-        // Packing Slip
-        mockDocuments.push({
-          id: `ps-${order.id}`,
-          type: 'packing_slip',
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          customerName: order.customer.name,
-          date: order.createdAt,
-          status: Math.random() > 0.4 ? 'generated' : 'pending'
-        });
+      const result = await documentsService.listDocuments({
+        sortBy: 'created',
+        sortOrder: 'desc',
+        limit: 50,
       });
 
-      setDocuments(mockDocuments);
-      setFilteredDocuments(mockDocuments);
+      const docItems: DocumentItem[] = (result.documents || []).map((doc: any) => ({
+        id: doc.id || doc._id,
+        type: doc.type === 'shipping_label' ? 'label' : doc.type === 'packing_slip' ? 'packing_slip' : 'invoice',
+        orderId: doc.orderId,
+        orderNumber: doc.orderNumber || `ORD-${doc.orderId?.slice(-6) || ''}`,
+        customerName: doc.customerName || 'Customer',
+        date: doc.createdAt || doc.date,
+        url: doc.url,
+        status: doc.status === 'generated' || doc.status === 'completed' ? 'generated' : 'pending',
+      }));
 
-      // Calculate stats
+      setDocuments(docItems);
+      setFilteredDocuments(docItems);
+
       const newStats: DocumentStats = {
-        totalDocuments: mockDocuments.length,
-        invoices: mockDocuments.filter(d => d.type === 'invoice').length,
-        labels: mockDocuments.filter(d => d.type === 'label').length,
-        packingSlips: mockDocuments.filter(d => d.type === 'packing_slip').length
+        totalDocuments: docItems.length,
+        invoices: docItems.filter(d => d.type === 'invoice').length,
+        labels: docItems.filter(d => d.type === 'label').length,
+        packingSlips: docItems.filter(d => d.type === 'packing_slip').length
       };
       setStats(newStats);
 
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      showAlert('Error', 'Failed to fetch documents');
+      // Fallback: derive documents from orders if documents API not available
+      try {
+        const result = await ordersService.getOrders({ limit: 50, sortBy: 'created', sortOrder: 'desc' });
+        setOrders(result.orders || []);
+
+        const fallbackDocs: DocumentItem[] = [];
+        result.orders?.forEach((order) => {
+          fallbackDocs.push({
+            id: `inv-${order.id}`,
+            type: 'invoice',
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            customerName: order.customer.name,
+            date: order.createdAt,
+            status: 'pending',
+          });
+          if (order.delivery.method === 'delivery') {
+            fallbackDocs.push({
+              id: `lbl-${order.id}`,
+              type: 'label',
+              orderId: order.id,
+              orderNumber: order.orderNumber,
+              customerName: order.customer.name,
+              date: order.createdAt,
+              status: 'pending',
+            });
+          }
+          fallbackDocs.push({
+            id: `ps-${order.id}`,
+            type: 'packing_slip',
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            customerName: order.customer.name,
+            date: order.createdAt,
+            status: 'pending',
+          });
+        });
+
+        setDocuments(fallbackDocs);
+        setFilteredDocuments(fallbackDocs);
+        setStats({
+          totalDocuments: fallbackDocs.length,
+          invoices: fallbackDocs.filter(d => d.type === 'invoice').length,
+          labels: fallbackDocs.filter(d => d.type === 'label').length,
+          packingSlips: fallbackDocs.filter(d => d.type === 'packing_slip').length
+        });
+      } catch (innerError) {
+        console.error('Error fetching documents:', innerError);
+        showAlert('Error', 'Failed to fetch documents');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -120,8 +142,8 @@ export default function DocumentsOverviewScreen() {
   }, []);
 
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   useEffect(() => {
     // Filter documents based on type and search
@@ -159,12 +181,22 @@ export default function DocumentsOverviewScreen() {
   };
 
   const handleBulkDownload = () => {
+    const generatedDocs = filteredDocuments.filter(d => d.status === 'generated');
     showConfirm(
       'Bulk Download',
-      `Download ${filteredDocuments.filter(d => d.status === 'generated').length} documents?`,
-      () => {
-        // TODO: Implement bulk download
-        showAlert('Success', 'Documents downloaded successfully');
+      `Download ${generatedDocs.length} documents?`,
+      async () => {
+        try {
+          for (const doc of generatedDocs) {
+            const { url } = await documentsService.downloadDocument(doc.id);
+            if (Platform.OS === 'web') {
+              window.open(url, '_blank');
+            }
+          }
+          showAlert('Success', 'Documents downloaded successfully');
+        } catch {
+          showAlert('Error', 'Failed to download some documents');
+        }
       }
     );
   };
@@ -175,7 +207,7 @@ export default function DocumentsOverviewScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchOrders();
+    fetchDocuments();
   };
 
   const getDocumentIcon = (type: DocumentType): string => {

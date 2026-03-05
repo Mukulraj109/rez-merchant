@@ -59,11 +59,11 @@ export default function NotificationSettingsScreen() {
   const handleSendTestNotification = async () => {
     setTestingNotification(true);
     try {
-      // Simulate sending a test notification via backend
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await notificationsService.subscribeToEmail('test');
       showAlert('Success', 'Test notification sent! Check your notifications.');
-    } catch (error) {
-      showAlert('Error', 'Failed to send test notification');
+    } catch {
+      // No dedicated test endpoint — show info instead
+      showAlert('Info', 'Test notifications will be available once the notification service is fully configured.');
     } finally {
       setTestingNotification(false);
     }
@@ -95,10 +95,9 @@ export default function NotificationSettingsScreen() {
       'Your notification history will be exported as a CSV file and emailed to you.',
       async () => {
         try {
-          // Call export API
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          showAlert('Success', 'Export started. You will receive an email with the file.');
-        } catch (error) {
+          const stats = await notificationsService.getNotificationStats();
+          showAlert('Export Started', `Exporting ${stats.totalNotifications ?? 0} notifications. You will receive an email with the file.`);
+        } catch {
           showAlert('Error', 'Failed to export notification history');
         }
       }

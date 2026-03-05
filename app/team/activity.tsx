@@ -24,6 +24,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useTeamPermissions } from '@/hooks/usePermissions';
 import { TeamActivity } from '@/types/team';
 import { getRelativeTime, formatDateTime } from '@/utils/teamHelpers';
+import { teamService } from '@/services/api/team';
 
 // ReZ Design System Colors
 const REZ_COLORS = {
@@ -45,53 +46,7 @@ const REZ_COLORS = {
 
 type ActivityFilter = 'all' | 'invite' | 'role_change' | 'status_change' | 'remove';
 
-// Sample activity data for demo (will be replaced with API data)
-const SAMPLE_ACTIVITIES: TeamActivity[] = [
-  {
-    id: '1',
-    merchantId: 'merchant-1',
-    action: 'invite',
-    targetUserId: 'user-1',
-    targetUserEmail: 'john@example.com',
-    performedBy: 'owner-1',
-    performedByName: 'Store Owner',
-    details: { name: 'John Doe', role: 'manager' },
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-  },
-  {
-    id: '2',
-    merchantId: 'merchant-1',
-    action: 'accept',
-    targetUserId: 'user-2',
-    targetUserEmail: 'jane@example.com',
-    performedBy: 'user-2',
-    performedByName: 'Jane Smith',
-    details: { role: 'staff' },
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-  },
-  {
-    id: '3',
-    merchantId: 'merchant-1',
-    action: 'role_change',
-    targetUserId: 'user-3',
-    targetUserEmail: 'mike@example.com',
-    performedBy: 'owner-1',
-    performedByName: 'Store Owner',
-    details: { oldRole: 'staff', newRole: 'manager', name: 'Mike Johnson' },
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-  },
-  {
-    id: '4',
-    merchantId: 'merchant-1',
-    action: 'status_change',
-    targetUserId: 'user-4',
-    targetUserEmail: 'sarah@example.com',
-    performedBy: 'owner-1',
-    performedByName: 'Store Owner',
-    details: { oldStatus: 'active', newStatus: 'suspended', name: 'Sarah Wilson' },
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-  },
-];
+// Activity data will be fetched from API once the team activity endpoint is available
 
 export default function TeamActivityScreen() {
   const [filter, setFilter] = useState<ActivityFilter>('all');
@@ -100,7 +55,7 @@ export default function TeamActivityScreen() {
   const { isDesktop, isTablet } = useResponsiveLayout();
   const { canViewTeam } = useTeamPermissions();
 
-  // For now, use sample data. In production, this would fetch from API
+  // Team activity log from backend audit trail
   const {
     data: activities,
     isLoading,
@@ -108,14 +63,12 @@ export default function TeamActivityScreen() {
     refetch,
   } = useQuery({
     queryKey: ['team-activity'],
-    queryFn: async () => {
-      // TODO: Replace with actual API call when endpoint is available
-      // return teamService.getTeamActivity();
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-      return SAMPLE_ACTIVITIES;
+    queryFn: async (): Promise<TeamActivity[]> => {
+      const result = await teamService.getTeamActivity({ limit: 100 });
+      return result.activities;
     },
     enabled: canViewTeam,
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 1 * 60 * 1000,
   });
 
   const filteredActivities = useMemo(() => {
@@ -299,17 +252,6 @@ export default function TeamActivityScreen() {
       }
     >
       <ThemedView style={[styles.content, Platform.OS === 'web' && { maxWidth: contentMaxWidth }]}>
-        {/* Sample Data Notice */}
-        <View style={styles.sampleDataBanner}>
-          <Ionicons name="information-circle" size={20} color={REZ_COLORS.info} />
-          <View style={styles.sampleDataContent}>
-            <ThemedText style={styles.sampleDataTitle}>Sample Activity Data</ThemedText>
-            <ThemedText style={styles.sampleDataText}>
-              This is demo data. Real activity logs will appear once your team is active.
-            </ThemedText>
-          </View>
-        </View>
-
         {/* Header */}
         <View style={styles.header}>
           <ThemedText style={styles.headerTitle}>Activity Log</ThemedText>
@@ -402,32 +344,6 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
     width: '100%',
-  },
-
-  // Sample Data Banner
-  sampleDataBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: `${REZ_COLORS.info}10`,
-    borderRadius: 12,
-    padding: 14,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: `${REZ_COLORS.info}30`,
-  },
-  sampleDataContent: {
-    flex: 1,
-  },
-  sampleDataTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: REZ_COLORS.info,
-    marginBottom: 2,
-  },
-  sampleDataText: {
-    fontSize: 12,
-    color: REZ_COLORS.textSecondary,
-    lineHeight: 18,
   },
 
   // Header

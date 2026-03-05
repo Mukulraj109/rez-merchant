@@ -28,7 +28,8 @@ import {
   TeamPaginatedResponse,
   PermissionCheckResult,
   PermissionsCheckResult,
-  RoleCapabilities
+  RoleCapabilities,
+  TeamActivity
 } from '../../types/team';
 
 // Permission descriptions mapping
@@ -172,6 +173,38 @@ class TeamService {
     } catch (error: any) {
       console.error('Get current user permissions error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to fetch permissions');
+    }
+  }
+
+  // ============================================================================
+  // ACTIVITY LOG
+  // ============================================================================
+
+  /**
+   * Get team activity log
+   * Requires: team:view permission
+   */
+  async getTeamActivity(params?: {
+    page?: number;
+    limit?: number;
+    action?: string;
+  }): Promise<{ activities: TeamActivity[]; total: number; page: number; totalPages: number }> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.action) queryParams.append('action', params.action);
+
+      const url = queryParams.toString() ? `merchant/team/activity?${queryParams}` : 'merchant/team/activity';
+      const response = await apiClient.get<{ activities: TeamActivity[]; total: number; page: number; totalPages: number }>(url);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return { activities: [], total: 0, page: 1, totalPages: 0 };
+    } catch (error: any) {
+      console.error('Get team activity error:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch team activity');
     }
   }
 

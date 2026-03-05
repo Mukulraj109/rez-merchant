@@ -43,6 +43,7 @@ export default function InvoiceViewerScreen() {
   const [downloading, setDownloading] = useState(false);
   const [emailing, setEmailing] = useState(false);
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
+  const [invoiceDocId, setInvoiceDocId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
   const [settings, setSettings] = useState<InvoiceSettings>({
@@ -85,6 +86,7 @@ export default function InvoiceViewerScreen() {
 
       const result = await documentsService.generateInvoice(order.id);
       setInvoiceUrl(result.fileUrl);
+      setInvoiceDocId(result.documentId);
 
       showAlert('Success', 'Invoice generated successfully!');
     } catch (error) {
@@ -142,17 +144,23 @@ export default function InvoiceViewerScreen() {
     try {
       setEmailing(true);
 
-      // TODO: Replace with actual API call
-      // await fetch(`${API_URL}/merchant/documents/invoice/${order.id}/email`, {
-      //   method: 'POST',
-      //   headers: { 'Authorization': `Bearer ${token}` },
-      //   body: JSON.stringify({
-      //     recipientEmail: order.customer.email,
-      //     message: 'Please find your invoice attached.'
-      //   })
-      // });
+      if (!invoiceDocId) {
+        showAlert('Error', 'Please generate the invoice first');
+        setEmailing(false);
+        return;
+      }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const recipientEmail = order.customer?.email;
+      if (!recipientEmail) {
+        showAlert('Error', 'Customer email not available');
+        setEmailing(false);
+        return;
+      }
+
+      await documentsService.emailDocument(invoiceDocId, [recipientEmail], {
+        subject: `Invoice for Order #${order.id}`,
+        message: 'Please find your invoice attached.',
+      });
 
       showAlert('Success', `Invoice sent to ${order.customer?.email || 'customer'}`);
     } catch (error) {
