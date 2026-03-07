@@ -32,6 +32,8 @@ interface PaginatedResponse<T = any> {
 class ApiClient {
   private axiosInstance: AxiosInstance;
   private isTokenInvalid: boolean = false;
+  private cachedToken: string | null = null;
+  private tokenInitPromise: Promise<void> | null = null;
 
   constructor() {
     // Ensure baseURL doesn't end with slash for proper URL joining
@@ -47,7 +49,22 @@ class ApiClient {
       },
     });
 
+    // Initialize token from AsyncStorage once on startup
+    this.tokenInitPromise = this.initializeToken();
     this.setupInterceptors();
+  }
+
+  private async initializeToken(): Promise<void> {
+    try {
+      this.cachedToken = await AsyncStorage.getItem('auth_token');
+    } catch {
+      this.cachedToken = null;
+    }
+  }
+
+  /** Call this after login/register to update the in-memory token */
+  setToken(token: string | null): void {
+    this.cachedToken = token;
   }
 
   private setupInterceptors() {
@@ -60,11 +77,13 @@ class ApiClient {
           return Promise.reject(new Error('Token is invalid, please login again'));
         }
 
-        // Add small delay to ensure AsyncStorage operations complete
-        // This helps prevent race conditions with token storage
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Wait for initial token load to complete (replaces setTimeout hack)
+        if (this.tokenInitPromise) {
+          await this.tokenInitPromise;
+          this.tokenInitPromise = null;
+        }
 
-        const token = await AsyncStorage.getItem('auth_token');
+        const token = this.cachedToken;
 
         if (token && !this.isTokenInvalid) {
           config.headers = config.headers || {};
@@ -85,7 +104,7 @@ class ApiClient {
           delete config.headers['content-type'];
           delete config.headers['content-Type'];
           delete config.headers['Content-type'];
-          console.log('🔵 [API Client] FormData detected, Content-Type headers removed');
+          if (__DEV__) console.log('🔵 [API Client] FormData detected, Content-Type headers removed');
         } else if (config.data && !config.headers['Content-Type']) {
           // For JSON data, set Content-Type to application/json
           config.headers['Content-Type'] = 'application/json';
@@ -107,6 +126,7 @@ class ApiClient {
         // Handle token expiration/invalidation
         if (error.response?.status === 401) {
           this.isTokenInvalid = true;
+          this.cachedToken = null;
 
           await AsyncStorage.removeItem('auth_token');
           await AsyncStorage.removeItem('user_data');
@@ -169,12 +189,12 @@ class ApiClient {
     const baseURL = this.axiosInstance.defaults.baseURL || '';
     const fullUrl = `${baseURL}/${cleanUrl}`;
     
-    console.log('🔵 [API Client] PUT Request:', fullUrl);
-    console.log('🔵 [API Client] PUT Data:', JSON.stringify(data, null, 2));
+    if (__DEV__) console.log('🔵 [API Client] PUT Request:', fullUrl);
+    if (__DEV__) console.log('🔵 [API Client] PUT Data:', JSON.stringify(data, null, 2));
     
     try {
       const response = await this.axiosInstance.put<ApiResponse<T>>(cleanUrl, data, config);
-      console.log('🟢 [API Client] PUT Response:', {
+      if (__DEV__) console.log('🟢 [API Client] PUT Response:', {
         status: response.status,
         url: cleanUrl,
         hasData: !!response.data,
@@ -182,7 +202,7 @@ class ApiClient {
       });
       return response.data;
     } catch (error: any) {
-      console.error('❌ [API Client] PUT Error:', {
+      if (__DEV__) console.error('❌ [API Client] PUT Error:', {
         url: cleanUrl,
         status: error.response?.status,
         message: error.message,
