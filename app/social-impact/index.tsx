@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { socialImpactAdminService, SocialImpactEvent } from '@/services/api/socialImpact';
+import { BRAND } from '@/constants/brand';
 import { showAlert } from '@/utils/alert';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
 
@@ -182,7 +183,7 @@ export default function SocialImpactEventsScreen() {
             <View style={styles.rewardsRow}>
               <View style={styles.rewardItem}>
                 <Ionicons name="wallet" size={14} color="#10B981" />
-                <Text style={styles.rewardText}>+{item.rewards.rezCoins} Nuqta</Text>
+                <Text style={styles.rewardText}>+{item.rewards.rezCoins} {BRAND.COIN_SHORT}</Text>
               </View>
               {item.rewards.brandCoins > 0 && item.sponsor && (
                 <View style={styles.rewardItem}>

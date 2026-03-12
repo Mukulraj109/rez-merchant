@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { socialImpactAdminService, SocialImpactEvent } from '@/services/api/socialImpact';
+import { BRAND } from '@/constants/brand';
 import ErrorModal from '@/components/common/ErrorModal';
 import SuccessModal from '@/components/common/SuccessModal';
 import ConfirmModal from '@/components/common/ConfirmModal';
@@ -371,7 +372,7 @@ export default function EventDetailScreen() {
                   <View style={styles.rewardItem}>
                     <Ionicons name="wallet" size={24} color="#10B981" />
                     <Text style={styles.rewardValue}>+{event.rewards.rezCoins}</Text>
-                    <Text style={styles.rewardLabel}>Nuqta Coins</Text>
+                    <Text style={styles.rewardLabel}>{BRAND.COIN_NAME}</Text>
                   </View>
                   {event.rewards.brandCoins > 0 && event.sponsor && (
                     <View style={[styles.rewardItem, styles.rewardItemPurple]}>

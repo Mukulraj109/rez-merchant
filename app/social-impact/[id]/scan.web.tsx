@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import jsQR from 'jsqr';
 import { socialImpactAdminService } from '@/services/api/socialImpact';
+import { BRAND } from '@/constants/brand';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SCAN_AREA_SIZE = Math.min(SCREEN_WIDTH * 0.7, 320);
@@ -447,7 +448,7 @@ export default function QRScannerWebScreen() {
             <View style={styles.infoCard}>
               <Ionicons name="information-circle" size={18} color="#3B82F6" />
               <Text style={styles.infoText}>
-                Participants show their QR code from the Nuqta app after
+                Participants show their QR code from the {BRAND.APP_NAME} app after
                 registering for the event.
               </Text>
             </View>

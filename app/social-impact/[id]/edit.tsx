@@ -21,6 +21,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { socialImpactAdminService, UpdateEventData, Sponsor, SocialImpactEvent } from '@/services/api/socialImpact';
+import { BRAND } from '@/constants/brand';
 import { uploadsService } from '@/services/api/uploads';
 import { isWeb, handleWebImageUpload } from '@/utils/platform';
 import ErrorModal from '@/components/common/ErrorModal';
@@ -737,7 +738,7 @@ export default function EditEventScreen() {
 
                 <View style={styles.row}>
                   <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.inputLabel}>Nuqta Coins</Text>
+                    <Text style={styles.inputLabel}>{BRAND.COIN_NAME}</Text>
                     <TextInput
                       style={styles.textInput}
                       value={rezCoins}

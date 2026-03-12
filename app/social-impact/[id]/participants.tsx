@@ -21,6 +21,7 @@ import {
   Participant,
   SocialImpactEvent,
 } from '@/services/api/socialImpact';
+import { BRAND } from '@/constants/brand';
 
 const STATUS_FILTERS = [
   { label: 'All', value: 'all' },
@@ -261,7 +262,7 @@ export default function ParticipantsScreen() {
             <View style={styles.coinsRow}>
               <Ionicons name="wallet" size={14} color="#10B981" />
               <Text style={styles.coinsText}>
-                +{item.coinsAwarded.rez} Nuqta, +{item.coinsAwarded.brand} Brand
+                +{item.coinsAwarded.rez} {BRAND.COIN_SHORT}, +{item.coinsAwarded.brand} Brand
               </Text>
             </View>
           )}
