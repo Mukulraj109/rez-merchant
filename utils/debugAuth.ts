@@ -1,5 +1,4 @@
 // Debugging utilities for authentication issues
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageService } from '@/services/storage';
 import { apiClient } from '@/services/api/index';
 import { getApiUrl } from '@/config/api';
@@ -31,13 +30,6 @@ export const debugAuth = {
     apiClient.resetTokenStatus();
     console.log('✅ All auth data cleared');
     
-    // Also clear any corrupted tokens from old JSON.stringify format
-    try {
-      await AsyncStorage.removeItem('auth_token');
-      console.log('✅ Raw token storage cleared');
-    } catch (e) {
-      console.log('Info: Raw token storage was already clear');
-    }
   },
 
   // Check current auth status

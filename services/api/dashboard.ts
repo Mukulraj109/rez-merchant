@@ -1,5 +1,5 @@
 import { buildApiUrl } from '../../config/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storageService } from '../storage';
 
 export interface DashboardMetrics {
   revenue: {
@@ -65,6 +65,99 @@ export interface DashboardData {
     currentStock: number;
     threshold: number;
   }>;
+}
+
+export interface StorePerformance {
+  storeId: string;
+  name: string;
+  logo: string | null;
+  slug: string;
+  isActive: boolean;
+  rating: number;
+  ratingCount: number;
+  category: string;
+  location: string;
+  cashbackPercent: number;
+  monthlyOrders: number;
+  monthlyRevenue: number;
+  monthlyPayout: number;
+  pendingOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  avgOrderValue: number;
+  uniqueCustomers: number;
+  todayOrders: number;
+  todayRevenue: number;
+  totalProducts: number;
+  activeProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  pendingCashbackCount: number;
+  pendingCashbackAmount: number;
+}
+
+export interface StorePerformanceResponse {
+  stores: StorePerformance[];
+  summary: {
+    totalStores: number;
+    activeStores: number;
+    totalMonthlyRevenue: number;
+    totalMonthlyOrders: number;
+    totalPendingOrders: number;
+  };
+}
+
+export interface ActionItem {
+  id: string;
+  type: string;
+  priority: 'urgent' | 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  storeName: string;
+  storeId: string;
+  count: number;
+  deepLink: string;
+  icon: string;
+  color: string;
+}
+
+export interface ActionItemsResponse {
+  actionItems: ActionItem[];
+  summary: {
+    total: number;
+    urgent: number;
+    high: number;
+    medium: number;
+  };
+}
+
+export interface CustomerPayment {
+  type: 'order' | 'store_payment';
+  id: string;
+  orderNumber: string | null;
+  customerName: string;
+  customerPhone: string;
+  customerImage: string | null;
+  storeName: string;
+  storeId: string;
+  amount: number;
+  merchantPayout: number;
+  paymentMethod: string;
+  coinsUsed: number;
+  status: string;
+  fulfillmentType: string;
+  createdAt: string;
+}
+
+export interface CustomerPaymentsResponse {
+  payments: CustomerPayment[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
 }
 
 class DashboardService {
@@ -398,9 +491,100 @@ class DashboardService {
     }
   }
 
+  // Get customer payments with details for dashboard feed
+  async getCustomerPayments(storeId?: string, page: number = 1, limit: number = 10): Promise<CustomerPaymentsResponse> {
+    try {
+      const params = new URLSearchParams();
+      if (storeId) params.append('storeId', storeId);
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+
+      const url = buildApiUrl(`merchant/dashboard/customer-payments?${params.toString()}`);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        return data.data;
+      } else {
+        throw new Error(data.message || 'Failed to get customer payments');
+      }
+    } catch (error: any) {
+      console.error('Get customer payments error:', error);
+      return { payments: [], pagination: { currentPage: 1, totalPages: 0, totalItems: 0, hasNextPage: false, hasPrevPage: false } };
+    }
+  }
+
+  // Get per-store performance breakdown
+  async getStorePerformance(): Promise<StorePerformanceResponse> {
+    try {
+      const url = buildApiUrl('merchant/dashboard/store-performance');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        return data.data;
+      }
+      throw new Error(data.message || 'Failed to get store performance');
+    } catch (error: any) {
+      console.error('Get store performance error:', error);
+      return { stores: [], summary: { totalStores: 0, activeStores: 0, totalMonthlyRevenue: 0, totalMonthlyOrders: 0, totalPendingOrders: 0 } };
+    }
+  }
+
+  // Get action items / to-do list for merchant
+  async getActionItems(storeId?: string): Promise<ActionItemsResponse> {
+    try {
+      const params = new URLSearchParams();
+      if (storeId) params.append('storeId', storeId);
+
+      const url = buildApiUrl(`merchant/dashboard/action-items?${params.toString()}`);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        return data.data;
+      }
+      throw new Error(data.message || 'Failed to get action items');
+    } catch (error: any) {
+      console.error('Get action items error:', error);
+      return { actionItems: [], summary: { total: 0, urgent: 0, high: 0, medium: 0 } };
+    }
+  }
+
   // Helper method to get auth token
   private async getAuthToken(): Promise<string> {
-    return await AsyncStorage.getItem('auth_token') || '';
+    return (await storageService.getAuthToken()) || '';
   }
 }
 

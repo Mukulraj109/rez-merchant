@@ -22,6 +22,7 @@
 
 import { apiClient, ApiResponse, PaginatedResponse } from './index';
 import { storageService } from '../storage';
+import { getApiUrl, buildApiUrl } from '../../config/api';
 import {
   Notification,
   NotificationWithDelivery,
@@ -49,7 +50,6 @@ import {
   TeamNotification,
   PaymentNotification,
 } from '../../types/notifications';
-import { getApiUrl } from '../../config/api';
 
 /**
  * NotificationsService handles all notification operations
@@ -658,8 +658,69 @@ class NotificationsService {
   }
 
   // ============================================================================
+  // Push Notification Token Methods
+  // ============================================================================
+
+  /**
+   * Register push notification token with backend
+   */
+  async registerPushToken(token: string, platform: 'ios' | 'android' | 'web', deviceName?: string): Promise<any> {
+    try {
+      const url = buildApiUrl('merchant/notifications/register-token');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: JSON.stringify({ token, platform, deviceName })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to register token');
+      }
+      return data;
+    } catch (error: any) {
+      console.error('[NotificationsService] registerPushToken error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Unregister push notification token from backend
+   */
+  async unregisterPushToken(token: string): Promise<any> {
+    try {
+      const url = buildApiUrl('merchant/notifications/unregister-token');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: JSON.stringify({ token })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to unregister token');
+      }
+      return data;
+    } catch (error: any) {
+      console.error('[NotificationsService] unregisterPushToken error:', error);
+      throw error;
+    }
+  }
+
+  // ============================================================================
   // Helper Methods
   // ============================================================================
+
+  /**
+   * Get auth token from storage
+   */
+  private async getAuthToken(): Promise<string> {
+    return (await storageService.getAuthToken()) || '';
+  }
 
   /**
    * Build query parameters for notifications endpoint

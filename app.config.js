@@ -26,7 +26,7 @@ const config = {
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSAppTransportSecurity: {
-          NSAllowsArbitraryLoads: true,
+          NSAllowsArbitraryLoads: false,
           NSExceptionDomains: {
             localhost: {
               NSExceptionAllowsInsecureHTTPLoads: true,
@@ -91,9 +91,9 @@ const config = {
       router: {
         appDir: "app"
       },
-      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5001/api',
+      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.rezapp.com/api',
       apiTimeout: process.env.EXPO_PUBLIC_API_TIMEOUT || '60000',
-      socketUrl: process.env.EXPO_PUBLIC_SOCKET_URL || 'http://localhost:5001',
+      socketUrl: process.env.EXPO_PUBLIC_SOCKET_URL || 'https://api.rezapp.com',
       socketTimeout: process.env.EXPO_PUBLIC_SOCKET_TIMEOUT || '5000',
       privacyPolicyUrl: "https://rezmerchant.com/privacy",
       termsOfServiceUrl: "https://rezmerchant.com/terms",

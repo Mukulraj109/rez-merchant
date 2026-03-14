@@ -1,6 +1,6 @@
 import { apiClient } from './index';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storageService } from '../storage';
 
 export interface UploadedFile {
   url: string;
@@ -46,7 +46,7 @@ class UploadsService {
    * Get auth token for upload requests
    */
   private async getAuthToken(): Promise<string> {
-    const token = await AsyncStorage.getItem('auth_token');
+    const token = await storageService.getAuthToken();
     if (!token) {
       throw new Error('No token provided, authorization denied');
     }

@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiUrl } from '../../config/api';
+import { storageService } from '../storage';
 
 export interface StorePaymentRecord {
   paymentId: string;
@@ -65,7 +65,7 @@ export interface PaymentSearchParams {
 
 class PaymentsService {
   private async getAuthToken(): Promise<string> {
-    return await AsyncStorage.getItem('auth_token') || '';
+    return (await storageService.getAuthToken()) || '';
   }
 
   async getPayments(storeId: string, params: PaymentSearchParams = {}): Promise<PaymentsResponse> {

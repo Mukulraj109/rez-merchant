@@ -23,9 +23,7 @@ import { useMerchant } from '@/contexts/MerchantContext';
 import { useStore } from '@/contexts/StoreContext';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useDashboardRealTime } from '@/hooks/useRealTimeUpdates';
-import { dashboardService } from '@/services/api/dashboard';
-import paymentsService, { StorePaymentRecord } from '@/services/api/payments';
-import { runOfflineTests } from '@/utils/testOfflineFeatures';
+import { dashboardService, CustomerPayment, StorePerformance, ActionItem } from '@/services/api/dashboard';
 
 const { width } = Dimensions.get('window');
 
@@ -81,7 +79,9 @@ export default function DashboardScreen() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [recentPayments, setRecentPayments] = useState<StorePaymentRecord[]>([]);
+  const [customerPayments, setCustomerPayments] = useState<CustomerPayment[]>([]);
+  const [storePerformance, setStorePerformance] = useState<StorePerformance[]>([]);
+  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   const fetchDashboardData = useCallback(async (showRefreshing = false) => {
     try {
@@ -129,6 +129,16 @@ export default function DashboardScreen() {
         setOverview(transformedOverview);
       }
 
+      // Fetch customer payments, store performance, and action items in parallel
+      const [cpData, spData, aiData] = await Promise.all([
+        dashboardService.getCustomerPayments(storeId, 1, 8).catch(() => ({ payments: [] })),
+        dashboardService.getStorePerformance().catch(() => ({ stores: [] })),
+        dashboardService.getActionItems(storeId).catch(() => ({ actionItems: [] })),
+      ]);
+      setCustomerPayments(cpData.payments || []);
+      setStorePerformance(spData.stores || []);
+      setActionItems(aiData.actionItems || []);
+
       setNotifications([
         {
           id: '1',
@@ -174,21 +184,9 @@ export default function DashboardScreen() {
     }
   }, [activeStore]);
 
-  const fetchRecentPayments = useCallback(async () => {
-    const storeId = activeStore?._id;
-    if (!storeId) return;
-    try {
-      const response = await paymentsService.getRecentPayments(storeId, 5);
-      setRecentPayments(response.data.transactions || []);
-    } catch (err) {
-      // Non-critical — don't block dashboard
-    }
-  }, [activeStore]);
-
   useEffect(() => {
     fetchDashboardData();
     loadAnalytics();
-    fetchRecentPayments();
   }, [fetchDashboardData]);
 
   // Real-time updates logic (simplified from original)
@@ -524,6 +522,49 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
+        {/* Action Items - What Needs Your Attention */}
+        {actionItems.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(250).springify()}>
+            <View style={styles.actionItemsSection}>
+              <View style={styles.actionItemsHeader}>
+                <View style={styles.actionItemsTitleRow}>
+                  <View style={[styles.recentActivityIconBg, { backgroundColor: '#EF4444' }]}>
+                    <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  </View>
+                  <Heading3 style={styles.recentActivityTitle}>Needs Your Attention</Heading3>
+                  <View style={styles.actionBadge}>
+                    <BodyText style={styles.actionBadgeText}>{actionItems.length}</BodyText>
+                  </View>
+                </View>
+              </View>
+              {actionItems.slice(0, 5).map((item, index) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.actionItemCard,
+                    index === 0 && item.priority === 'urgent' && styles.actionItemUrgent,
+                  ]}
+                  onPress={() => router.push(item.deepLink as any)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.actionItemIconBg, { backgroundColor: `${item.color}15` }]}>
+                    <Ionicons name={item.icon as any} size={20} color={item.color} />
+                  </View>
+                  <View style={styles.actionItemContent}>
+                    <BodyText style={styles.actionItemTitle}>{item.title}</BodyText>
+                    <Caption style={styles.actionItemDesc}>{item.description}</Caption>
+                  </View>
+                  <View style={[styles.actionPriorityBadge, { backgroundColor: `${item.color}15` }]}>
+                    <BodyText style={[styles.actionPriorityText, { color: item.color }]}>
+                      {item.priority === 'urgent' ? 'URGENT' : item.priority === 'high' ? 'HIGH' : 'MED'}
+                    </BodyText>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
+        )}
+
         {/* Analytics Overview Section - Premium Redesign */}
         <Animated.View entering={FadeInDown.delay(400).springify()}>
           <View style={styles.analyticsSection}>
@@ -739,6 +780,112 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
+        {/* Store Performance Breakdown */}
+        {storePerformance.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(480).springify()}>
+            <View style={styles.storePerformanceSection}>
+              <View style={styles.storePerformanceHeader}>
+                <View style={styles.actionItemsTitleRow}>
+                  <View style={[styles.recentActivityIconBg, { backgroundColor: '#6366F1' }]}>
+                    <Ionicons name="storefront" size={18} color="#fff" />
+                  </View>
+                  <Heading3 style={styles.recentActivityTitle}>Store Performance</Heading3>
+                </View>
+                <TouchableOpacity
+                  onPress={() => router.push('/stores')}
+                  style={styles.recentActivityViewAll}
+                >
+                  <BodyText style={styles.recentActivityViewAllText}>All Stores</BodyText>
+                  <Ionicons name="chevron-forward" size={16} color="#6366F1" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 4, gap: 12 }}
+              >
+                {storePerformance.map((store, index) => (
+                  <Animated.View key={store.storeId} entering={FadeInRight.delay(index * 80).springify()}>
+                    <TouchableOpacity
+                      style={styles.storeCard}
+                      activeOpacity={0.85}
+                      onPress={() => router.push(`/stores/${store.storeId}`)}
+                    >
+                      {/* Store Header */}
+                      <View style={styles.storeCardHeader}>
+                        <View style={styles.storeCardAvatar}>
+                          <BodyText style={styles.storeCardAvatarText}>
+                            {(store.name || 'S').charAt(0).toUpperCase()}
+                          </BodyText>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <BodyText style={styles.storeCardName} numberOfLines={1}>{store.name}</BodyText>
+                          <Caption style={styles.storeCardLocation} numberOfLines={1}>
+                            {store.location || store.category || ''}
+                          </Caption>
+                        </View>
+                        {store.rating > 0 && (
+                          <View style={styles.storeRatingBadge}>
+                            <Ionicons name="star" size={11} color="#F59E0B" />
+                            <BodyText style={styles.storeRatingText}>{store.rating.toFixed(1)}</BodyText>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Key Metrics Grid */}
+                      <View style={styles.storeMetricsGrid}>
+                        <View style={styles.storeMetricItem}>
+                          <Caption style={styles.storeMetricLabel}>This Month</Caption>
+                          <BodyText style={styles.storeMetricValue}>₹{store.monthlyRevenue.toLocaleString()}</BodyText>
+                        </View>
+                        <View style={styles.storeMetricItem}>
+                          <Caption style={styles.storeMetricLabel}>Orders</Caption>
+                          <BodyText style={styles.storeMetricValue}>{store.monthlyOrders}</BodyText>
+                        </View>
+                        <View style={styles.storeMetricItem}>
+                          <Caption style={styles.storeMetricLabel}>Today</Caption>
+                          <BodyText style={[styles.storeMetricValue, { color: '#10B981' }]}>₹{store.todayRevenue.toLocaleString()}</BodyText>
+                        </View>
+                        <View style={styles.storeMetricItem}>
+                          <Caption style={styles.storeMetricLabel}>Customers</Caption>
+                          <BodyText style={styles.storeMetricValue}>{store.uniqueCustomers}</BodyText>
+                        </View>
+                      </View>
+
+                      {/* Status Pills */}
+                      <View style={styles.storeStatusRow}>
+                        {store.pendingOrders > 0 && (
+                          <View style={[styles.storeStatusPill, { backgroundColor: '#FEF3C7' }]}>
+                            <View style={[styles.storeStatusDot, { backgroundColor: '#F59E0B' }]} />
+                            <Caption style={{ color: '#92400E', fontSize: 11 }}>{store.pendingOrders} pending</Caption>
+                          </View>
+                        )}
+                        {store.lowStockProducts > 0 && (
+                          <View style={[styles.storeStatusPill, { backgroundColor: '#FEE2E2' }]}>
+                            <View style={[styles.storeStatusDot, { backgroundColor: '#EF4444' }]} />
+                            <Caption style={{ color: '#991B1B', fontSize: 11 }}>{store.lowStockProducts} low stock</Caption>
+                          </View>
+                        )}
+                        {store.pendingOrders === 0 && store.lowStockProducts === 0 && (
+                          <View style={[styles.storeStatusPill, { backgroundColor: '#D1FAE5' }]}>
+                            <View style={[styles.storeStatusDot, { backgroundColor: '#10B981' }]} />
+                            <Caption style={{ color: '#065F46', fontSize: 11 }}>All good</Caption>
+                          </View>
+                        )}
+                        {store.pendingCashbackCount > 0 && (
+                          <View style={[styles.storeStatusPill, { backgroundColor: '#EDE9FE' }]}>
+                            <Caption style={{ color: '#5B21B6', fontSize: 11 }}>{store.pendingCashbackCount} cashback</Caption>
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  </Animated.View>
+                ))}
+              </ScrollView>
+            </View>
+          </Animated.View>
+        )}
+
         {/* Quick Actions - Premium Grid */}
         <Animated.View entering={FadeInDown.delay(500).springify()}>
           <View style={styles.quickActionsSection}>
@@ -862,16 +1009,16 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* Recent In-Store Payments */}
-        {recentPayments.length > 0 && (
+        {/* Customer Payment Activity */}
+        {customerPayments.length > 0 && (
           <Animated.View entering={FadeInDown.delay(580).springify()}>
             <View style={styles.recentActivitySection}>
               <View style={styles.recentActivityHeader}>
                 <View style={styles.recentActivityTitleRow}>
                   <View style={[styles.recentActivityIconBg, { backgroundColor: '#10B981' }]}>
-                    <Ionicons name="cash" size={18} color="#fff" />
+                    <Ionicons name="people" size={18} color="#fff" />
                   </View>
-                  <Heading3 style={styles.recentActivityTitle}>Recent Payments</Heading3>
+                  <Heading3 style={styles.recentActivityTitle}>Customer Payments</Heading3>
                 </View>
                 <TouchableOpacity
                   onPress={() => router.push('/(dashboard)/payments')}
@@ -883,35 +1030,43 @@ export default function DashboardScreen() {
               </View>
 
               <View style={styles.recentActivityList}>
-                {recentPayments.map((payment, index) => (
-                  <View
-                    key={payment.paymentId}
+                {customerPayments.map((payment, index) => (
+                  <TouchableOpacity
+                    key={payment.id}
                     style={[
                       styles.recentActivityItem,
-                      index === recentPayments.length - 1 && { borderBottomWidth: 0 },
+                      index === customerPayments.length - 1 && { borderBottomWidth: 0 },
                     ]}
+                    onPress={() => payment.type === 'order' && payment.id ? router.push(`/orders/${payment.id}`) : null}
+                    activeOpacity={0.7}
                   >
                     <View style={styles.recentActivityItemLeft}>
-                      <View style={[styles.recentActivityItemIcon, { backgroundColor: '#10B98115' }]}>
-                        <Ionicons name="cash-outline" size={18} color="#10B981" />
+                      <View style={[styles.customerPaymentAvatar, { backgroundColor: '#7C3AED15' }]}>
+                        <BodyText style={styles.customerPaymentAvatarText}>
+                          {(payment.customerName || 'C').charAt(0).toUpperCase()}
+                        </BodyText>
                       </View>
                       <View style={styles.recentActivityItemInfo}>
                         <BodyText style={styles.recentActivityItemTitle}>
-                          ₹{payment.amount.toLocaleString()}
+                          {payment.customerName}
                         </BodyText>
                         <Caption style={styles.recentActivityItemSubtitle}>
-                          {payment.paymentMethod === 'upi' ? 'UPI' : payment.paymentMethod === 'coins_only' ? 'Coins' : 'Card'}
-                          {payment.coinsUsed > 0 ? ` + ${payment.coinsUsed} coins` : ''}
+                          {payment.storeName} {payment.type === 'order' ? `• #${payment.orderNumber}` : '• In-store'} • {payment.paymentMethod === 'upi' ? 'UPI' : payment.paymentMethod === 'wallet' ? 'Wallet' : payment.paymentMethod === 'coins_only' ? 'Coins' : payment.paymentMethod === 'cod' ? 'COD' : 'Card'}
                         </Caption>
                       </View>
                     </View>
-                    <Caption style={styles.recentActivityItemTime}>
-                      {new Date(payment.completedAt || payment.createdAt).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </Caption>
-                  </View>
+                    <View style={styles.recentActivityItemRight}>
+                      <BodyText style={[styles.recentActivityItemAmount, { color: '#10B981' }]}>
+                        +₹{payment.amount.toLocaleString()}
+                      </BodyText>
+                      <Caption style={styles.recentActivityItemTime}>
+                        {new Date(payment.createdAt).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </Caption>
+                    </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -1929,6 +2084,193 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.text.secondary,
     textAlign: 'center',
+  },
+  recentActivityItemTime: {
+    fontSize: 11,
+    color: Colors.text.secondary,
+  },
+  customerPaymentAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customerPaymentAvatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#7C3AED',
+  },
+
+  // Action Items Section
+  actionItemsSection: {
+    marginBottom: Spacing.lg,
+  },
+  actionItemsHeader: {
+    marginBottom: Spacing.md,
+  },
+  actionItemsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  actionBadge: {
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  actionBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  actionItemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 8,
+    ...Shadows.sm,
+  },
+  actionItemUrgent: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+  },
+  actionItemIconBg: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  actionItemContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+  actionItemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  actionItemDesc: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 16,
+  },
+  actionPriorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  actionPriorityText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+
+  // Store Performance Section
+  storePerformanceSection: {
+    marginBottom: Spacing.lg,
+  },
+  storePerformanceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  storeCard: {
+    width: width * 0.72,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    ...Shadows.md,
+  },
+  storeCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  storeCardAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#EDE9FE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  storeCardAvatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#7C3AED',
+  },
+  storeCardName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  storeCardLocation: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  storeRatingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  storeRatingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  storeMetricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 0,
+    marginBottom: 12,
+  },
+  storeMetricItem: {
+    width: '50%',
+    paddingVertical: 6,
+  },
+  storeMetricLabel: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginBottom: 2,
+  },
+  storeMetricValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  storeStatusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  storeStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  storeStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
 });
 

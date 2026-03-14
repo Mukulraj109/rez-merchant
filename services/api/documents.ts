@@ -1,7 +1,7 @@
 // Document generation service for merchant app
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiUrl } from '../../config/api';
+import { storageService } from '../storage';
 import {
   Document,
   DocumentType,
@@ -645,7 +645,7 @@ class DocumentsService {
    * Helper method to get auth token
    */
   private async getAuthToken(): Promise<string> {
-    return await AsyncStorage.getItem('auth_token') || '';
+    return (await storageService.getAuthToken()) || '';
   }
 }
 

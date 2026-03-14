@@ -1,4 +1,5 @@
 import { getApiUrl } from '../../config/api';
+import { storageService } from '../storage';
 
 export interface StoreVisitSearchParams {
   storeId: string;
@@ -203,8 +204,7 @@ class StoreVisitsService {
 
   // Helper method to get auth token
   private async getAuthToken(): Promise<string> {
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    return await AsyncStorage.getItem('auth_token') || '';
+    return (await storageService.getAuthToken()) || '';
   }
 }
 

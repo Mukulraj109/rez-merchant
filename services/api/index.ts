@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG, getApiUrl } from '../../config/api';
+import { storageService } from '../storage';
 
 // Use environment-aware API URL
 const API_BASE_URL = getApiUrl();
@@ -56,7 +56,7 @@ class ApiClient {
 
   private async initializeToken(): Promise<void> {
     try {
-      this.cachedToken = await AsyncStorage.getItem('auth_token');
+      this.cachedToken = await storageService.getAuthToken();
     } catch {
       this.cachedToken = null;
     }
@@ -128,9 +128,9 @@ class ApiClient {
           this.isTokenInvalid = true;
           this.cachedToken = null;
 
-          await AsyncStorage.removeItem('auth_token');
-          await AsyncStorage.removeItem('user_data');
-          await AsyncStorage.removeItem('merchant_data');
+          await storageService.removeAuthToken();
+          await storageService.removeUserData();
+          await storageService.removeMerchantData();
         }
 
         return Promise.reject(error);

@@ -22,6 +22,7 @@ import { NotificationToastContainer } from '@/components/notifications/Notificat
 import { queryClient } from '@/config/reactQuery';
 import { Colors } from '@/constants/DesignTokens';
 import { ThemeProvider as CustomThemeProvider } from '@/components/ui/ThemeProvider';
+import { installProductionConsoleGuard } from '@/utils/logger';
 
 // Import debug utilities in development
 if (__DEV__) {
@@ -54,6 +55,9 @@ const CustomDarkTheme = {
 };
 
 export default function RootLayout() {
+  React.useEffect(() => {
+    installProductionConsoleGuard();
+  }, []);
   // TEMPORARY: Force clear corrupted storage on iOS to fix token issues
   React.useEffect(() => {
     if (__DEV__ && Platform.OS === 'ios') {

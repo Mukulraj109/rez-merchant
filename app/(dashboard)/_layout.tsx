@@ -10,11 +10,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { teamService } from '@/services/api/team';
 import { canViewTeam } from '@/utils/teamHelpers';
 import { StoreSelector } from '@/components/stores/StoreSelector';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export default function DashboardLayout() {
   const colorScheme = useColorScheme();
   const { logout, permissions } = useAuth();
   const [teamCount, setTeamCount] = useState<number>(0);
+
+  // Register for push notifications when authenticated
+  usePushNotifications();
 
   // Check if user can view team
   const hasTeamViewPermission = canViewTeam(permissions);

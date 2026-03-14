@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { Product, Order, CashbackRequest } from '../types/api';
+import { apiClient } from './api';
 
 export interface OfflineAction {
   id: string;
+  idempotencyKey: string;
   type: 'CREATE_PRODUCT' | 'UPDATE_PRODUCT' | 'DELETE_PRODUCT' | 'UPDATE_ORDER' | 'APPROVE_CASHBACK' | 'REJECT_CASHBACK';
   endpoint: string;
   method: 'POST' | 'PUT' | 'DELETE';
@@ -11,6 +13,11 @@ export interface OfflineAction {
   timestamp: number;
   retryCount: number;
   maxRetries: number;
+}
+
+export interface DeadLetterAction extends OfflineAction {
+  failedAt: number;
+  lastError: string;
 }
 
 export interface CachedData {
@@ -24,43 +31,40 @@ export interface CachedData {
 class OfflineService {
   private readonly CACHE_KEY = 'app_cache';
   private readonly OFFLINE_ACTIONS_KEY = 'offline_actions';
-  private readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-  private isOnline: boolean = true;
-  private syncInProgress: boolean = false;
-  
+  private readonly DEAD_LETTER_KEY = 'offline_actions_dead_letter';
+  private readonly CACHE_DURATION = 24 * 60 * 60 * 1000;
+  private readonly MAX_QUEUE_LENGTH = 500;
+  private readonly MAX_DEAD_LETTER_LENGTH = 1000;
+  private isOnline = true;
+  private syncInProgress = false;
+  private actionSequence = 0;
+
   constructor() {
     this.initializeNetworkListener();
   }
 
-  // Initialize network listener
   private initializeNetworkListener() {
-    NetInfo.addEventListener(state => {
+    NetInfo.addEventListener((state) => {
       const wasOffline = !this.isOnline;
       this.isOnline = state.isConnected ?? false;
-      
-      console.log('🌐 Network status changed:', this.isOnline ? 'Online' : 'Offline');
-      
-      // If we just came back online, sync pending actions
+
       if (wasOffline && this.isOnline) {
-        console.log('🔄 Network restored, syncing offline actions...');
         this.syncOfflineActions();
       }
     });
   }
 
-  // Check if device is online
   async isDeviceOnline(): Promise<boolean> {
     const state = await NetInfo.fetch();
     this.isOnline = state.isConnected ?? false;
     return this.isOnline;
   }
 
-  // Cache data for offline access
   async cacheData(data: Partial<CachedData>): Promise<void> {
     try {
       const existingCache = await this.getCachedData();
       const now = Date.now();
-      
+
       const updatedCache: CachedData = {
         ...existingCache,
         ...data,
@@ -69,13 +73,11 @@ class OfflineService {
       };
 
       await AsyncStorage.setItem(this.CACHE_KEY, JSON.stringify(updatedCache));
-      console.log('💾 Data cached successfully');
-    } catch (error) {
-      console.error('❌ Error caching data:', error);
+    } catch {
+      // best-effort cache
     }
   }
 
-  // Get cached data
   async getCachedData(): Promise<CachedData> {
     try {
       const cached = await AsyncStorage.getItem(this.CACHE_KEY);
@@ -84,21 +86,16 @@ class OfflineService {
       }
 
       const data: CachedData = JSON.parse(cached);
-      
-      // Check if cache is expired
       if (Date.now() > data.expiresAt) {
-        console.log('⏰ Cache expired, returning empty cache');
         return this.getEmptyCache();
       }
 
       return data;
-    } catch (error) {
-      console.error('❌ Error getting cached data:', error);
+    } catch {
       return this.getEmptyCache();
     }
   }
 
-  // Check if cache is valid and not expired
   async isCacheValid(): Promise<boolean> {
     try {
       const cache = await this.getCachedData();
@@ -108,7 +105,6 @@ class OfflineService {
     }
   }
 
-  // Get empty cache structure
   private getEmptyCache(): CachedData {
     return {
       products: [],
@@ -119,41 +115,66 @@ class OfflineService {
     };
   }
 
-  // Queue an action for when device comes back online
-  async queueOfflineAction(action: Omit<OfflineAction, 'id' | 'timestamp' | 'retryCount'>): Promise<void> {
+  async queueOfflineAction(action: Omit<OfflineAction, 'id' | 'timestamp' | 'retryCount' | 'idempotencyKey'>): Promise<void> {
     try {
+      const now = Date.now();
+      this.actionSequence += 1;
       const offlineAction: OfflineAction = {
         ...action,
-        id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: Date.now(),
+        id: `offline_${now}_${this.actionSequence}`,
+        idempotencyKey: `offline-${now}-${this.actionSequence}`,
+        timestamp: now,
         retryCount: 0,
       };
 
       const existingActions = await this.getOfflineActions();
       existingActions.push(offlineAction);
-      
+
+      if (existingActions.length > this.MAX_QUEUE_LENGTH) {
+        const overflowCount = existingActions.length - this.MAX_QUEUE_LENGTH;
+        const dropped = existingActions.splice(0, overflowCount);
+        await this.pushToDeadLetter(
+          dropped.map((item) => ({
+            ...item,
+            failedAt: Date.now(),
+            lastError: 'Queue capacity exceeded before sync',
+          }))
+        );
+      }
+
       await AsyncStorage.setItem(this.OFFLINE_ACTIONS_KEY, JSON.stringify(existingActions));
-      console.log('📤 Queued offline action:', action.type);
-    } catch (error) {
-      console.error('❌ Error queuing offline action:', error);
+    } catch {
+      // best-effort queue
     }
   }
 
-  // Get pending offline actions
   async getOfflineActions(): Promise<OfflineAction[]> {
     try {
       const actions = await AsyncStorage.getItem(this.OFFLINE_ACTIONS_KEY);
       return actions ? JSON.parse(actions) : [];
-    } catch (error) {
-      console.error('❌ Error getting offline actions:', error);
+    } catch {
       return [];
     }
   }
 
-  // Sync pending offline actions when back online
+  async getDeadLetterActions(): Promise<DeadLetterAction[]> {
+    try {
+      const items = await AsyncStorage.getItem(this.DEAD_LETTER_KEY);
+      return items ? JSON.parse(items) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private async pushToDeadLetter(items: DeadLetterAction[]): Promise<void> {
+    if (!items.length) return;
+    const existing = await this.getDeadLetterActions();
+    const combined = [...existing, ...items].slice(-this.MAX_DEAD_LETTER_LENGTH);
+    await AsyncStorage.setItem(this.DEAD_LETTER_KEY, JSON.stringify(combined));
+  }
+
   async syncOfflineActions(): Promise<{ successful: number; failed: number }> {
     if (this.syncInProgress) {
-      console.log('🔄 Sync already in progress');
       return { successful: 0, failed: 0 };
     }
 
@@ -163,40 +184,34 @@ class OfflineService {
 
     try {
       const actions = await this.getOfflineActions();
-      console.log(`🔄 Syncing ${actions.length} offline actions...`);
+      const remainingActions: OfflineAction[] = [];
+      const deadLetters: DeadLetterAction[] = [];
 
       for (const action of actions) {
         try {
           await this.executeOfflineAction(action);
           successful++;
-          console.log('✅ Successfully synced action:', action.type);
-        } catch (error) {
-          console.error('❌ Failed to sync action:', action.type, error);
-          
-          // Increment retry count
+        } catch (error: any) {
           action.retryCount++;
-          
+          const errMessage = error?.message || 'Unknown sync error';
+
           if (action.retryCount >= action.maxRetries) {
-            console.log('🚫 Max retries reached for action:', action.type);
             failed++;
+            deadLetters.push({
+              ...action,
+              failedAt: Date.now(),
+              lastError: errMessage,
+            });
           } else {
-            // Keep action for retry
-            console.log(`🔄 Will retry action (${action.retryCount}/${action.maxRetries}):`, action.type);
+            remainingActions.push(action);
           }
         }
       }
 
-      // Remove successful actions and failed actions that exceeded max retries
-      const remainingActions = actions.filter(action => 
-        action.retryCount < action.maxRetries && !this.wasActionSuccessful(action.id)
-      );
-      
       await AsyncStorage.setItem(this.OFFLINE_ACTIONS_KEY, JSON.stringify(remainingActions));
-      
-      console.log(`🎯 Sync complete: ${successful} successful, ${failed} failed`);
-      
-    } catch (error) {
-      console.error('❌ Error during sync:', error);
+      await this.pushToDeadLetter(deadLetters);
+    } catch {
+      // best-effort sync
     } finally {
       this.syncInProgress = false;
     }
@@ -204,61 +219,70 @@ class OfflineService {
     return { successful, failed };
   }
 
-  // Execute a single offline action
+  private normalizeEndpoint(endpoint: string): string {
+    if (endpoint.startsWith('/api/')) {
+      return endpoint.slice('/api/'.length);
+    }
+    if (endpoint.startsWith('/')) {
+      return endpoint.slice(1);
+    }
+    return endpoint;
+  }
+
   private async executeOfflineAction(action: OfflineAction): Promise<void> {
-    // This would normally make the actual API call
-    // For now, we'll simulate the API call
-    console.log(`🚀 Executing offline action: ${action.method} ${action.endpoint}`, action.data);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Simulate success/failure (90% success rate)
-    if (Math.random() > 0.1) {
-      // Success - mark action as successful
-      await this.markActionAsSuccessful(action.id);
-    } else {
-      // Failure - throw error to trigger retry logic
-      throw new Error('Simulated API failure');
+    const endpoint = this.normalizeEndpoint(action.endpoint);
+    const config = {
+      headers: {
+        'X-Idempotency-Key': action.idempotencyKey,
+      },
+    };
+
+    if (action.method === 'POST') {
+      const response = await apiClient.post(endpoint, action.data, config);
+      if (response?.success === false) {
+        throw new Error(response.message || 'POST action rejected');
+      }
+      return;
+    }
+
+    if (action.method === 'PUT') {
+      const response = await apiClient.put(endpoint, action.data, config);
+      if (response?.success === false) {
+        throw new Error(response.message || 'PUT action rejected');
+      }
+      return;
+    }
+
+    const response = await apiClient.delete(endpoint, config);
+    if (response?.success === false) {
+      throw new Error(response.message || 'DELETE action rejected');
     }
   }
 
-  // Mark action as successful (in a real app, this might be tracked differently)
-  private successfulActions: Set<string> = new Set();
-  
-  private async markActionAsSuccessful(actionId: string): Promise<void> {
-    this.successfulActions.add(actionId);
-  }
-
-  private wasActionSuccessful(actionId: string): boolean {
-    return this.successfulActions.has(actionId);
-  }
-
-  // Clear all cached data
   async clearCache(): Promise<void> {
-    try {
-      await AsyncStorage.multiRemove([this.CACHE_KEY, this.OFFLINE_ACTIONS_KEY]);
-      this.successfulActions.clear();
-      console.log('🗑️ Cache cleared');
-    } catch (error) {
-      console.error('❌ Error clearing cache:', error);
-    }
+    await AsyncStorage.multiRemove([
+      this.CACHE_KEY,
+      this.OFFLINE_ACTIONS_KEY,
+      this.DEAD_LETTER_KEY,
+    ]);
   }
 
-  // Get cache info for debugging
   async getCacheInfo(): Promise<{
     cacheSize: number;
     pendingActions: number;
+    deadLetterActions: number;
     lastSync: Date | null;
     isExpired: boolean;
   }> {
     try {
       const cache = await this.getCachedData();
       const actions = await this.getOfflineActions();
-      
+      const deadLetter = await this.getDeadLetterActions();
+
       return {
         cacheSize: cache.products.length + cache.orders.length + cache.cashbackRequests.length,
         pendingActions: actions.length,
+        deadLetterActions: deadLetter.length,
         lastSync: cache.lastSync > 0 ? new Date(cache.lastSync) : null,
         isExpired: Date.now() > cache.expiresAt,
       };
@@ -266,13 +290,13 @@ class OfflineService {
       return {
         cacheSize: 0,
         pendingActions: 0,
+        deadLetterActions: 0,
         lastSync: null,
         isExpired: true,
       };
     }
   }
 
-  // Helper methods for specific data types
   async getCachedProducts(): Promise<Product[]> {
     const cache = await this.getCachedData();
     return cache.products || [];
@@ -288,7 +312,6 @@ class OfflineService {
     return cache.cashbackRequests || [];
   }
 
-  // Queue specific action types
   async queueProductCreate(productData: any): Promise<void> {
     await this.queueOfflineAction({
       type: 'CREATE_PRODUCT',
@@ -324,7 +347,7 @@ class OfflineService {
       endpoint: `/api/orders/${orderId}`,
       method: 'PUT',
       data: orderData,
-      maxRetries: 5, // Orders are more critical
+      maxRetries: 5,
     });
   }
 
@@ -333,7 +356,7 @@ class OfflineService {
       type: 'APPROVE_CASHBACK',
       endpoint: `/api/cashback/${cashbackId}/approve`,
       method: 'PUT',
-      maxRetries: 5, // Financial operations are critical
+      maxRetries: 5,
     });
   }
 
@@ -348,6 +371,5 @@ class OfflineService {
   }
 }
 
-// Create and export singleton instance
 export const offlineService = new OfflineService();
 export default offlineService;
