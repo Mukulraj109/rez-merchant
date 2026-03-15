@@ -20,25 +20,33 @@ import { Card, Heading2, Heading3, BodyText, Caption, Badge, Button, Divider, Sp
 import { ordersService } from '@/services';
 import { Order, OrderStatus } from '@/types/api';
 
-const statusColors: Record<OrderStatus, string> = {
+const statusColors: Record<string, string> = {
   pending: Colors.warning[500],
+  placed: Colors.warning[500],
   confirmed: Colors.primary[500],
   preparing: Colors.warning[600],
   ready: Colors.success[500],
+  dispatched: Colors.primary[600],
   out_for_delivery: Colors.primary[600],
   delivered: Colors.success[600],
+  cancelling: Colors.warning[500],
   cancelled: Colors.error[500],
+  returned: Colors.gray[500],
   refunded: Colors.gray[500]
 };
 
-const statusLabels: Record<OrderStatus, string> = {
+const statusLabels: Record<string, string> = {
   pending: 'Pending',
+  placed: 'Placed',
   confirmed: 'Confirmed',
   preparing: 'Preparing',
   ready: 'Ready',
+  dispatched: 'Dispatched',
   out_for_delivery: 'Out for Delivery',
   delivered: 'Delivered',
+  cancelling: 'Cancelling',
   cancelled: 'Cancelled',
+  returned: 'Returned',
   refunded: 'Refunded'
 };
 

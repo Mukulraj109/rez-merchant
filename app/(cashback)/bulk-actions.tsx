@@ -138,7 +138,7 @@ export default function BulkActionsScreen() {
   };
 
   const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;
-  const formatDate = (date: Date) => new Date(date).toLocaleDateString();
+  const formatDate = (date: Date | string) => new Date(date).toLocaleDateString();
 
   const statusOptions: Array<{ key: CashbackStatus | 'all'; label: string }> = [
     { key: 'all', label: 'All' },

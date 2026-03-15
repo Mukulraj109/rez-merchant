@@ -268,7 +268,7 @@ export default function AddEventScreen() {
           phone: contactPhone.trim() || undefined,
           email: contactEmail.trim() || undefined,
         },
-        eventStatus: status,
+        eventStatus: status as any,
         isCsrActivity,
         featured: isFeatured,
         image: imageUrl || undefined,

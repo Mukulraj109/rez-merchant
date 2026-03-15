@@ -435,7 +435,7 @@ export default function AuditFiltersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: Colors.background.secondary,
   },
   scrollView: {
     flex: 1,
@@ -448,11 +448,11 @@ const styles = StyleSheet.create({
 
   // Section
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   sectionHeader: {
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   selectionBadgeText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     borderRadius: 12,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   dateCardTextActive: {
-    color: '#fff',
+    color: Colors.text.inverse,
   },
 
   // Severity Grid
@@ -527,10 +527,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   severityCardText: {
     fontSize: 13,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   severityCardTextActive: {
-    color: '#fff',
+    color: Colors.text.inverse,
   },
 
   // Chip Grid
@@ -550,10 +550,10 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   chipActive: {
     backgroundColor: Colors.primary[500],
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   chipTextActive: {
-    color: '#fff',
+    color: Colors.text.inverse,
   },
 
   // Checkbox List
@@ -582,10 +582,10 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.gray[300],
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
   },
   checkboxChecked: {
     backgroundColor: Colors.primary[500],
@@ -608,10 +608,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     padding: 14,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   input: {
     flex: 1,
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     padding: Spacing.base,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     ...Shadows.sm,
@@ -654,15 +654,15 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   resetButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   applyButton: {
     flex: 1,
@@ -679,6 +679,6 @@ const styles = StyleSheet.create({
   applyButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#fff',
+    color: Colors.text.inverse,
   },
 });

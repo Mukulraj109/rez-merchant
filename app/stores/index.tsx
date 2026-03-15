@@ -94,7 +94,7 @@ export default function StoresScreen() {
   const getStoreStatus = (store: Store) => {
     // If store is not active, show inactive status
     if (!store.isActive) {
-      return { text: 'Inactive', color: '#6B7280' };
+      return { text: 'Inactive', color: Colors.light.textSecondary };
     }
     
     // If operational hours are set, check if store is currently open
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: Colors.light.card,
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 2 },
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   storeCountText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
     letterSpacing: 0.3,
   },
   viewModeButton: {
@@ -622,14 +622,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     gap: 6,
-    shadowColor: '#7C3AED',
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontWeight: '700',
     fontSize: 14,
     letterSpacing: 0.3,
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
-    shadowColor: '#7C3AED',
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   activeStoreCard: {
     borderColor: '#7C3AED',
     borderWidth: 2,
-    shadowColor: '#7C3AED',
+    shadowColor: Colors.light.primary,
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   },
   paginationDotActive: {
     width: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
   },
   logoContainer: {
     position: 'absolute',
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderWidth: 4,
     borderColor: Colors.light.background,
-    shadowColor: '#7C3AED',
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
     zIndex: 9,
   },
   activeBadgeOverlayText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -850,7 +850,7 @@ const styles = StyleSheet.create({
   featuredBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.light.warningLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
   featuredText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: Colors.light.warning,
   },
   locationRow: {
     flexDirection: 'row',
@@ -969,7 +969,7 @@ const styles = StyleSheet.create({
   },
   deactivateButton: {
     borderColor: '#F59E0B',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.light.warningLight,
   },
   deleteButton: {
     borderColor: Colors.light.error,
@@ -989,7 +989,7 @@ const styles = StyleSheet.create({
     color: Colors.light.success,
   },
   deactivateButtonText: {
-    color: '#F59E0B',
+    color: Colors.light.warning,
   },
   deleteButtonText: {
     color: Colors.light.error,
@@ -1024,7 +1024,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -10,12 +10,12 @@
  * - Actions (notification actions, payloads)
  */
 
-import type {
-  Notification,
+import {
+  type Notification,
   NotificationType,
   NotificationPriority,
   NotificationChannel,
-  NotificationPreferences,
+  type NotificationPreferences,
   NotificationStatus,
 } from '../../types/notifications';
 

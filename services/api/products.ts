@@ -3,8 +3,17 @@ import { buildApiUrl } from '../../config/api';
 import {
   Product,
   ProductCategory,
-  ProductSearchRequest as ProductFilters
+  ProductSearchRequest as ProductFiltersBase
 } from '@/shared/types';
+
+// Extended ProductFilters with extra merchant-specific fields
+interface ProductFilters extends ProductFiltersBase {
+  query?: string;
+  status?: string;
+  stockLevel?: string;
+  visibility?: string;
+  storeId?: string;
+}
 
 export interface ProductListResponse {
   products: Product[];
@@ -570,7 +579,7 @@ class ProductsService {
         status: 'active',
         limit,
         page: 1,
-        sortBy: 'stock',
+        sortBy: 'quantity',
         sortOrder: 'asc'
       });
 
@@ -585,7 +594,7 @@ class ProductsService {
   async toggleProductStatus(productId: string): Promise<Product> {
     try {
       const product = await this.getProduct(productId);
-      const newStatus = product.status === 'active' ? 'inactive' : 'active';
+      const newStatus = (product as any).status === 'active' ? 'inactive' : 'active';
       return await this.updateProduct(productId, {
         status: newStatus
       });
@@ -1147,7 +1156,7 @@ class ProductsService {
       // Check if any product has exact SKU match
       const existingProduct = response.products.find(p =>
         p.sku?.toUpperCase() === sku.toUpperCase() &&
-        p._id !== excludeProductId
+        (p as any)._id !== excludeProductId
       );
 
       if (existingProduct) {

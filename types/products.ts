@@ -7,6 +7,8 @@ export interface ProductFilters extends QueryOptions {
   maxPrice?: number;
 }
 
+export type ProductSearchRequest = ProductFilters;
+
 export interface Product {
   id: string;
   merchantId: string;

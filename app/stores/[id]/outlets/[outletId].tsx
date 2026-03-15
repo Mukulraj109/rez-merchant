@@ -92,7 +92,7 @@ export default function EditOutletScreen() {
     watch,
     reset,
   } = useForm<OutletFormData>({
-    resolver: zodResolver(outletSchema),
+    resolver: zodResolver(outletSchema) as any,
     defaultValues: {
       name: '',
       address: '',
@@ -593,7 +593,7 @@ export default function EditOutletScreen() {
           {/* Submit Button */}
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(onSubmit as any)}
             disabled={loading}
           >
             <LinearGradient

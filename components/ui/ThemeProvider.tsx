@@ -11,11 +11,15 @@ export interface Theme {
   colors: {
     background: string;
     surface: string;
+    card: string;
     primary: string;
     secondary: string;
     text: string;
     textSecondary: string;
+    textMuted: string;
     border: string;
+    borderLight: string;
+    backgroundSecondary: string;
     success: string;
     warning: string;
     error: string;
@@ -45,11 +49,15 @@ export interface Theme {
 const lightColors = {
   background: Colors.background?.primary || '#FFFFFF',
   surface: Colors.background?.elevated || '#F9FAFB',
+  card: Colors.background?.elevated || '#F9FAFB',
   primary: Colors.primary?.[500] || '#7C3AED',
   secondary: Colors.secondary?.[500] || '#10B981',
   text: Colors.text?.primary || '#111827',
   textSecondary: Colors.text?.secondary || '#6B7280',
+  textMuted: Colors.gray?.[400] || '#9CA3AF',
   border: Colors.border?.default || '#E5E7EB',
+  borderLight: Colors.gray?.[200] || '#E5E7EB',
+  backgroundSecondary: Colors.gray?.[50] || '#F9FAFB',
   success: Colors.success?.[500] || '#10B981',
   warning: Colors.warning?.[500] || '#F59E0B',
   error: Colors.error?.[500] || '#EF4444',
@@ -74,11 +82,15 @@ const lightColors = {
 const darkColors = {
   background: Colors.gray?.[900] || '#111827',
   surface: Colors.gray?.[800] || '#1F2937',
+  card: Colors.gray?.[800] || '#1F2937',
   primary: Colors.primary?.[400] || '#A855F7',
   secondary: Colors.secondary?.[400] || '#34D399',
   text: Colors.gray?.[50] || '#F9FAFB',
   textSecondary: Colors.gray?.[300] || '#D1D5DB',
+  textMuted: Colors.gray?.[500] || '#6B7280',
   border: Colors.gray?.[700] || '#374151',
+  borderLight: Colors.gray?.[700] || '#374151',
+  backgroundSecondary: Colors.gray?.[800] || '#1F2937',
   success: Colors.success?.[400] || '#34D399',
   warning: Colors.warning?.[400] || '#FBBF24',
   error: Colors.error?.[400] || '#F87171',

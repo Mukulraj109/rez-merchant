@@ -46,9 +46,9 @@ const bankDetailsSchema = z.object({
     .string()
     .min(1, 'IFSC code is required')
     .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC code format'),
-  accountType: z.enum(['savings', 'current', 'business'], {
+  accountType: z.enum(['savings', 'current', 'business'] as const, {
     errorMap: () => ({ message: 'Please select an account type' }),
-  }),
+  } as any),
   panNumber: z
     .string()
     .min(1, 'PAN number is required')
@@ -103,7 +103,7 @@ export default function BankDetailsScreen() {
     watch,
     formState: { errors },
   } = useForm<BankDetailsFormData>({
-    resolver: zodResolver(bankDetailsSchema),
+    resolver: zodResolver(bankDetailsSchema) as any,
     defaultValues: {
       accountHolderName: '',
       accountNumber: '',
@@ -499,7 +499,7 @@ export default function BankDetailsScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit as any)}
           disabled={loading}
         >
           {loading ? (

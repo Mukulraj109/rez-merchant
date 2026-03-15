@@ -53,7 +53,7 @@ export default function AuditLogDetailScreen() {
     error,
   } = useAuditLogs(
     { limit: 100 },
-    { enabled: canView && !!logId }
+    { enabled: canView && !!logId } as any
   );
 
   // Find the specific log
@@ -69,7 +69,7 @@ export default function AuditLogDetailScreen() {
   } = useResourceHistory(
     log?.resourceType || '',
     log?.resourceId || '',
-    { enabled: !!log?.resourceType && !!log?.resourceId }
+    { enabled: !!log?.resourceType && !!log?.resourceId } as any
   );
 
   // Get severity styling
@@ -237,7 +237,7 @@ export default function AuditLogDetailScreen() {
         {/* Header Card */}
         <Animated.View entering={FadeInDown.springify()}>
           <LinearGradient
-            colors={severityGradient}
+            colors={severityGradient as any}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.headerCard}
@@ -513,7 +513,7 @@ export default function AuditLogDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: Colors.background.secondary,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 22,
     fontWeight: '700',
     marginBottom: Spacing.sm,
@@ -577,11 +577,11 @@ const styles = StyleSheet.create({
 
   // Cards
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   cardHeader: {
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   userAvatarText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 22,
     fontWeight: '700',
   },
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   metadataKey: {
     fontSize: 13,
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.gray[100],
     gap: Spacing.sm,
   },
   relatedDot: {
@@ -776,7 +776,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   primaryActionButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 14,
     borderWidth: 2,
     borderColor: Colors.primary[500],
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.error[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#EF4444',
+    color: Colors.error[500],
     marginBottom: 8,
   },
   errorText: {
@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   backButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontWeight: '600',
     fontSize: 15,
   },
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,

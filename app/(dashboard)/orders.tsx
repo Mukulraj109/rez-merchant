@@ -140,7 +140,7 @@ const OrderCard = ({ order, onPress, onQuickAction, onUpdateStatus, index }: Ord
   }, [order.createdAt]);
 
   const isUrgent = order.priority === 'urgent' ||
-    ((order.status === 'pending' || order.status === 'placed') &&
+    (((order.status as string) === 'pending' || order.status === 'placed') &&
      order.createdAt &&
      (new Date().getTime() - new Date(order.createdAt).getTime()) > 2 * 60 * 60 * 1000);
 
@@ -216,8 +216,8 @@ const OrderCard = ({ order, onPress, onQuickAction, onUpdateStatus, index }: Ord
                 {isUrgent && (
                   <Animated.View entering={ZoomIn.springify()}>
                     <Badge variant="error" size="small" style={styles.urgentBadge}>
-                      <Ionicons name="flash" size={10} color="#FFF" />
-                      <BodyText style={{ color: '#FFF', fontSize: 9, fontWeight: '700', marginLeft: 2 }}>
+                      <Ionicons name="flash" size={10} color={Colors.text.inverse} />
+                      <BodyText style={{ color: Colors.text.inverse, fontSize: 9, fontWeight: '700', marginLeft: 2 }}>
                         URGENT
                       </BodyText>
                     </Badge>
@@ -250,9 +250,9 @@ const OrderCard = ({ order, onPress, onQuickAction, onUpdateStatus, index }: Ord
         {/* Store Logo & Info */}
         {order.store && (
           <Animated.View entering={SlideInRight.delay(100)} style={styles.storeInfoRow}>
-            {order.store.logo && (
+            {(order.store as any).logo && (
               <Image
-                source={{ uri: order.store.logo }}
+                source={{ uri: (order.store as any).logo }}
                 style={styles.storeLogo}
                 contentFit="cover"
                 transition={200}
@@ -306,11 +306,11 @@ const OrderCard = ({ order, onPress, onQuickAction, onUpdateStatus, index }: Ord
             <Caption style={styles.itemsCount}>
               {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}
             </Caption>
-            {(order.pricing?.cashback || 0) > 0 && (
+            {((order.pricing as any)?.cashback || 0) > 0 && (
               <Badge variant="success" size="small" style={styles.cashbackBadge}>
                 <Ionicons name="gift" size={10} color={Colors.success[600]} />
-                <Caption style={{ color: Colors.success[600], fontSize: 10, fontWeight: '700', marginLeft: 2 }}>
-                  ₹{order.pricing.cashback} Cashback
+                <Caption style={{ color: Colors.success[600], fontSize: 10, fontWeight: '700' as const, marginLeft: 2 }}>
+                  ₹{(order.pricing as any).cashback} Cashback
                 </Caption>
               </Badge>
             )}
@@ -387,13 +387,13 @@ const OrderCard = ({ order, onPress, onQuickAction, onUpdateStatus, index }: Ord
       
       {/* Quick Actions */}
       <View style={styles.quickActions}>
-        {(order.status === 'pending' || order.status === 'placed') && (
+        {((order.status as string) === 'pending' || order.status === 'placed') && (
           <>
             <Button
                 title="Accept"
                 size="small"
                 variant="ghost"
-                onPress={(e: any) => {
+                onPress={() => {
                     const orderId = order.id || (order as any)._id;
                     if (orderId) onQuickAction(orderId, 'confirm');
                 }}
@@ -486,15 +486,19 @@ export default function OrdersScreen() {
   const [processingStatus, setProcessingStatus] = useState(false);
   
   const statusCounts = useMemo(() => {
-    const counts: Record<OrderStatus | 'all', number> = {
+    const counts: Record<string, number> = {
       all: orders.length,
       pending: 0,
+      placed: 0,
       confirmed: 0,
       preparing: 0,
       ready: 0,
+      dispatched: 0,
       out_for_delivery: 0,
       delivered: 0,
+      cancelling: 0,
       cancelled: 0,
+      returned: 0,
       refunded: 0
     };
     
@@ -513,8 +517,8 @@ export default function OrdersScreen() {
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'priority':
-          const priorityOrder = { urgent: 3, high: 2, normal: 1 };
-          return priorityOrder[b.priority] - priorityOrder[a.priority];
+          const priorityOrder: Record<string, number> = { urgent: 3, high: 2, normal: 1 };
+          return (priorityOrder[b.priority || 'normal'] || 0) - (priorityOrder[a.priority || 'normal'] || 0);
         case 'total':
           return (b.pricing?.totalAmount || 0) - (a.pricing?.totalAmount || 0);
         case 'created':
@@ -627,7 +631,7 @@ export default function OrdersScreen() {
         console.log('📦 [ORDERS] First mapped order:', JSON.stringify(mappedOrders[0], null, 2));
       }
       
-      setOrders(mappedOrders);
+      setOrders(mappedOrders as any);
     } catch (error: any) {
       console.error('❌ Error fetching orders:', error);
       const errorMessage = error.message || 'Failed to fetch orders. Please try again.';
@@ -772,8 +776,8 @@ export default function OrdersScreen() {
             {newOrdersCount > 0 && (
               <Animated.View entering={ZoomIn.springify()}>
                 <Badge variant="success" size="small" style={styles.newOrdersBadge}>
-                  <Ionicons name="add-circle" size={12} color="#FFF" />
-                  <BodyText style={{ color: '#FFF', fontSize: 11, fontWeight: '700', marginLeft: 2 }}>
+                  <Ionicons name="add-circle" size={12} color={Colors.text.inverse} />
+                  <BodyText style={{ color: Colors.text.inverse, fontSize: 11, fontWeight: '700', marginLeft: 2 }}>
                     +{newOrdersCount}
                   </BodyText>
                 </Badge>
@@ -1132,7 +1136,7 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   activeStatusTabText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontWeight: '600',
   },
   statusCount: {
@@ -1152,7 +1156,7 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   activeStatusCountText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
   controls: {
     paddingHorizontal: Spacing.base,
@@ -1186,7 +1190,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   activeSortButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontWeight: '700',
     fontSize: 12,
   },
@@ -1543,7 +1547,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   updateStatusButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontWeight: '600',
     fontSize: 14,
   },

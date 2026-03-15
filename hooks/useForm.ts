@@ -7,7 +7,7 @@ import { useCallback, useMemo } from 'react';
 import {
   useForm as useReactHookForm,
   UseFormProps,
-  UseFormReturn,
+  UseFormReturn as RHFUseFormReturn,
   FieldValues,
   DefaultValues,
   Mode,
@@ -21,7 +21,7 @@ interface UseFormConfig<T extends FieldValues> extends Omit<UseFormProps<T>, 're
   onError?: (errors: any) => void;
 }
 
-interface UseFormReturn<T extends FieldValues> extends UseFormReturn<T> {
+interface ExtendedFormReturn<T extends FieldValues> extends RHFUseFormReturn<T> {
   isValid: boolean;
   isDirty: boolean;
   submitForm: (data: T) => Promise<void>;
@@ -40,10 +40,10 @@ export const useForm = <T extends FieldValues = any>({
   onSubmit,
   onError,
   ...config
-}: UseFormConfig<T>): UseFormReturn<T> => {
+}: UseFormConfig<T>): ExtendedFormReturn<T> => {
   // Initialize React Hook Form with schema validation
   const form = useReactHookForm<T>({
-    resolver: schema ? zodResolver(schema) : undefined,
+    resolver: schema ? (zodResolver as any)(schema) : undefined,
     mode: config.mode || 'onBlur',
     ...config,
   });
@@ -85,7 +85,7 @@ export const useForm = <T extends FieldValues = any>({
   /**
    * Set error for a specific field
    */
-  const setFieldError = useCallback(
+  const setFieldErrorFn = useCallback(
     (fieldName: keyof T, error: string) => {
       setError(fieldName as any, {
         type: 'manual',
@@ -138,7 +138,7 @@ export const useForm = <T extends FieldValues = any>({
       getFieldError,
       hasFieldError,
       clearFieldError,
-      setFieldError,
+      setFieldError: setFieldErrorFn,
     }),
     [
       form,
@@ -150,11 +150,11 @@ export const useForm = <T extends FieldValues = any>({
       getFieldError,
       hasFieldError,
       clearFieldError,
-      setFieldError,
+      setFieldErrorFn,
     ]
   );
 
-  return extendedForm as UseFormReturn<T>;
+  return extendedForm as ExtendedFormReturn<T>;
 };
 
 /**
@@ -209,7 +209,7 @@ export const useFormValidation = () => {
    */
   const validateField = useCallback(async (fieldName: string, value: any, schema: ZodSchema) => {
     try {
-      const result = await schema.pick({ [fieldName]: true }).parseAsync({ [fieldName]: value });
+      await (schema as any).pick?.({ [fieldName]: true })?.parseAsync?.({ [fieldName]: value });
       return { valid: true, error: null };
     } catch (error: any) {
       const fieldError = error.errors?.[0]?.message || error.message;
@@ -245,62 +245,7 @@ export const useAsyncFormSubmit = <T extends FieldValues>(
 
   return {
     ...form,
-    onSubmit: handleSubmit(submitAsync),
-  };
-};
-
-/**
- * Hook for form state persistence
- */
-export const useFormPersistence = <T extends FieldValues>(
-  key: string,
-  schema?: ZodSchema
-) => {
-  // Note: In React Native, use AsyncStorage instead
-  const form = useForm({ schema });
-  const { watch, reset } = form;
-  const values = watch();
-
-  // Persist form data (implementation depends on platform)
-  const persistData = useCallback(async (data: T) => {
-    try {
-      // This would use AsyncStorage in React Native
-      localStorage?.setItem(key, JSON.stringify(data));
-    } catch (error) {
-      console.error('Failed to persist form data:', error);
-    }
-  }, [key]);
-
-  // Restore form data
-  const restoreData = useCallback(async () => {
-    try {
-      // This would use AsyncStorage in React Native
-      const saved = localStorage?.getItem(key);
-      if (saved) {
-        const data = JSON.parse(saved);
-        reset(data);
-        return data;
-      }
-    } catch (error) {
-      console.error('Failed to restore form data:', error);
-    }
-  }, [key, reset]);
-
-  // Clear persisted data
-  const clearData = useCallback(() => {
-    try {
-      localStorage?.removeItem(key);
-      reset();
-    } catch (error) {
-      console.error('Failed to clear form data:', error);
-    }
-  }, [key, reset]);
-
-  return {
-    ...form,
-    persistData,
-    restoreData,
-    clearData,
+    onSubmit: handleSubmit(submitAsync as any),
   };
 };
 

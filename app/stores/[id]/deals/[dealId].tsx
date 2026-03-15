@@ -22,6 +22,7 @@ import { useStore } from '@/contexts/StoreContext';
 import { uploadsService } from '@/services/api/uploads';
 import { isWeb, handleWebImageUpload } from '@/utils/platform';
 import { showAlert } from '@/utils/alert';
+import { Colors } from '@/constants/DesignTokens';
 
 const dealSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100),
@@ -71,8 +72,10 @@ export default function EditDealScreen() {
     setValue,
     reset,
   } = useForm<DealFormData>({
-    resolver: zodResolver(dealSchema),
+    resolver: zodResolver(dealSchema) as any,
   });
+
+  const typedControl = control as any;
 
   useEffect(() => {
     loadDeal();
@@ -140,7 +143,7 @@ export default function EditDealScreen() {
         }
       } else {
                 result = await ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ImagePicker.MediaType.Images,
+                  mediaTypes: 'images' as any,
                   allowsEditing: true,
                   aspect: [16, 9],
                   quality: 0.8,
@@ -250,7 +253,7 @@ export default function EditDealScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color={Colors.gray[800]} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Deal</Text>
         <View style={{ width: 24 }} />
@@ -265,7 +268,7 @@ export default function EditDealScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <FormInput
           name="title"
-          control={control}
+          control={typedControl}
           label="Deal Title *"
           placeholder="e.g., 50% Off on All Items"
           error={errors.title?.message}
@@ -273,7 +276,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="subtitle"
-          control={control}
+          control={typedControl}
           label="Subtitle"
           placeholder="Short description"
           error={errors.subtitle?.message}
@@ -281,7 +284,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="description"
-          control={control}
+          control={typedControl}
           label="Description"
           placeholder="Detailed description of the deal"
           multiline
@@ -312,7 +315,7 @@ export default function EditDealScreen() {
 
         <FormSelect
           name="category"
-          control={control}
+          control={typedControl}
           label="Category"
           options={[
             { label: 'General', value: 'general' },
@@ -328,7 +331,7 @@ export default function EditDealScreen() {
 
         <FormSelect
           name="type"
-          control={control}
+          control={typedControl}
           label="Deal Type"
           options={[
             { label: 'Walk-In', value: 'walk_in' },
@@ -342,7 +345,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="cashbackPercentage"
-          control={control}
+          control={typedControl}
           label="Cashback Percentage (%) *"
           placeholder="10"
           keyboardType="numeric"
@@ -351,7 +354,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="originalPrice"
-          control={control}
+          control={typedControl}
           label="Original Price (₹)"
           placeholder="1000"
           keyboardType="numeric"
@@ -360,7 +363,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="discountedPrice"
-          control={control}
+          control={typedControl}
           label="Discounted Price (₹)"
           placeholder="500"
           keyboardType="numeric"
@@ -370,7 +373,7 @@ export default function EditDealScreen() {
         <Text style={styles.sectionTitle}>Validity Period *</Text>
         <FormInput
           name="startDate"
-          control={control}
+          control={typedControl}
           label="Start Date"
           placeholder="YYYY-MM-DD"
           error={errors.startDate?.message}
@@ -378,7 +381,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="endDate"
-          control={control}
+          control={typedControl}
           label="End Date"
           placeholder="YYYY-MM-DD"
           error={errors.endDate?.message}
@@ -387,7 +390,7 @@ export default function EditDealScreen() {
         <Text style={styles.sectionTitle}>Restrictions (Optional)</Text>
         <FormInput
           name="minOrderValue"
-          control={control}
+          control={typedControl}
           label="Minimum Order Value (₹)"
           placeholder="500"
           keyboardType="numeric"
@@ -396,7 +399,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="maxDiscountAmount"
-          control={control}
+          control={typedControl}
           label="Maximum Discount Amount (₹)"
           placeholder="1000"
           keyboardType="numeric"
@@ -405,7 +408,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="usageLimitPerUser"
-          control={control}
+          control={typedControl}
           label="Usage Limit Per User"
           placeholder="1"
           keyboardType="numeric"
@@ -414,7 +417,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="usageLimit"
-          control={control}
+          control={typedControl}
           label="Total Usage Limit"
           placeholder="100"
           keyboardType="numeric"
@@ -423,7 +426,7 @@ export default function EditDealScreen() {
 
         <FormInput
           name="priority"
-          control={control}
+          control={typedControl}
           label="Priority (0-100)"
           placeholder="0"
           keyboardType="numeric"
@@ -434,7 +437,7 @@ export default function EditDealScreen() {
           <Text style={styles.switchLabel}>Featured Deal</Text>
           <Controller
             name="featured"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={styles.switchContainer}
@@ -443,7 +446,7 @@ export default function EditDealScreen() {
                 <Ionicons
                   name={value ? "toggle" : "toggle-outline"}
                   size={32}
-                  color={value ? "#3B82F6" : "#9CA3AF"}
+                  color={value ? "#3B82F6" : Colors.gray[400]}
                 />
               </TouchableOpacity>
             )}
@@ -452,14 +455,14 @@ export default function EditDealScreen() {
 
         <TouchableOpacity
           style={[styles.submitButton, saving && styles.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit as any)}
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={Colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+              <Ionicons name="checkmark-circle" size={20} color={Colors.text.inverse} />
               <Text style={styles.submitButtonText}>Update Deal</Text>
             </>
           )}
@@ -472,7 +475,7 @@ export default function EditDealScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   header: {
     flexDirection: 'row',
@@ -480,25 +483,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   storeInfo: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   storeName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   content: {
     flex: 1,
@@ -514,12 +517,12 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginTop: 16,
     marginBottom: 12,
   },
@@ -531,7 +534,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     marginBottom: 16,
   },
   imagePickerText: {
@@ -560,7 +563,7 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   switchContainer: {
     padding: 4,
@@ -579,7 +582,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

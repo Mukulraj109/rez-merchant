@@ -59,7 +59,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     title: n.title,
     message: n.message,
     timestamp: new Date(n.createdAt),
-    isRead: n.status === NotificationStatus.READ || n.status === 'read',
+    isRead: n.status === NotificationStatus.READ,
     actionType: n.type as any,
     actionId: n.relatedEntityId,
     priority: n.priority || 'medium',

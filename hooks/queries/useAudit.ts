@@ -54,7 +54,7 @@ export function useInfiniteAuditLogs(
     queryFn: async ({ pageParam = 1 }) => {
       const response = await auditService.getAuditLogs({
         ...filters,
-        page: pageParam,
+        page: pageParam as number,
       });
       return response;
     },

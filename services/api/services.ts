@@ -231,7 +231,7 @@ class ServiceManagementService {
       // Backend returns: { success: true, data: services[], pagination: {...} }
       return {
         services: response.data || [],
-        pagination: response.pagination || {
+        pagination: (response as any).pagination || {
           page: 1,
           limit: 20,
           total: 0,
@@ -324,7 +324,7 @@ class ServiceManagementService {
 
       return {
         bookings: response.data || [],
-        pagination: response.pagination || {
+        pagination: (response as any).pagination || {
           page: 1,
           limit: 20,
           total: 0,

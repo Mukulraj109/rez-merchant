@@ -127,7 +127,7 @@ export default function CashbackDetailScreen() {
   };
 
   const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;
-  const formatDate = (date: Date) => new Date(date).toLocaleString();
+  const formatDate = (date: Date | string) => new Date(date).toLocaleString();
 
   if (isLoading) {
     return (
@@ -866,5 +866,15 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     fontSize: 16,
     fontWeight: '500',
+  },
+  approveButtonText: {
+    color: Colors.light.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  rejectButtonText: {
+    color: Colors.light.background,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

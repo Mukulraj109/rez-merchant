@@ -3,6 +3,7 @@ import { View, Text, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MerchantRole } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 
 interface RoleBadgeProps {
   role: MerchantRole;
@@ -24,22 +25,22 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
     const roleColors = {
       owner: {
         backgroundColor: '#7C3AED',
-        color: '#FFFFFF',
+        color: Colors.text.inverse,
         borderColor: '#6D28D9',
       },
       admin: {
-        backgroundColor: '#3B82F6',
-        color: '#FFFFFF',
-        borderColor: '#2563EB',
+        backgroundColor: Colors.primary[500],
+        color: Colors.text.inverse,
+        borderColor: Colors.primary[600],
       },
       manager: {
-        backgroundColor: '#10B981',
-        color: '#FFFFFF',
-        borderColor: '#059669',
+        backgroundColor: Colors.success[500],
+        color: Colors.text.inverse,
+        borderColor: Colors.success[600],
       },
       staff: {
         backgroundColor: theme.colors.gray[500],
-        color: '#FFFFFF',
+        color: Colors.text.inverse,
         borderColor: theme.colors.gray[600],
       },
     };
@@ -96,12 +97,12 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
   });
 
   // Role icons
-  const roleIcons = {
-    owner: 'crown',
-    admin: 'shield-checkmark',
-    manager: 'briefcase',
-    staff: 'person',
-  } as const;
+  const roleIcons: Record<MerchantRole, keyof typeof Ionicons.glyphMap> = {
+    owner: 'diamond-outline',
+    admin: 'shield-checkmark-outline',
+    manager: 'briefcase-outline',
+    staff: 'person-outline',
+  };
 
   return (
     <View style={[styles.badge, style]} testID={testID}>

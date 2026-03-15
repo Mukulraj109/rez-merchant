@@ -140,7 +140,8 @@ export const ProtectedAction: React.FC<ProtectedActionProps> = ({
 /**
  * ProtectedButton - Button that's only visible/enabled with permission
  */
-interface ProtectedButtonProps extends ProtectedActionProps {
+interface ProtectedButtonProps extends Omit<ProtectedActionProps, 'children'> {
+  children?: ReactNode;
   onPress: () => void;
   title: string;
   icon?: string;

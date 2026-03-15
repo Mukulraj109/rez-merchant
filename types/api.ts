@@ -258,6 +258,10 @@ export interface CashbackRequest {
   flaggedForReview: boolean;
   reason?: string;
   notes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  approvalNotes?: string;
+  rejectionReason?: string;
   submittedAt: string;
   processedAt?: string;
   createdAt: string;
@@ -381,6 +385,32 @@ export interface ProductFilters extends QueryOptions {
   minPrice?: number;
   maxPrice?: number;
 }
+
+// Cashback analytics (used by cashback analytics page)
+export interface CashbackAnalytics {
+  totalPaid: number;
+  totalPending: number;
+  approvalRate: number;
+  fraudDetectionRate: number;
+  averageApprovalTime: number;
+  customerRetentionImpact: number;
+  revenueImpact: number;
+  topCategories: Array<{
+    categoryId: string;
+    categoryName: string;
+    orderCount: number;
+    cashbackPaid: number;
+  }>;
+  monthlyTrends: Array<{
+    month: string;
+    cashbackPaid: number;
+    ordersWithCashback: number;
+    fraudAttempts: number;
+  }>;
+}
+
+// Product search request (alias for product filters)
+export type ProductSearchRequest = ProductFilters;
 
 // Health check response
 export interface HealthCheckResponse {

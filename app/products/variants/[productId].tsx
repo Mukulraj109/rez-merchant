@@ -73,7 +73,7 @@ export default function ProductVariantsScreen() {
       ]);
 
       setProduct(productData);
-      setVariants(variantsData);
+      setVariants((variantsData as any)?.variants || variantsData as any);
     } catch (error: any) {
       console.error('Error loading data:', error);
       showAlert('Error', error.message || 'Failed to load variants');
@@ -108,7 +108,8 @@ export default function ProductVariantsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await productsService.deleteVariant(variantId);
+              const productIdStr = Array.isArray(productId) ? productId[0] : productId as string;
+              await productsService.deleteVariant(productIdStr, variantId);
               showAlert('Success', 'Variant deleted successfully');
               loadData();
             } catch (error: any) {
@@ -149,7 +150,7 @@ export default function ProductVariantsScreen() {
           onPress: async () => {
             try {
               setBulkActionLoading(true);
-              const result = await productsService.bulkVariantAction(
+              const result = await (productsService as any).bulkVariantAction(
                 action,
                 Array.from(selectedVariants)
               );

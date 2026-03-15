@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Permission, MerchantRole } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 import { PermissionToggle } from './PermissionToggle';
 import { RoleBadge } from './RoleBadge';
 
@@ -297,18 +298,18 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
         </View>
 
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#6B7280" />
+          <Ionicons name="search" size={20} color={Colors.gray[500]} />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search permissions..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={Colors.gray[400]}
             testID={`${testID}-search-input`}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#6B7280" />
+              <Ionicons name="close-circle" size={20} color={Colors.gray[500]} />
             </TouchableOpacity>
           )}
         </View>
@@ -317,7 +318,7 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {permissionGroups.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color="#D1D5DB" />
+            <Ionicons name="search-outline" size={48} color={Colors.gray[300]} />
             <Text style={styles.emptyStateText}>
               No permissions found matching "{searchQuery}"
             </Text>
@@ -336,7 +337,7 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
                 >
                   <View style={styles.categoryHeaderLeft}>
                     <View style={styles.categoryIcon}>
-                      <Ionicons name={group.icon} size={20} color="#7C3AED" />
+                      <Ionicons name={group.icon} size={20} color={Colors.primary[500]} />
                     </View>
                     <Text style={styles.categoryTitle}>{group.category}</Text>
                     <View style={styles.categoryBadge}>
@@ -348,7 +349,7 @@ export const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
                   <Ionicons
                     name={isExpanded ? 'chevron-up' : 'chevron-down'}
                     size={20}
-                    color="#6B7280"
+                    color={Colors.gray[500]}
                   />
                 </TouchableOpacity>
 

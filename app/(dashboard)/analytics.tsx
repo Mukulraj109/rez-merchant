@@ -22,6 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/DesignTokens';
 import { analyticsService } from '@/services/api/analytics';
 import { useHasPermission } from '@/hooks/usePermissions';
 import { formatTime } from '@/utils/dateUtils';
@@ -49,11 +50,11 @@ const REZ_COLORS = {
   purple: '#6366F1',
   purpleLight: '#8B5CF6',
   success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
+  warning: Colors.warning[500],
+  error: Colors.error[500],
   info: '#3B82F6',
   background: '#F8FAFC',
-  cardBg: '#FFFFFF',
+  cardBg: Colors.background.primary,
   textPrimary: '#0B2240',
   textSecondary: '#64748B',
   textMuted: '#94A3B8',
@@ -379,7 +380,7 @@ export default function AnalyticsTab() {
                 style={styles.exportButton}
                 onPress={handleExportReport}
               >
-                <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+                <Ionicons name="download-outline" size={16} color={Colors.text.inverse} />
                 <ThemedText style={styles.exportButtonText}>Export</ThemedText>
               </TouchableOpacity>
             </View>
@@ -453,7 +454,7 @@ export default function AnalyticsTab() {
                     <Ionicons
                       name={card.growth >= 0 ? 'trending-up' : 'trending-down'}
                       size={10}
-                      color="#FFFFFF"
+                      color={Colors.text.inverse}
                     />
                     <ThemedText style={styles.growthText}>
                       {card.growth >= 0 ? '+' : ''}{card.growth.toFixed(1)}%
@@ -591,11 +592,11 @@ export default function AnalyticsTab() {
           end={{ x: 1, y: 0 }}
           style={styles.fullAnalyticsGradient}
         >
-          <Ionicons name="analytics" size={20} color="#FFFFFF" />
+          <Ionicons name="analytics" size={20} color={Colors.text.inverse} />
           <ThemedText style={styles.fullAnalyticsText}>
             View Full Analytics Dashboard
           </ThemedText>
-          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          <Ionicons name="arrow-forward" size={18} color={Colors.text.inverse} />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -670,7 +671,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   selectStoreButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -698,7 +699,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     letterSpacing: -0.5,
   },
   storeBadge: {
@@ -714,7 +715,7 @@ const styles = StyleSheet.create({
   storeBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     maxWidth: 150,
   },
   headerActions: {
@@ -756,7 +757,7 @@ const styles = StyleSheet.create({
   exportButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
   lastUpdated: {
     fontSize: 12,
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   dateRangeButtonActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   dateRangeText: {
     fontSize: 13,
@@ -845,7 +846,7 @@ const styles = StyleSheet.create({
   statCardValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     marginBottom: 2,
   },
   statCardTitle: {
@@ -872,7 +873,7 @@ const styles = StyleSheet.create({
   growthText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
 
   // Sections
@@ -964,7 +965,7 @@ const styles = StyleSheet.create({
   fullAnalyticsText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
 
   // Footer

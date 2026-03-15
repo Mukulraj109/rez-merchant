@@ -74,7 +74,7 @@ export default function BulkActionsScreen() {
 
   // Check permission
   useEffect(() => {
-    if (!hasPermission('products:bulk_edit')) {
+    if (!hasPermission('products:bulk_edit' as any)) {
       showAlert(
         'Permission Denied',
         'You do not have permission to perform bulk actions.',
@@ -123,7 +123,7 @@ export default function BulkActionsScreen() {
   };
 
   const selectAll = () => {
-    setSelectedProducts(new Set(products.map(p => p._id)));
+    setSelectedProducts(new Set(products.map(p => (p as any)._id || p.id)));
   };
 
   const deselectAll = () => {
@@ -569,12 +569,13 @@ export default function BulkActionsScreen() {
   };
 
   const renderProductItem = ({ item }: { item: Product }) => {
-    const isSelected = selectedProducts.has(item._id);
+    const itemId = (item as any)._id || item.id;
+    const isSelected = selectedProducts.has(itemId);
 
     return (
       <TouchableOpacity
         style={[styles.productItem, isSelected && styles.productItemSelected]}
-        onPress={() => toggleProduct(item._id)}
+        onPress={() => toggleProduct(itemId)}
       >
         <View style={styles.productCheckbox}>
           {isSelected && (
@@ -590,16 +591,16 @@ export default function BulkActionsScreen() {
             <ThemedText style={styles.productMetaText}>₹{item.price}</ThemedText>
             <ThemedText style={styles.productMetaText}>•</ThemedText>
             <ThemedText style={styles.productMetaText}>
-              Stock: {item.inventory?.stock || 0}
+              Stock: {(item.inventory as any)?.stock || item.inventory?.quantity || 0}
             </ThemedText>
           </View>
         </View>
 
         <View style={[
           styles.productStatus,
-          { backgroundColor: item.status === 'active' ? Colors.light.success : Colors.light.warning }
+          { backgroundColor: ((item as any).status === 'active' || item.isActive) ? Colors.light.success : Colors.light.warning }
         ]}>
-          <ThemedText style={styles.productStatusText}>{item.status}</ThemedText>
+          <ThemedText style={styles.productStatusText}>{(item as any).status || (item.isActive ? 'active' : 'inactive')}</ThemedText>
         </View>
       </TouchableOpacity>
     );
@@ -720,7 +721,7 @@ export default function BulkActionsScreen() {
             <FlatList
               data={products}
               renderItem={renderProductItem}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item) => (item as any)._id || item.id}
               scrollEnabled={false}
             />
           )}

@@ -39,14 +39,15 @@ export function useInfiniteNotifications(
   return useInfiniteQuery({
     queryKey: queryKeys.notifications.infinite(filters),
     queryFn: async ({ pageParam = 1 }) => {
+      const page = pageParam as number;
       const notifications = await notificationsService.getNotifications({
         ...filters,
-        page: pageParam,
+        page,
         limit: filters?.limit || 20,
       });
       return {
         items: notifications,
-        nextPage: notifications.length >= (filters?.limit || 20) ? pageParam + 1 : undefined,
+        nextPage: notifications.length >= (filters?.limit || 20) ? page + 1 : undefined,
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,

@@ -18,6 +18,7 @@ import FormSelect from '@/components/forms/FormSelect';
 import { storeVouchersService, CreateStoreVoucherRequest } from '@/services/api/storeVouchers';
 import { useStore } from '@/contexts/StoreContext';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import { Colors } from '@/constants/DesignTokens';
 
 const voucherSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(100),
@@ -71,7 +72,7 @@ export default function AddVoucherScreen() {
     formState: { errors },
     watch,
   } = useForm<VoucherFormData>({
-    resolver: zodResolver(voucherSchema),
+    resolver: zodResolver(voucherSchema) as any,
     defaultValues: {
       name: '',
       description: '',
@@ -92,6 +93,8 @@ export default function AddVoucherScreen() {
       isActive: true,
     },
   });
+
+  const typedControl = control as any;
 
   const discountType = watch('discountType');
   const voucherType = watch('type');
@@ -193,7 +196,7 @@ export default function AddVoucherScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color={Colors.gray[800]} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create Voucher</Text>
         <View style={{ width: 24 }} />
@@ -209,7 +212,7 @@ export default function AddVoucherScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <FormInput
           name="name"
-          control={control}
+          control={typedControl}
           label="Voucher Name *"
           placeholder="e.g., Store Visit Discount"
           error={errors.name?.message}
@@ -217,7 +220,7 @@ export default function AddVoucherScreen() {
 
         <FormInput
           name="description"
-          control={control}
+          control={typedControl}
           label="Description"
           placeholder="Brief description of the voucher"
           multiline
@@ -227,7 +230,7 @@ export default function AddVoucherScreen() {
 
         <FormInput
           name="code"
-          control={control}
+          control={typedControl}
           label="Voucher Code (Optional)"
           placeholder="Leave empty to auto-generate"
           autoCapitalize="characters"
@@ -236,7 +239,7 @@ export default function AddVoucherScreen() {
 
         <FormSelect
           name="type"
-          control={control}
+          control={typedControl}
           label="Voucher Type *"
           options={[
             { label: 'Store Visit', value: 'store_visit' },
@@ -266,7 +269,7 @@ export default function AddVoucherScreen() {
 
         <FormSelect
           name="discountType"
-          control={control}
+          control={typedControl}
           label="Discount Type *"
           options={[
             { label: 'Percentage (%)', value: 'percentage' },
@@ -276,7 +279,7 @@ export default function AddVoucherScreen() {
 
         <FormInput
           name="discountValue"
-          control={control}
+          control={typedControl}
           label={discountType === 'percentage' ? 'Discount Percentage (%) *' : 'Discount Amount (₹) *'}
           placeholder={discountType === 'percentage' ? '10' : '100'}
           keyboardType="numeric"
@@ -286,7 +289,7 @@ export default function AddVoucherScreen() {
         {discountType === 'percentage' && (
           <FormInput
             name="maxDiscountAmount"
-            control={control}
+            control={typedControl}
             label="Maximum Discount Amount (₹)"
             placeholder="500"
             keyboardType="numeric"
@@ -296,7 +299,7 @@ export default function AddVoucherScreen() {
 
         <FormInput
           name="minBillAmount"
-          control={control}
+          control={typedControl}
           label="Minimum Bill Amount (₹) *"
           placeholder="500"
           keyboardType="numeric"
@@ -306,7 +309,7 @@ export default function AddVoucherScreen() {
         <Text style={styles.sectionTitle}>Validity Period *</Text>
         <FormInput
           name="validFrom"
-          control={control}
+          control={typedControl}
           label="Start Date"
           placeholder="YYYY-MM-DD"
           error={errors.validFrom?.message}
@@ -314,7 +317,7 @@ export default function AddVoucherScreen() {
 
         <FormInput
           name="validUntil"
-          control={control}
+          control={typedControl}
           label="End Date"
           placeholder="YYYY-MM-DD"
           error={errors.validUntil?.message}
@@ -323,7 +326,7 @@ export default function AddVoucherScreen() {
         <Text style={styles.sectionTitle}>Usage Limits</Text>
         <FormInput
           name="usageLimit"
-          control={control}
+          control={typedControl}
           label="Total Usage Limit *"
           placeholder="100"
           keyboardType="numeric"
@@ -332,7 +335,7 @@ export default function AddVoucherScreen() {
 
         <FormInput
           name="usageLimitPerUser"
-          control={control}
+          control={typedControl}
           label="Usage Limit Per User *"
           placeholder="1"
           keyboardType="numeric"
@@ -342,12 +345,12 @@ export default function AddVoucherScreen() {
         <Text style={styles.sectionTitle}>Restrictions</Text>
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="storefront-outline" size={20} color="#6B7280" />
+            <Ionicons name="storefront-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Offline Only</Text>
           </View>
           <Controller
             name="isOfflineOnly"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -361,12 +364,12 @@ export default function AddVoucherScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="ban-outline" size={20} color="#6B7280" />
+            <Ionicons name="ban-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Not Valid Above Store Discount</Text>
           </View>
           <Controller
             name="notValidAboveStoreDiscount"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -380,12 +383,12 @@ export default function AddVoucherScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="document-text-outline" size={20} color="#6B7280" />
+            <Ionicons name="document-text-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Single Voucher Per Bill</Text>
           </View>
           <Controller
             name="singleVoucherPerBill"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -399,12 +402,12 @@ export default function AddVoucherScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="checkmark-circle-outline" size={20} color="#6B7280" />
+            <Ionicons name="checkmark-circle-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Active</Text>
           </View>
           <Controller
             name="isActive"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -419,7 +422,7 @@ export default function AddVoucherScreen() {
         <Text style={styles.sectionTitle}>Display Settings (Optional)</Text>
         <FormInput
           name="displayText"
-          control={control}
+          control={typedControl}
           label="Display Text"
           placeholder="e.g., Save 10% on your visit!"
           error={errors.displayText?.message}
@@ -427,14 +430,14 @@ export default function AddVoucherScreen() {
 
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit as any)}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={Colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="ticket" size={20} color="#FFFFFF" />
+              <Ionicons name="ticket" size={20} color={Colors.text.inverse} />
               <Text style={styles.submitButtonText}>Create Voucher</Text>
             </>
           )}
@@ -464,7 +467,7 @@ export default function AddVoucherScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   header: {
     flexDirection: 'row',
@@ -472,30 +475,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   storeInfo: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   storeName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginBottom: 4,
   },
   storeSubtext: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   content: {
     flex: 1,
@@ -507,7 +510,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginTop: 24,
     marginBottom: 12,
   },
@@ -530,7 +533,7 @@ const styles = StyleSheet.create({
   },
   typeInfoText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   switchRow: {
     flexDirection: 'row',
@@ -538,7 +541,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   switchLabelContainer: {
     flexDirection: 'row',
@@ -548,14 +551,14 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 14,
-    color: '#374151',
+    color: Colors.gray[700],
     flex: 1,
   },
   switch: {
     width: 50,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: Colors.gray[300],
     justifyContent: 'center',
     padding: 2,
   },
@@ -566,7 +569,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   switchThumbActive: {
     marginLeft: 22,
@@ -585,7 +588,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },

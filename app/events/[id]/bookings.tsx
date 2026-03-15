@@ -27,18 +27,18 @@ const STATUS_TABS = [
 ];
 
 const BOOKING_STATUS_COLORS = {
-  pending: { bg: '#FEF3C7', text: '#F59E0B' },
-  confirmed: { bg: '#D1FAE5', text: '#10B981' },
-  cancelled: { bg: '#FEE2E2', text: '#EF4444' },
-  completed: { bg: '#E0E7FF', text: '#6366F1' },
-  refunded: { bg: '#F3F4F6', text: '#6B7280' },
+  pending: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  confirmed: { bg: Colors.light.successLight, text: Colors.light.success },
+  cancelled: { bg: Colors.light.errorLight, text: Colors.light.error },
+  completed: { bg: '#E0E7FF', text: Colors.light.indigo },
+  refunded: { bg: Colors.light.backgroundTertiary, text: Colors.light.textSecondary },
 };
 
 const PAYMENT_STATUS_COLORS = {
-  pending: { bg: '#FEF3C7', text: '#F59E0B' },
-  completed: { bg: '#D1FAE5', text: '#10B981' },
-  failed: { bg: '#FEE2E2', text: '#EF4444' },
-  refunded: { bg: '#F3F4F6', text: '#6B7280' },
+  pending: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  completed: { bg: Colors.light.successLight, text: Colors.light.success },
+  failed: { bg: Colors.light.errorLight, text: Colors.light.error },
+  refunded: { bg: Colors.light.backgroundTertiary, text: Colors.light.textSecondary },
 };
 
 export default function EventBookingsScreen() {
@@ -354,7 +354,7 @@ export default function EventBookingsScreen() {
         message={`Confirm check-in for ${checkInModal.booking?.attendeeInfo.name}?`}
         confirmText="Check In"
         cancelText="Cancel"
-        type="info"
+        type="default"
         loading={checkingIn === checkInModal.booking?.id}
         onConfirm={() => checkInModal.booking && handleCheckIn(checkInModal.booking)}
         onCancel={() => setCheckInModal({ visible: false, booking: null })}

@@ -298,14 +298,14 @@ export default function ComplianceReportScreen() {
     isFetching: complianceFetching,
   } = useComplianceReport(undefined, {
     enabled: canView,
-  });
+  } as any);
 
   const {
     data: retentionData,
     isLoading: retentionLoading,
   } = useRetentionStatistics({
     enabled: canView,
-  });
+  } as any);
 
   const isLoading = complianceLoading || retentionLoading;
   const isRefreshing = complianceFetching && !complianceLoading;
@@ -825,7 +825,7 @@ export default function ComplianceReportScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: Colors.background.secondary,
   },
   backgroundGradient: {
     position: 'absolute',

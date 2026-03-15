@@ -117,17 +117,17 @@ export default function EventsScreen() {
   const getStatusColor = (status: EventStatus) => {
     switch (status) {
       case 'draft':
-        return '#6B7280';
+        return Colors.light.textSecondary;
       case 'published':
-        return '#10B981';
+        return Colors.light.success;
       case 'cancelled':
-        return '#EF4444';
+        return Colors.light.error;
       case 'completed':
-        return '#3B82F6';
+        return Colors.light.info;
       case 'sold_out':
-        return '#F59E0B';
+        return Colors.light.warning;
       default:
-        return '#6B7280';
+        return Colors.light.textSecondary;
     }
   };
 
@@ -161,13 +161,13 @@ export default function EventsScreen() {
               <Image source={{ uri: item.image }} style={styles.eventImage} />
             ) : (
               <View style={styles.imagePlaceholder}>
-                <Ionicons name="calendar" size={48} color="#9CA3AF" />
+                <Ionicons name="calendar" size={48} color={Colors.light.textMuted} />
               </View>
             )}
             {/* Online Badge */}
             {item.isOnline && (
               <View style={styles.onlineBadge}>
-                <Ionicons name="globe-outline" size={12} color="#FFFFFF" />
+                <Ionicons name="globe-outline" size={12} color={Colors.light.card} />
                 <Text style={styles.onlineBadgeText}>Online</Text>
               </View>
             )}
@@ -195,20 +195,20 @@ export default function EventsScreen() {
 
             {/* Category */}
             <View style={styles.categoryRow}>
-              <Ionicons name="pricetag-outline" size={14} color="#6B7280" />
+              <Ionicons name="pricetag-outline" size={14} color={Colors.light.textSecondary} />
               <Text style={styles.categoryText}>{item.category}</Text>
             </View>
 
             {/* Date & Time */}
             <View style={styles.dateTimeRow}>
-              <Ionicons name="calendar-outline" size={14} color="#6B7280" />
+              <Ionicons name="calendar-outline" size={14} color={Colors.light.textSecondary} />
               <Text style={styles.dateText}>{formatDate(item.date)}</Text>
               <Text style={styles.timeText}>{item.time}</Text>
             </View>
 
             {/* Location */}
             <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={14} color="#6B7280" />
+              <Ionicons name="location-outline" size={14} color={Colors.light.textSecondary} />
               <Text style={styles.locationText} numberOfLines={1}>
                 {item.isOnline ? 'Online Event' : `${item.location.name}, ${item.location.city}`}
               </Text>
@@ -217,20 +217,20 @@ export default function EventsScreen() {
             {/* Stats */}
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Ionicons name="eye-outline" size={14} color="#6B7280" />
+                <Ionicons name="eye-outline" size={14} color={Colors.light.textSecondary} />
                 <Text style={styles.statText}>{item.analytics?.views || 0}</Text>
               </View>
               <View style={styles.statItem}>
-                <Ionicons name="ticket-outline" size={14} color="#6B7280" />
+                <Ionicons name="ticket-outline" size={14} color={Colors.light.textSecondary} />
                 <Text style={styles.statText}>{item.analytics?.bookings || 0}</Text>
               </View>
               <View style={styles.statItem}>
-                <Ionicons name="heart-outline" size={14} color="#6B7280" />
+                <Ionicons name="heart-outline" size={14} color={Colors.light.textSecondary} />
                 <Text style={styles.statText}>{item.analytics?.favorites || 0}</Text>
               </View>
               {item.featured && (
                 <View style={styles.featuredBadge}>
-                  <Ionicons name="star" size={12} color="#F59E0B" />
+                  <Ionicons name="star" size={12} color={Colors.light.warning} />
                   <Text style={styles.featuredText}>Featured</Text>
                 </View>
               )}
@@ -246,8 +246,8 @@ export default function EventsScreen() {
                     handlePublish(item);
                   }}
                 >
-                  <Ionicons name="send" size={14} color="#10B981" />
-                  <Text style={[styles.actionButtonText, { color: '#10B981' }]}>Publish</Text>
+                  <Ionicons name="send" size={14} color={Colors.light.success} />
+                  <Text style={[styles.actionButtonText, { color: Colors.light.success }]}>Publish</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -257,8 +257,8 @@ export default function EventsScreen() {
                   router.push(`/events/${item._id}/edit`);
                 }}
               >
-                <Ionicons name="pencil" size={14} color="#3B82F6" />
-                <Text style={[styles.actionButtonText, { color: '#3B82F6' }]}>Edit</Text>
+                <Ionicons name="pencil" size={14} color={Colors.light.info} />
+                <Text style={[styles.actionButtonText, { color: Colors.light.info }]}>Edit</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.bookingsButton]}
@@ -267,8 +267,8 @@ export default function EventsScreen() {
                   router.push(`/events/${item._id}/bookings`);
                 }}
               >
-                <Ionicons name="people" size={14} color="#7C3AED" />
-                <Text style={[styles.actionButtonText, { color: '#7C3AED' }]}>Bookings</Text>
+                <Ionicons name="people" size={14} color={Colors.light.primary} />
+                <Text style={[styles.actionButtonText, { color: Colors.light.primary }]}>Bookings</Text>
               </TouchableOpacity>
               {item.status === 'published' && (
                 <TouchableOpacity
@@ -278,8 +278,8 @@ export default function EventsScreen() {
                     handleCancel(item);
                   }}
                 >
-                  <Ionicons name="close-circle" size={14} color="#F59E0B" />
-                  <Text style={[styles.actionButtonText, { color: '#F59E0B' }]}>Cancel</Text>
+                  <Ionicons name="close-circle" size={14} color={Colors.light.warning} />
+                  <Text style={[styles.actionButtonText, { color: Colors.light.warning }]}>Cancel</Text>
                 </TouchableOpacity>
               )}
               {item.status === 'draft' && (
@@ -290,8 +290,8 @@ export default function EventsScreen() {
                     handleDelete(item);
                   }}
                 >
-                  <Ionicons name="trash" size={14} color="#EF4444" />
-                  <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>Delete</Text>
+                  <Ionicons name="trash" size={14} color={Colors.light.error} />
+                  <Text style={[styles.actionButtonText, { color: Colors.light.error }]}>Delete</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -304,7 +304,7 @@ export default function EventsScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#7C3AED', '#6366F1', '#F3F4F6']}
+        colors={[Colors.light.primary, Colors.light.indigo, Colors.light.backgroundTertiary]}
         locations={[0, 0.3, 1]}
         style={styles.backgroundGradient}
       />
@@ -327,7 +327,7 @@ export default function EventsScreen() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={['#7C3AED', '#6366F1']}
+                colors={[Colors.light.primary, Colors.light.indigo]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.addButton}
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: Colors.light.card,
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 2 },
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   addButton: {
     flexDirection: 'row',
@@ -473,14 +473,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     gap: 6,
-    shadowColor: '#7C3AED',
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -497,20 +497,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     marginRight: 8,
   },
   filterChipActive: {
-    backgroundColor: '#7C3AED',
-    borderColor: '#7C3AED',
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
   },
   filterChipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   filterChipTextActive: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   loadingState: {
     flex: 1,
@@ -520,18 +520,18 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 8,
   },
   eventCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#7C3AED',
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -559,14 +559,14 @@ const styles = StyleSheet.create({
     left: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
+    backgroundColor: Colors.light.info,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   onlineBadgeText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -574,16 +574,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 12,
     right: 12,
-    backgroundColor: '#10B981',
+    backgroundColor: Colors.light.success,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
   },
   freeBadge: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: Colors.light.warning,
   },
   priceBadgeText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     flex: 1,
     marginRight: 8,
   },
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   dateTimeRow: {
     flexDirection: 'row',
@@ -638,12 +638,12 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: '#374151',
+    color: Colors.light.textTertiary,
     fontWeight: '500',
   },
   timeText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   locationRow: {
     flexDirection: 'row',
@@ -653,7 +653,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     flex: 1,
   },
   statsRow: {
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: Colors.light.border,
     marginBottom: 12,
   },
   statItem: {
@@ -673,13 +673,13 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
   featuredBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.light.warningLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
   featuredText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: Colors.light.warning,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -705,24 +705,24 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   publishButton: {
-    borderColor: '#10B981',
-    backgroundColor: '#ECFDF5',
+    borderColor: Colors.light.success,
+    backgroundColor: Colors.light.successLight,
   },
   editButton: {
-    borderColor: '#3B82F6',
-    backgroundColor: '#EFF6FF',
+    borderColor: Colors.light.info,
+    backgroundColor: Colors.light.infoLight,
   },
   bookingsButton: {
-    borderColor: '#7C3AED',
-    backgroundColor: '#F5F3FF',
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryLight2,
   },
   cancelButton: {
-    borderColor: '#F59E0B',
-    backgroundColor: '#FEF3C7',
+    borderColor: Colors.light.warning,
+    backgroundColor: Colors.light.warningLight,
   },
   deleteButton: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
+    borderColor: Colors.light.error,
+    backgroundColor: Colors.light.errorLight,
   },
   actionButtonText: {
     fontSize: 12,
@@ -737,13 +737,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -751,14 +751,14 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#7C3AED',
+    backgroundColor: Colors.light.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 16,
     fontWeight: '600',
   },

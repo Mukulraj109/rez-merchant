@@ -71,10 +71,12 @@ export default function StoreUGCScreen() {
       setLoading(true);
       setError(null);
       const response = await apiClient.get(`/merchant/stores/${storeId}/ugc`, {
-        type: typeFilter === 'all' ? undefined : typeFilter,
-        limit: 50,
-        offset: 0,
-      });
+        params: {
+          type: typeFilter === 'all' ? undefined : typeFilter,
+          limit: 50,
+          offset: 0,
+        },
+      } as any);
       if (response.success && response.data) {
         setUgcContent((response.data as any).content || []);
       } else {

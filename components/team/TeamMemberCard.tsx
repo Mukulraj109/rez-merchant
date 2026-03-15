@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TeamMemberSummary } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 import { Avatar } from '../ui/DesignSystemComponents';
 import { RoleBadge } from './RoleBadge';
 import { MemberStatusBadge } from './MemberStatusBadge';
@@ -164,12 +165,12 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
               member.role === 'owner'
                 ? '#7C3AED'
                 : member.role === 'admin'
-                ? '#3B82F6'
+                ? Colors.primary[500]
                 : member.role === 'manager'
-                ? '#10B981'
-                : '#6B7280'
+                ? Colors.success[500]
+                : Colors.gray[500]
             }
-            textColor="#FFFFFF"
+            textColor={Colors.text.inverse}
           />
           <View
             style={[
@@ -177,10 +178,10 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
               {
                 backgroundColor:
                   member.status === 'active'
-                    ? '#10B981'
+                    ? Colors.success[500]
                     : member.status === 'inactive'
-                    ? '#6B7280'
-                    : '#EF4444',
+                    ? Colors.gray[500]
+                    : Colors.error[500],
               },
             ]}
           />
@@ -222,7 +223,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
               activeOpacity={0.7}
               testID={`${testID}-edit-button`}
             >
-              <Ionicons name="pencil" size={16} color="#6B7280" />
+              <Ionicons name="pencil" size={16} color={Colors.gray[500]} />
               <Text style={styles.actionText}>Edit</Text>
             </TouchableOpacity>
           )}
@@ -233,7 +234,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
               activeOpacity={0.7}
               testID={`${testID}-remove-button`}
             >
-              <Ionicons name="trash-outline" size={16} color="#EF4444" />
+              <Ionicons name="trash-outline" size={16} color={Colors.error[500]} />
               <Text style={[styles.actionText, styles.removeText]}>Remove</Text>
             </TouchableOpacity>
           )}

@@ -225,8 +225,9 @@ class UploadsService {
         throw new Error(response.data.message || 'Upload failed');
       }
 
-      console.log('✅ Images uploaded successfully:', response.data.data.files.length, 'files');
-      return response.data.data.files;
+      const files = response.data.data.files || [];
+      console.log('✅ Images uploaded successfully:', files.length, 'files');
+      return files;
     } catch (error: any) {
       console.error('❌ Multiple image upload failed:', error);
       

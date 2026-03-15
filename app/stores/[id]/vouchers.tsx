@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { storeVouchersService, MerchantStoreVoucher, StoreVoucherStats } from '@/services/api/storeVouchers';
 import { useStore } from '@/contexts/StoreContext';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import { Colors } from '@/constants/Colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -309,7 +310,7 @@ export default function StoreVouchersScreen() {
         <View style={styles.redemptionCard}>
           <View style={styles.redemptionHeader}>
             <View style={styles.redemptionIconBg}>
-              <Ionicons name="trending-up" size={18} color="#8B5CF6" />
+              <Ionicons name="trending-up" size={18} color={Colors.light.accent} />
             </View>
             <View style={styles.redemptionInfo}>
               <Text style={styles.redemptionTitle}>Redemption Rate</Text>
@@ -319,7 +320,7 @@ export default function StoreVouchersScreen() {
           </View>
           <View style={styles.redemptionBarBg}>
             <LinearGradient
-              colors={['#8B5CF6', '#A855F7']}
+              colors={[Colors.light.accent, Colors.light.primaryLight]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[styles.redemptionBarFill, { width: `${Math.min(stats.redemptionRate, 100)}%` }]}
@@ -367,7 +368,7 @@ export default function StoreVouchersScreen() {
       ? ['#F59E0B', '#EF4444']
       : ['#8B5CF6', '#6366F1'];
 
-    const statusColor = isValid ? '#10B981' : expired ? '#F59E0B' : '#EF4444';
+    const statusColor = isValid ? Colors.light.success : expired ? Colors.light.warning : Colors.light.error;
     const statusBg = isValid ? '#ECFDF5' : expired ? '#FFFBEB' : '#FEF2F2';
     const statusText = isValid ? 'Active' : expired ? 'Expired' : 'Inactive';
 
@@ -375,7 +376,7 @@ export default function StoreVouchersScreen() {
       <View key={voucher._id} style={styles.voucherCard}>
         {/* Ticket Header with Gradient */}
         <LinearGradient
-          colors={cardGradient}
+          colors={cardGradient as any}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.voucherHeader}
@@ -421,13 +422,13 @@ export default function StoreVouchersScreen() {
                 onPress={() => handleEditVoucher(voucher._id)}
                 style={styles.actionBtn}
               >
-                <Ionicons name="create-outline" size={18} color="#8B5CF6" />
+                <Ionicons name="create-outline" size={18} color={Colors.light.accent} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => handleDeleteVoucher(voucher._id)}
                 style={[styles.actionBtn, styles.deleteBtn]}
               >
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Ionicons name="trash-outline" size={18} color={Colors.light.error} />
               </TouchableOpacity>
             </View>
           </View>
@@ -435,24 +436,24 @@ export default function StoreVouchersScreen() {
           {/* Info Grid */}
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <Ionicons name="wallet-outline" size={14} color="#6B7280" />
+              <Ionicons name="wallet-outline" size={14} color={Colors.light.textSecondary} />
               <Text style={styles.infoLabel}>Min. Bill</Text>
               <Text style={styles.infoValue}>₹{voucher.minBillAmount}</Text>
             </View>
             {voucher.maxDiscountAmount && (
               <View style={styles.infoItem}>
-                <Ionicons name="cash-outline" size={14} color="#6B7280" />
+                <Ionicons name="cash-outline" size={14} color={Colors.light.textSecondary} />
                 <Text style={styles.infoLabel}>Max. Off</Text>
                 <Text style={styles.infoValue}>₹{voucher.maxDiscountAmount}</Text>
               </View>
             )}
             <View style={styles.infoItem}>
-              <Ionicons name="people-outline" size={14} color="#6B7280" />
+              <Ionicons name="people-outline" size={14} color={Colors.light.textSecondary} />
               <Text style={styles.infoLabel}>Claims</Text>
               <Text style={styles.infoValue}>{voucher.claimedCount || 0}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Ionicons name="checkmark-done-outline" size={14} color="#6B7280" />
+              <Ionicons name="checkmark-done-outline" size={14} color={Colors.light.textSecondary} />
               <Text style={styles.infoLabel}>Used</Text>
               <Text style={styles.infoValue}>{voucher.usedCount}/{voucher.usageLimit}</Text>
             </View>
@@ -480,19 +481,19 @@ export default function StoreVouchersScreen() {
             <View style={styles.tagsContainer}>
               {voucher.restrictions.isOfflineOnly && (
                 <View style={styles.tag}>
-                  <Ionicons name="storefront-outline" size={10} color="#6B7280" />
+                  <Ionicons name="storefront-outline" size={10} color={Colors.light.textSecondary} />
                   <Text style={styles.tagText}>In-store only</Text>
                 </View>
               )}
               {voucher.restrictions.singleVoucherPerBill && (
                 <View style={styles.tag}>
-                  <Ionicons name="document-outline" size={10} color="#6B7280" />
+                  <Ionicons name="document-outline" size={10} color={Colors.light.textSecondary} />
                   <Text style={styles.tagText}>1 per bill</Text>
                 </View>
               )}
               {voucher.usageLimitPerUser && (
                 <View style={styles.tag}>
-                  <Ionicons name="person-outline" size={10} color="#6B7280" />
+                  <Ionicons name="person-outline" size={10} color={Colors.light.textSecondary} />
                   <Text style={styles.tagText}>{voucher.usageLimitPerUser}/user</Text>
                 </View>
               )}
@@ -507,12 +508,12 @@ export default function StoreVouchersScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={['#8B5CF6', '#7C3AED']}
+          colors={[Colors.light.accent, Colors.light.primary]}
           style={styles.headerGradient}
         >
           <View style={styles.header}>
             <TouchableOpacity onPress={handleBack} style={styles.headerBtn}>
-              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={24} color={Colors.light.card} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Store Vouchers</Text>
             <View style={styles.headerBtn} />
@@ -520,7 +521,7 @@ export default function StoreVouchersScreen() {
         </LinearGradient>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingSpinner}>
-            <ActivityIndicator size="large" color="#8B5CF6" />
+            <ActivityIndicator size="large" color={Colors.light.accent} />
           </View>
           <Text style={styles.loadingText}>Loading vouchers...</Text>
         </View>
@@ -532,19 +533,19 @@ export default function StoreVouchersScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with Gradient */}
       <LinearGradient
-        colors={['#8B5CF6', '#7C3AED']}
+        colors={[Colors.light.accent, Colors.light.primary]}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.headerBtn}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={24} color={Colors.light.card} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Store Vouchers</Text>
             {store && <Text style={styles.headerSubtitle}>{store.name}</Text>}
           </View>
           <TouchableOpacity onPress={handleAddVoucher} style={styles.headerBtn}>
-            <Ionicons name="add-circle" size={26} color="#FFFFFF" />
+            <Ionicons name="add-circle" size={26} color={Colors.light.card} />
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -572,12 +573,12 @@ export default function StoreVouchersScreen() {
         {error && (
           <View style={styles.errorContainer}>
             <View style={styles.errorIconBg}>
-              <Ionicons name="alert-circle" size={32} color="#EF4444" />
+              <Ionicons name="alert-circle" size={32} color={Colors.light.error} />
             </View>
             <Text style={styles.errorTitle}>Something went wrong</Text>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity onPress={loadVouchers} style={styles.retryButton}>
-              <Ionicons name="refresh" size={18} color="#FFFFFF" />
+              <Ionicons name="refresh" size={18} color={Colors.light.card} />
               <Text style={styles.retryButtonText}>Try Again</Text>
             </TouchableOpacity>
           </View>
@@ -590,7 +591,7 @@ export default function StoreVouchersScreen() {
               colors={['#F3E8FF', '#E9D5FF']}
               style={styles.emptyIconBg}
             >
-              <Ionicons name="ticket-outline" size={48} color="#8B5CF6" />
+              <Ionicons name="ticket-outline" size={48} color={Colors.light.accent} />
             </LinearGradient>
             <Text style={styles.emptyTitle}>
               {filter === 'all' ? 'No Vouchers Yet' : `No ${filter} Vouchers`}
@@ -603,12 +604,12 @@ export default function StoreVouchersScreen() {
             {filter === 'all' && (
               <TouchableOpacity style={styles.createButton} onPress={handleAddVoucher}>
                 <LinearGradient
-                  colors={['#8B5CF6', '#7C3AED']}
+                  colors={[Colors.light.accent, Colors.light.primary]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.createButtonGradient}
                 >
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
+                  <Ionicons name="add" size={20} color={Colors.light.card} />
                   <Text style={styles.createButtonText}>Create Voucher</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -627,10 +628,10 @@ export default function StoreVouchersScreen() {
       {filteredVouchers.length > 0 && (
         <TouchableOpacity style={styles.fab} onPress={handleAddVoucher} activeOpacity={0.9}>
           <LinearGradient
-            colors={['#8B5CF6', '#7C3AED']}
+            colors={[Colors.light.accent, Colors.light.primary]}
             style={styles.fabGradient}
           >
-            <Ionicons name="add" size={28} color="#FFFFFF" />
+            <Ionicons name="add" size={28} color={Colors.light.card} />
           </LinearGradient>
         </TouchableOpacity>
       )}
@@ -690,7 +691,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   headerSubtitle: {
     fontSize: 13,
@@ -712,14 +713,14 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: Colors.light.primaryLight2,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   loadingText: {
     fontSize: 15,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
 
@@ -730,7 +731,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     marginBottom: 12,
   },
   statsGrid: {
@@ -758,7 +759,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   statLabel: {
     fontSize: 11,
@@ -769,10 +770,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   redemptionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#8B5CF6',
+    shadowColor: Colors.light.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -787,7 +788,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: Colors.light.primaryLight2,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -798,21 +799,21 @@ const styles = StyleSheet.create({
   redemptionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.light.textDark,
   },
   redemptionSubtitle: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     marginTop: 1,
   },
   redemptionPercent: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: Colors.light.accent,
   },
   redemptionBarBg: {
     height: 8,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: Colors.light.primaryLight2,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -824,7 +825,7 @@ const styles = StyleSheet.create({
   // Filter Section
   filterSection: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 14,
     padding: 4,
     marginBottom: 16,
@@ -845,21 +846,21 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   filterTabActive: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Colors.light.accent,
   },
   filterTabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   filterTabTextActive: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   filterCount: {
     minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
@@ -870,15 +871,15 @@ const styles = StyleSheet.create({
   filterCountText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   filterCountTextActive: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
 
   // Error State
   errorContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 20,
     padding: 32,
     alignItems: 'center',
@@ -888,7 +889,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.light.errorLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -896,26 +897,26 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
   },
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.light.error,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
     gap: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -937,12 +938,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -950,7 +951,7 @@ const styles = StyleSheet.create({
   createButton: {
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#8B5CF6',
+    shadowColor: Colors.light.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -964,18 +965,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   createButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 16,
     fontWeight: '600',
   },
 
   // Voucher Card - Ticket Style
   voucherCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 20,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#8B5CF6',
+    shadowColor: Colors.light.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -999,7 +1000,7 @@ const styles = StyleSheet.create({
   discountValue: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   discountLabel: {
     fontSize: 14,
@@ -1029,7 +1030,7 @@ const styles = StyleSheet.create({
   codeText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: Colors.light.card,
     letterSpacing: 1.5,
   },
   ticketCircle: {
@@ -1053,7 +1054,7 @@ const styles = StyleSheet.create({
     height: 1,
     borderStyle: 'dashed',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
   },
   voucherBody: {
     padding: 16,
@@ -1071,11 +1072,11 @@ const styles = StyleSheet.create({
   voucherName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
   },
   voucherDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   actionButtons: {
@@ -1086,12 +1087,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: Colors.light.primaryLight2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   deleteBtn: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.light.errorLight,
   },
   infoGrid: {
     flexDirection: 'row',
@@ -1110,12 +1111,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
   },
   infoValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#374151',
+    color: Colors.light.textTertiary,
   },
   voucherFooter: {
     flexDirection: 'row',
@@ -1129,7 +1130,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     fontWeight: '500',
   },
   statusBadge: {
@@ -1156,12 +1157,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.light.backgroundTertiary,
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1169,7 +1170,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 10,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
 
@@ -1179,7 +1180,7 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 20,
     borderRadius: 30,
-    shadowColor: '#8B5CF6',
+    shadowColor: Colors.light.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,

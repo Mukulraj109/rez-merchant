@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { Product, Order, CashbackRequest } from '../../../shared/types';
+import { Product, Order, CashbackRequest } from '@/shared/types';
 
 // Types
 interface MerchantState {
@@ -133,25 +133,16 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
           sku: 'SAMPLE-001',
           category: 'Electronics',
           price: 99.99,
-          currency: 'USD',
           inventory: {
-            stock: 10,
+            quantity: 10,
             lowStockThreshold: 5,
-            trackInventory: true,
-            allowBackorders: false,
-            reservedStock: 0
+            inStock: true,
           },
           images: [],
           tags: ['sample', 'test'],
-          searchKeywords: ['sample', 'product'],
-          status: 'active',
-          visibility: 'public',
-          cashback: {
-            percentage: 5,
-            isActive: true
-          },
-          createdAt: new Date(),
-          updatedAt: new Date()
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ];
       
@@ -167,8 +158,8 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       const newProduct: Product = {
         ...productData,
         id: Date.now().toString(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
       
       dispatch({ type: 'ADD_PRODUCT', payload: newProduct });
@@ -180,8 +171,8 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
   const updateProduct = async (product: Product) => {
     try {
       // Mock API call - replace with actual implementation
-      const updatedProduct = { ...product, updatedAt: new Date() };
-      dispatch({ type: 'UPDATE_PRODUCT', payload: updatedProduct });
+      const updatedProduct = { ...product, updatedAt: new Date().toISOString() };
+      dispatch({ type: 'UPDATE_PRODUCT', payload: updatedProduct as any });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
@@ -213,8 +204,8 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       // Mock API call - replace with actual implementation
       const orderIndex = state.orders.findIndex(o => o.id === orderId);
       if (orderIndex !== -1) {
-        const updatedOrder = { ...state.orders[orderIndex], status, updatedAt: new Date() };
-        dispatch({ type: 'UPDATE_ORDER', payload: updatedOrder });
+        const updatedOrder = { ...state.orders[orderIndex], status, updatedAt: new Date().toISOString() };
+        dispatch({ type: 'UPDATE_ORDER', payload: updatedOrder as any });
       }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -242,9 +233,9 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
           ...state.cashbackRequests[requestIndex],
           status: 'approved' as const,
           approvedAmount: amount,
-          updatedAt: new Date()
+          updatedAt: new Date().toISOString()
         };
-        dispatch({ type: 'UPDATE_CASHBACK_REQUEST', payload: updatedRequest });
+        dispatch({ type: 'UPDATE_CASHBACK_REQUEST', payload: updatedRequest as any });
       }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -260,9 +251,9 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
           ...state.cashbackRequests[requestIndex],
           status: 'rejected' as const,
           rejectionReason: reason,
-          updatedAt: new Date()
+          updatedAt: new Date().toISOString()
         };
-        dispatch({ type: 'UPDATE_CASHBACK_REQUEST', payload: updatedRequest });
+        dispatch({ type: 'UPDATE_CASHBACK_REQUEST', payload: updatedRequest as any });
       }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -282,10 +273,10 @@ export function MerchantProvider({ children }: { children: ReactNode }) {
       
       // Transform metrics data to match our analytics structure
       const transformedAnalytics = {
-        totalRevenue: metricsData.totalRevenue || 0,
-        totalOrders: metricsData.totalOrders || 0,
-        pendingOrders: metricsData.pendingOrders || 0,
-        pendingCashback: metricsData.pendingCashback || 0,
+        totalRevenue: metricsData.revenue?.total || 0,
+        totalOrders: metricsData.orders?.total || 0,
+        pendingOrders: metricsData.orders?.pending || 0,
+        pendingCashback: metricsData.cashback?.totalPending || 0,
       };
       
       console.log('✅ Analytics loaded successfully (from metrics):', transformedAnalytics);

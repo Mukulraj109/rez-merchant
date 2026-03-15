@@ -20,7 +20,7 @@ import {
 import { Controller, FieldValues, Path, Control, RegisterOptions } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
 
-export interface SelectOption<T = string | number> {
+export interface SelectOption<T = string | number | boolean> {
   label: string;
   value: T;
   description?: string;

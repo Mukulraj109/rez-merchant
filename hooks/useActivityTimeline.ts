@@ -147,7 +147,7 @@ export const useActivityTimeline = (
   // ========================================
   // REFS
   // ========================================
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isLoadingRef = useRef(false);
 
   // ========================================
@@ -186,6 +186,7 @@ export const useActivityTimeline = (
           resourceId: notif.relatedEntityId,
           timestamp: notif.createdAt,
           severity: 'info' as any,
+          details: {},
         }));
 
         // Combine and sort
@@ -286,6 +287,7 @@ export const useActivityTimeline = (
         resourceId: notification.relatedEntityId,
         timestamp: notification.createdAt,
         severity: 'info' as any,
+        details: {},
       };
       setEntries(prev => [entry, ...prev]);
       if (notification.status === 'unread') {

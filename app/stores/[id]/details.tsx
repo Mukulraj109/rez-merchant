@@ -85,7 +85,7 @@ export default function StoreDetailsScreen() {
   const getStoreStatus = (store: Store) => {
     // If store is not active, show inactive status
     if (!store.isActive) {
-      return { text: 'Inactive', color: '#6B7280' };
+      return { text: 'Inactive', color: Colors.light.textSecondary };
     }
     
     // If operational hours are set, check if store is currently open
@@ -96,18 +96,18 @@ export default function StoreDetailsScreen() {
       const todayHours = store.operationalInfo.hours[dayName as keyof typeof store.operationalInfo.hours];
       
       if (!todayHours || todayHours.closed) {
-        return { text: 'Closed', color: '#EF4444' };
+        return { text: 'Closed', color: Colors.light.danger };
       }
       
       if (currentTime >= todayHours.open && currentTime <= todayHours.close) {
-        return { text: 'Open', color: '#10B981' };
+        return { text: 'Open', color: Colors.light.success };
       }
       
-      return { text: 'Closed', color: '#EF4444' };
+      return { text: 'Closed', color: Colors.light.danger };
     }
     
     // If no operational hours but store is active, show as "Open"
-    return { text: 'Open', color: '#10B981' };
+    return { text: 'Open', color: Colors.light.success };
   };
 
   const renderRatingStars = (rating: number) => {
@@ -244,12 +244,12 @@ export default function StoreDetailsScreen() {
             </>
           ) : (
             <View style={styles.bannerPlaceholder}>
-              <Ionicons name="storefront" size={64} color="#9CA3AF" />
+              <Ionicons name="storefront" size={64} color={Colors.light.textMuted} />
             </View>
           )}
           {store.isActive && (
             <View style={styles.activeBadge}>
-              <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+              <Ionicons name="checkmark-circle" size={16} color={Colors.light.background} />
               <Text style={styles.activeBadgeText}>Active</Text>
             </View>
           )}
@@ -263,7 +263,7 @@ export default function StoreDetailsScreen() {
               <Image source={{ uri: store.logo }} style={styles.logo} />
             ) : (
               <View style={styles.logoPlaceholder}>
-                <Ionicons name="storefront" size={32} color="#9CA3AF" />
+                <Ionicons name="storefront" size={32} color={Colors.light.textMuted} />
               </View>
             )}
             <View style={styles.basicInfo}>
@@ -858,7 +858,7 @@ export default function StoreDetailsScreen() {
                   }
                 }}
               >
-                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                <Ionicons name="checkmark-circle" size={20} color={Colors.light.background} />
                 <Text style={styles.activateButtonText}>Activate Store</Text>
               </TouchableOpacity>
             ) : (
@@ -866,7 +866,7 @@ export default function StoreDetailsScreen() {
                 style={styles.deactivateButton}
                 onPress={() => setDeactivateModalVisible(true)}
               >
-                <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                <Ionicons name="close-circle" size={20} color={Colors.light.background} />
                 <Text style={styles.activateButtonText}>Deactivate Store</Text>
               </TouchableOpacity>
             )}
@@ -954,6 +954,11 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
   },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.primary,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -1004,7 +1009,7 @@ const styles = StyleSheet.create({
   },
   paginationDotActive: {
     width: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.background,
   },
   activeBadge: {
     position: 'absolute',
@@ -1019,7 +1024,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   activeBadgeText: {
-    color: '#FFFFFF',
+    color: Colors.light.background,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1123,7 +1128,7 @@ const styles = StyleSheet.create({
   featuredText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: Colors.light.warning,
   },
   section: {
     marginBottom: 24,
@@ -1245,7 +1250,7 @@ const styles = StyleSheet.create({
   partnerText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: Colors.light.warning,
   },
   analyticsGrid: {
     flexDirection: 'row',
@@ -1304,13 +1309,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F59E0B',
+    backgroundColor: Colors.light.warning,
     padding: 16,
     borderRadius: 12,
     gap: 8,
   },
   activateButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.background,
     fontSize: 16,
     fontWeight: '600',
   },

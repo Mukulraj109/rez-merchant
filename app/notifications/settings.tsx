@@ -17,6 +17,7 @@ import {
 } from '@/hooks/queries/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { notificationsService } from '@/services/api/notifications';
+import { Colors } from '@/constants/DesignTokens';
 
 const RETENTION_OPTIONS = [
   { value: '7', label: '7 days' },
@@ -54,7 +55,7 @@ export default function NotificationSettingsScreen() {
   const [selectedBadge, setSelectedBadge] = useState('unread');
   const [testingNotification, setTestingNotification] = useState(false);
 
-  const canExport = hasPermission('notifications:export');
+  const canExport = hasPermission('notifications:export' as any);
 
   const handleSendTestNotification = async () => {
     setTestingNotification(true);
@@ -75,7 +76,7 @@ export default function NotificationSettingsScreen() {
       'Are you sure you want to delete all notifications? This action cannot be undone.',
       async () => {
         try {
-          await clearAllMutation.mutateAsync();
+          await clearAllMutation.mutateAsync(undefined);
           showAlert('Success', 'All notifications have been cleared');
         } catch (error) {
           showAlert('Error', 'Failed to clear notifications');
@@ -107,7 +108,7 @@ export default function NotificationSettingsScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={Colors.primary[500]} />
         <Text style={styles.loadingText}>Loading settings...</Text>
       </View>
     );
@@ -131,7 +132,7 @@ export default function NotificationSettingsScreen() {
             >
               <Text style={styles.optionLabel}>{option.label}</Text>
               {selectedRetention === option.value && (
-                <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                <Ionicons name="checkmark-circle" size={24} color={Colors.primary[500]} />
               )}
             </TouchableOpacity>
           ))}
@@ -152,7 +153,7 @@ export default function NotificationSettingsScreen() {
             >
               <Text style={styles.optionLabel}>{option.label}</Text>
               {selectedAutoDelete === option.value && (
-                <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                <Ionicons name="checkmark-circle" size={24} color={Colors.primary[500]} />
               )}
             </TouchableOpacity>
           ))}
@@ -173,7 +174,7 @@ export default function NotificationSettingsScreen() {
             >
               <Text style={styles.optionLabel}>{option.label}</Text>
               {selectedGrouping === option.value && (
-                <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                <Ionicons name="checkmark-circle" size={24} color={Colors.primary[500]} />
               )}
             </TouchableOpacity>
           ))}
@@ -194,7 +195,7 @@ export default function NotificationSettingsScreen() {
             >
               <Text style={styles.optionLabel}>{option.label}</Text>
               {selectedBadge === option.value && (
-                <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                <Ionicons name="checkmark-circle" size={24} color={Colors.primary[500]} />
               )}
             </TouchableOpacity>
           ))}
@@ -210,11 +211,11 @@ export default function NotificationSettingsScreen() {
             disabled={testingNotification}
           >
             <View style={styles.actionLeft}>
-              <Ionicons name="send" size={24} color="#3B82F6" />
+              <Ionicons name="send" size={24} color={Colors.primary[500]} />
               <Text style={styles.actionLabel}>Send Test Notification</Text>
             </View>
-            {testingNotification && <ActivityIndicator size="small" color="#3B82F6" />}
-            {!testingNotification && <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />}
+            {testingNotification && <ActivityIndicator size="small" color={Colors.primary[500]} />}
+            {!testingNotification && <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -223,14 +224,14 @@ export default function NotificationSettingsScreen() {
             disabled={clearAllMutation.isPending}
           >
             <View style={styles.actionLeft}>
-              <Ionicons name="trash" size={24} color="#EF4444" />
+              <Ionicons name="trash" size={24} color={Colors.error[500]} />
               <Text style={[styles.actionLabel, { color: '#EF4444' }]}>
                 Clear All Notifications
               </Text>
             </View>
-            {clearAllMutation.isPending && <ActivityIndicator size="small" color="#EF4444" />}
+            {clearAllMutation.isPending && <ActivityIndicator size="small" color={Colors.error[500]} />}
             {!clearAllMutation.isPending && (
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
             )}
           </TouchableOpacity>
 
@@ -250,10 +251,10 @@ export default function NotificationSettingsScreen() {
               </Text>
             </View>
             {canExport ? (
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
             ) : (
               <View style={styles.permissionBadge}>
-                <Ionicons name="lock-closed" size={12} color="#6B7280" />
+                <Ionicons name="lock-closed" size={12} color={Colors.gray[500]} />
                 <Text style={styles.permissionText}>No Permission</Text>
               </View>
             )}
@@ -262,7 +263,7 @@ export default function NotificationSettingsScreen() {
 
         {/* Info Section */}
         <View style={styles.infoSection}>
-          <Ionicons name="information-circle" size={20} color="#6B7280" />
+          <Ionicons name="information-circle" size={20} color={Colors.gray[500]} />
           <Text style={styles.infoText}>
             These settings control how notifications are stored, displayed, and managed in your app.
             Some actions require specific permissions.
@@ -276,7 +277,7 @@ export default function NotificationSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   scrollView: {
     flex: 1,
@@ -285,20 +286,20 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     marginTop: 16,
     paddingVertical: 12,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     paddingHorizontal: 20,
     marginBottom: 4,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     paddingHorizontal: 20,
     marginBottom: 12,
   },
@@ -309,11 +310,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   optionLabel: {
     fontSize: 16,
-    color: '#374151',
+    color: Colors.gray[700],
   },
   actionRow: {
     flexDirection: 'row',
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   actionRowDisabled: {
     opacity: 0.5,
@@ -334,23 +335,23 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontSize: 16,
-    color: '#374151',
+    color: Colors.gray[700],
     marginLeft: 12,
   },
   actionLabelDisabled: {
-    color: '#9CA3AF',
+    color: Colors.gray[400],
   },
   permissionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   permissionText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginLeft: 4,
     fontWeight: '500',
   },
@@ -375,11 +376,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   loadingText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 12,
   },
 });

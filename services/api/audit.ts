@@ -612,9 +612,18 @@ class AuditService {
 
         if (filters.startDate) params.append('startDate', filters.startDate);
         if (filters.endDate) params.append('endDate', filters.endDate);
-        if (filters.action) params.append('action', filters.action);
-        if (filters.resourceType) params.append('resourceType', filters.resourceType);
-        if (filters.severity) params.append('severity', filters.severity);
+        if (filters.action) {
+          const actions = Array.isArray(filters.action) ? filters.action : [filters.action];
+          actions.forEach(a => params.append('action', a));
+        }
+        if (filters.resourceType) {
+          const types = Array.isArray(filters.resourceType) ? filters.resourceType : [filters.resourceType];
+          types.forEach(t => params.append('resourceType', t));
+        }
+        if (filters.severity) {
+          const severities = Array.isArray(filters.severity) ? filters.severity : [filters.severity];
+          severities.forEach(s => params.append('severity', s));
+        }
         if (filters.includeDetails !== undefined) {
           params.append('includeDetails', filters.includeDetails.toString());
         }

@@ -481,7 +481,7 @@ const SettingToggle: React.FC<SettingToggleProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
   },
   loadingContainer: {
     flex: 1,
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.light.textHeading,
   },
   saveButton: {
     backgroundColor: Colors.light.primary,
@@ -545,12 +545,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: Colors.light.textHeading,
     marginBottom: 4,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 16,
   },
   settingsList: {
@@ -579,12 +579,12 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.light.textHeading,
     marginBottom: 2,
   },
   settingDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   sliderSection: {
     marginTop: 16,
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   sliderLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.light.textHeading,
   },
   sliderValue: {
     fontSize: 16,
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
   },
   sliderDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 12,
   },
   slider: {
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   },
   sliderMark: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
   },
   inputSection: {
     marginTop: 16,
@@ -635,33 +635,33 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.light.textHeading,
     marginBottom: 4,
   },
   inputDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   numberInput: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#111827',
+    color: Colors.light.textHeading,
     width: 120,
   },
   textInput: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#111827',
+    color: Colors.light.textHeading,
   },
 });

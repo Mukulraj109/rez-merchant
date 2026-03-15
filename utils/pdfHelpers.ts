@@ -25,7 +25,7 @@ export const previewPDF = async (
     } else {
       // Open in WebBrowser on mobile
       await WebBrowser.openBrowserAsync(url, {
-        presentationStyle: options?.presentationStyle || 'pageSheet',
+        presentationStyle: (options?.presentationStyle || 'pageSheet') as any,
         toolbarColor: '#3b82f6',
         controlsColor: '#ffffff',
         showTitle: true,
@@ -297,10 +297,10 @@ export const generatePDFFromHTML = async (
   try {
     const result = await Print.printToFileAsync({
       html,
-      orientation: options?.orientation,
-      margins: options?.margins,
-      base64: options?.base64
-    });
+      base64: options?.base64,
+      ...(options?.orientation ? { orientation: options.orientation } : {}),
+      ...(options?.margins ? { margins: options.margins } : {}),
+    } as any);
 
     return result;
   } catch (error) {
@@ -493,7 +493,7 @@ export const createPDFActionSheet = (
 ): Array<{
   label: string;
   icon: string;
-  action: () => Promise<void>;
+  action: () => Promise<any>;
 }> => {
   const actions = [];
 

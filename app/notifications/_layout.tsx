@@ -13,7 +13,7 @@ export default function NotificationsLayout() {
         },
         headerTintColor: '#111827',
         headerShadowVisible: false,
-        headerBackTitleVisible: false,
+        headerBackButtonDisplayMode: 'minimal',
         animation: 'slide_from_right',
       }}
     >

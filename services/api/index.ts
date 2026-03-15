@@ -279,8 +279,13 @@ export * from './outlets';
 export * from './promotionalVideos';
 export * from './socialMedia';
 export * from './events';
-export * from './socialImpact';
-export * from './services';
+// socialImpact has conflicting exports (CreateEventData, UpdateEventData, Pagination) with events.ts
+// Re-export only non-conflicting members
+export { socialImpactAdminService } from './socialImpact';
+export type { Sponsor, SocialImpactEvent, Participant, EventFilters as SocialImpactEventFilters } from './socialImpact';
+// services.ts has conflicting exports (Pagination, PaymentStatus, CashbackStatus) with other modules
+// Import the service instance directly from './services' where needed
+export { serviceManagementService } from './services';
 export * from './coinDrops';
 export * from './brandedCoins';
 export * from './earningAnalytics';

@@ -43,6 +43,25 @@ export const Colors = {
     approved: '#10B981',
     rejected: '#EF4444',
     
+    // Brand / Accent
+    navy: '#0B2240',
+    indigo: '#6366F1',
+    purpleDark: '#7C3AED',
+    accent: '#8B5CF6',        // Light purple accent
+
+    // Text heading variants
+    textHeading: '#111827',    // Near-black for headings
+    textDark: '#1F2937',       // Dark gray for subheadings
+    textTertiary: '#374151',   // Medium-dark gray for tertiary text
+
+    // Background variants (extended)
+    warningLight: '#FEF3C7',   // Light amber for warning backgrounds
+    successLight: '#D1FAE5',   // Light green for success backgrounds
+    errorLight: '#FEE2E2',     // Light red for error backgrounds
+    infoLight: '#DBEAFE',      // Light blue for info backgrounds
+    primaryLight2: '#EDE9FE',  // Light purple for primary backgrounds
+    surfaceHover: '#F3F4F6',   // Hover/pressed state background
+
     // Border variants
     borderLight: '#F3F4F6',
     borderMedium: '#E5E7EB',
@@ -84,6 +103,25 @@ export const Colors = {
     approved: '#34D399',
     rejected: '#F87171',
     
+    // Brand / Accent
+    navy: '#1a3a52',
+    indigo: '#818CF8',
+    purpleDark: '#8B5CF6',
+    accent: '#A78BFA',        // Light purple accent (dark mode)
+
+    // Text heading variants
+    textHeading: '#F9FAFB',    // Near-white for headings (dark mode)
+    textDark: '#E5E7EB',       // Light gray for subheadings (dark mode)
+    textTertiary: '#D1D5DB',   // Medium-light gray for tertiary text (dark mode)
+
+    // Background variants (extended)
+    warningLight: '#78350F',   // Dark amber for warning backgrounds
+    successLight: '#064E3B',   // Dark green for success backgrounds
+    errorLight: '#7F1D1D',     // Dark red for error backgrounds
+    infoLight: '#1E3A5F',      // Dark blue for info backgrounds
+    primaryLight2: '#2E1065',  // Dark purple for primary backgrounds
+    surfaceHover: '#374151',   // Hover/pressed state background (dark mode)
+
     // Border variants
     borderLight: '#374151',
     borderMedium: '#4B5563',

@@ -245,7 +245,7 @@ export const ErrorFallbackScreen = ({
       action={action}
       onRetry={resetError}
       onGoBack={resetError}
-      details={!isErrorMessage && (error as Error).stack}
+      details={!isErrorMessage ? (error as Error).stack : undefined}
       showDetails={false}
       recoverable={recoverable}
     />

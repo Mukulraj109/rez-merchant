@@ -238,7 +238,7 @@ export default function AddVariantScreen() {
       };
 
       const productIdStr = Array.isArray(productId) ? productId[0] : productId;
-      await productsService.createVariant(productIdStr, variantData);
+      await productsService.createVariant(productIdStr, variantData as any);
 
       showAlert('Success', 'Variant created successfully', [
         {
@@ -471,9 +471,9 @@ export default function AddVariantScreen() {
               <ThemedText style={styles.switchLabel}>Track Quantity</ThemedText>
               <Switch
                 value={trackQuantity}
-                onValueChange={(value) =>
-                  control._formValues.trackQuantity = value
-                }
+                onValueChange={(value) => {
+                  control._formValues.trackQuantity = value;
+                }}
                 trackColor={{ false: Colors.light.border, true: Colors.light.primary }}
               />
             </View>
@@ -503,9 +503,9 @@ export default function AddVariantScreen() {
               </View>
               <Switch
                 value={watch('isDefault')}
-                onValueChange={(value) =>
-                  control._formValues.isDefault = value
-                }
+                onValueChange={(value) => {
+                  control._formValues.isDefault = value;
+                }}
                 trackColor={{ false: Colors.light.border, true: Colors.light.primary }}
               />
             </View>

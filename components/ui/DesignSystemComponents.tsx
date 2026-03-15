@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ViewStyle, TextStyle, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, ViewStyle, TextStyle, TouchableOpacity, Pressable, StyleProp } from 'react-native';
 import { useTheme, useThemedStyles } from './ThemeProvider';
 import { Typography, Spacing, BorderRadius, Shadows, Layout } from '../../constants/DesignTokens';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,7 +8,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 // Typography Components
 interface TypographyProps {
   children: React.ReactNode;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
   numberOfLines?: number;
   onPress?: () => void;
 }
@@ -132,7 +132,7 @@ interface CardProps {
   children: React.ReactNode;
   variant?: 'default' | 'elevated' | 'outlined';
   padding?: keyof typeof Spacing;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   onPress?: () => void;
 }
 
@@ -242,8 +242,8 @@ interface ButtonProps {
   fullWidth?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -304,7 +304,7 @@ export const Button: React.FC<ButtonProps> = ({
       color: variant === 'primary' || variant === 'danger' ? '#FFFFFF' : theme.colors.primary,
       fontSize: currentSize.fontSize,
       fontWeight: '600' as const,
-      ...textStyle,
+      ...(textStyle as TextStyle),
     };
 
   const renderContent = () => (
@@ -373,7 +373,7 @@ interface BadgeProps {
   children: React.ReactNode;
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'error';
   size?: 'small' | 'medium';
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const Badge: React.FC<BadgeProps> = ({

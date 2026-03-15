@@ -927,11 +927,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: Typography.fontSize.base,
     color: Colors.text.primary,
-    ...Platform.select({
+    ...(Platform.select({
       web: {
         outlineStyle: 'none',
       },
-    }),
+    }) as any),
   },
   inputError: {
     borderColor: Colors.error[500],

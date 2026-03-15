@@ -29,7 +29,7 @@ export function useMutationWithInvalidation<
       });
 
       // Call user's onSuccess callback if provided
-      options?.onSuccess?.(data, variables, context);
+      (options?.onSuccess as any)?.(data, variables, context);
     },
     ...options,
   });
@@ -103,7 +103,7 @@ export function useUpdateProductStockMutation(
     [
       { queryKey: queryKeys.products.stock(productId) },
       { queryKey: queryKeys.products.detail(productId) },
-      { queryKey: queryKeys.dashboard.lowStock },
+      { queryKey: queryKeys.dashboard.lowStock() },
     ],
     options
   );
@@ -159,7 +159,7 @@ export function useCancelOrderMutation(
     [
       { queryKey: queryKeys.orders.all },
       { queryKey: queryKeys.orders.detail(orderId) },
-      { queryKey: queryKeys.orders.pending },
+      { queryKey: queryKeys.orders.pending() },
       { queryKey: queryKeys.dashboard.all },
     ],
     options
@@ -215,7 +215,7 @@ export function useApproveCashbackMutation(
     mutationFn: ({ id, data }) => mutationFn(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cashback.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.cashback.pending });
+      queryClient.invalidateQueries({ queryKey: queryKeys.cashback.pending() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
     ...options,

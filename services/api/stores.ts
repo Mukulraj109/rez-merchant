@@ -154,10 +154,10 @@ class StoreService {
       
       if (Array.isArray(response.data)) {
         stores = response.data;
-        count = response.count || stores.length;
+        count = (response as any).count || stores.length;
       } else if (response.data && typeof response.data === 'object' && 'data' in response.data) {
         stores = Array.isArray((response.data as any).data) ? (response.data as any).data : [];
-        count = (response.data as any).count || response.count || stores.length;
+        count = (response.data as any).count || (response as any).count || stores.length;
       }
       
       return {

@@ -33,7 +33,7 @@ export const testOfflineFeatures = async () => {
       cashbackRequests: [],
     };
 
-    await offlineService.cacheData(sampleData);
+    await offlineService.cacheData(sampleData as any);
     console.log('✅ Data cached successfully');
 
     // Test 3: Retrieve cached data

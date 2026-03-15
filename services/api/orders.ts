@@ -272,23 +272,26 @@ class OrdersService {
       const metricsData = await dashboardService.getMetrics();
       
       // Transform metrics to analytics format
+      const totalOrders = metricsData.orders?.total || 0;
+      const totalRevenue = metricsData.revenue?.total || 0;
+      const completedOrders = metricsData.orders?.completed || 0;
       const analyticsData: OrderAnalytics = {
-        totalOrders: metricsData.totalOrders || 0,
-        totalRevenue: metricsData.totalRevenue || 0,
-        averageOrderValue: metricsData.averageOrderValue || 0,
+        totalOrders,
+        totalRevenue,
+        averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
         statusBreakdown: {
-          pending: metricsData.pendingOrders || 0,
-          confirmed: metricsData.completedOrders || 0,
+          pending: metricsData.orders?.pending || 0,
+          confirmed: completedOrders,
           preparing: 0,
           ready: 0,
           out_for_delivery: 0,
-          delivered: metricsData.completedOrders || 0,
-          cancelled: metricsData.cancelledOrders || 0,
+          delivered: completedOrders,
+          cancelled: metricsData.orders?.cancelled || 0,
           refunded: 0
         },
-        revenueGrowth: metricsData.revenueGrowth || 0,
-        orderGrowth: metricsData.ordersGrowth || 0,
-        topProducts: metricsData.topSellingProducts || []
+        revenueGrowth: metricsData.revenue?.trend || 0,
+        orderGrowth: metricsData.orders?.trend || 0,
+        topProducts: []
       };
       
       console.log('✅ Order analytics generated from dashboard metrics');
@@ -355,12 +358,21 @@ class OrdersService {
 
   // Get orders with comprehensive filters
   async searchOrders(filters: OrderFilters): Promise<OrderListResponse> {
+    const sortByMap: Record<string, OrderSearchParams['sortBy']> = {
+      created: 'createdAt',
+      updated: 'createdAt',
+      total: 'total',
+      priority: 'createdAt',
+      createdAt: 'createdAt',
+      status: 'status',
+      orderNumber: 'orderNumber',
+    };
     const params: OrderSearchParams = {
       status: filters.status,
       paymentStatus: filters.paymentStatus,
       customerId: filters.customerId,
       orderNumber: filters.orderNumber,
-      sortBy: filters.sortBy || 'createdAt',
+      sortBy: sortByMap[filters.sortBy || 'createdAt'] || 'createdAt',
       order: filters.sortOrder || 'desc',
       page: filters.page || 1,
       limit: filters.limit || 20,

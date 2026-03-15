@@ -31,7 +31,7 @@ export const BottomNav: React.FC = () => {
   const loadTeamCount = async () => {
     try {
       const response = await teamService.getTeamMembers();
-      const total = response?.data?.total ?? response?.total ?? 0;
+      const total = response?.data?.total ?? 0;
       setTeamCount(total);
     } catch (error) {
       // Set to 0 on error

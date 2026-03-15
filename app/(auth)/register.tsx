@@ -42,7 +42,7 @@ export default function RegisterScreen() {
   const { state, register, clearError } = useAuth();
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(registerSchema) as any,
     defaultValues: {
       country: 'USA',
     },
@@ -212,7 +212,7 @@ export default function RegisterScreen() {
 
                         <Button
                             title={state.isLoading ? 'Creating Account...' : 'Create Account'}
-                            onPress={handleSubmit(onSubmit)}
+                            onPress={handleSubmit(onSubmit as any)}
                             loading={state.isLoading}
                             fullWidth
                             style={styles.registerButton}

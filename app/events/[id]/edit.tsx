@@ -497,7 +497,7 @@ export default function EditEventScreen() {
                           category === cat && styles.categoryItemSelected,
                         ]}
                         onPress={() => {
-                          setCategory(cat);
+                          setCategory(cat as any);
                           setShowCategoryPicker(false);
                         }}
                       >
@@ -856,7 +856,7 @@ export default function EditEventScreen() {
                 </TouchableOpacity>
               </View>
               {schedule.map((item, idx) => (
-                <View key={idx} style={{ backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                <View key={idx} style={{ backgroundColor: Colors.light.backgroundSecondary, borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                     <Text style={{ fontSize: 13, fontWeight: '600', color: '#6B7280' }}>Item {idx + 1}</Text>
                     <TouchableOpacity onPress={() => setSchedule(schedule.filter((_, i) => i !== idx))}>
@@ -875,7 +875,7 @@ export default function EditEventScreen() {
                     onChangeText={v => { const s = [...schedule]; s[idx] = { ...s[idx], description: v }; setSchedule(s); }} />
                 </View>
               ))}
-              {schedule.length === 0 && <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No schedule items added</Text>}
+              {schedule.length === 0 && <Text style={{ color: Colors.light.textMuted, fontSize: 13 }}>No schedule items added</Text>}
             </View>
 
             {/* Ticket Types */}
@@ -890,7 +890,7 @@ export default function EditEventScreen() {
                 </TouchableOpacity>
               </View>
               {ticketTypes.map((ticket, idx) => (
-                <View key={idx} style={{ backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                <View key={idx} style={{ backgroundColor: Colors.light.backgroundSecondary, borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                     <Text style={{ fontSize: 13, fontWeight: '600', color: '#6B7280' }}>Ticket {idx + 1}</Text>
                     <TouchableOpacity onPress={() => setTicketTypes(ticketTypes.filter((_, i) => i !== idx))}>
@@ -911,7 +911,7 @@ export default function EditEventScreen() {
                     onChangeText={v => { const t = [...ticketTypes]; t[idx] = { ...t[idx], description: v }; setTicketTypes(t); }} />
                 </View>
               ))}
-              {ticketTypes.length === 0 && <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No ticket types added</Text>}
+              {ticketTypes.length === 0 && <Text style={{ color: Colors.light.textMuted, fontSize: 13 }}>No ticket types added</Text>}
             </View>
 
             {/* Sponsors */}
@@ -936,7 +936,7 @@ export default function EditEventScreen() {
                   </TouchableOpacity>
                 </View>
               ))}
-              {sponsors.length === 0 && <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No sponsors added</Text>}
+              {sponsors.length === 0 && <Text style={{ color: Colors.light.textMuted, fontSize: 13 }}>No sponsors added</Text>}
             </View>
 
             {/* Save Button */}
@@ -1101,7 +1101,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   uploadingText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 14,
     marginTop: 8,
   },
@@ -1109,7 +1109,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 12,
   },
   imagePlaceholder: {
@@ -1120,12 +1120,12 @@ const styles = StyleSheet.create({
   },
   imagePlaceholderText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 8,
   },
   imageHint: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     marginTop: 4,
   },
   categorySelector: {
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
   },
   categoryItemText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   categoryItemTextSelected: {
     color: Colors.light.primary,
@@ -1209,10 +1209,10 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   toggleTextActive: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   checkboxRow: {
     flexDirection: 'row',
@@ -1240,7 +1240,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -373,7 +373,7 @@ export default function DashboardScreen() {
                     style={styles.notificationButton}
                     onPress={() => router.push('/notifications')}
                   >
-                    <Ionicons name="notifications" size={24} color="#fff" />
+                    <Ionicons name="notifications" size={24} color={Colors.text.inverse} />
                     {notificationUnreadCount > 0 && (
                       <View style={styles.notificationBadge}>
                         <BodyText style={styles.notificationCount}>
@@ -399,7 +399,7 @@ export default function DashboardScreen() {
           <View style={styles.highlightsSection}>
             <View style={styles.highlightsTitleRow}>
               <View style={styles.highlightsIconBg}>
-                <Ionicons name="today" size={18} color="#fff" />
+                <Ionicons name="today" size={18} color={Colors.text.inverse} />
               </View>
               <Heading3 style={styles.highlightsSectionTitle}>Today's Highlights</Heading3>
             </View>
@@ -427,11 +427,11 @@ export default function DashboardScreen() {
                     <Ionicons
                       name={(metrics?.revenueGrowth || 0) >= 0 ? "trending-up" : "trending-down"}
                       size={12}
-                      color={(metrics?.revenueGrowth || 0) >= 0 ? "#00C06A" : "#EF4444"}
+                      color={(metrics?.revenueGrowth || 0) >= 0 ? "#00C06A" : Colors.error[500]}
                     />
                     <BodyText style={[
                       styles.highlightCardBadgeText,
-                      { color: (metrics?.revenueGrowth || 0) >= 0 ? "#00C06A" : "#EF4444" }
+                      { color: (metrics?.revenueGrowth || 0) >= 0 ? "#00C06A" : Colors.error[500] }
                     ]}>
                       {formatPercentage(metrics?.revenueGrowth || 0)}
                     </BodyText>
@@ -448,7 +448,7 @@ export default function DashboardScreen() {
                   style={styles.highlightCard}
                 >
                   <View style={styles.highlightCardIcon}>
-                    <Ionicons name="cart" size={20} color="#fff" />
+                    <Ionicons name="cart" size={20} color={Colors.text.inverse} />
                   </View>
                   <Caption style={styles.highlightCardLabel}>Total Orders</Caption>
                   <Heading2 style={styles.highlightCardValue}>
@@ -458,11 +458,11 @@ export default function DashboardScreen() {
                     <Ionicons
                       name={(metrics?.ordersGrowth || 0) >= 0 ? "trending-up" : "trending-down"}
                       size={12}
-                      color={(metrics?.ordersGrowth || 0) >= 0 ? "#00C06A" : "#EF4444"}
+                      color={(metrics?.ordersGrowth || 0) >= 0 ? "#00C06A" : Colors.error[500]}
                     />
                     <BodyText style={[
                       styles.highlightCardBadgeText,
-                      { color: (metrics?.ordersGrowth || 0) >= 0 ? "#00C06A" : "#EF4444" }
+                      { color: (metrics?.ordersGrowth || 0) >= 0 ? "#00C06A" : Colors.error[500] }
                     ]}>
                       {formatPercentage(metrics?.ordersGrowth || 0)}
                     </BodyText>
@@ -479,7 +479,7 @@ export default function DashboardScreen() {
                   style={styles.highlightCard}
                 >
                   <View style={styles.highlightCardIcon}>
-                    <Ionicons name="people" size={20} color="#fff" />
+                    <Ionicons name="people" size={20} color={Colors.text.inverse} />
                   </View>
                   <Caption style={styles.highlightCardLabel}>Customers</Caption>
                   <Heading2 style={styles.highlightCardValue}>
@@ -489,11 +489,11 @@ export default function DashboardScreen() {
                     <Ionicons
                       name={(metrics?.customerGrowth || 0) >= 0 ? "trending-up" : "trending-down"}
                       size={12}
-                      color={(metrics?.customerGrowth || 0) >= 0 ? "#00C06A" : "#EF4444"}
+                      color={(metrics?.customerGrowth || 0) >= 0 ? "#00C06A" : Colors.error[500]}
                     />
                     <BodyText style={[
                       styles.highlightCardBadgeText,
-                      { color: (metrics?.customerGrowth || 0) >= 0 ? "#00C06A" : "#EF4444" }
+                      { color: (metrics?.customerGrowth || 0) >= 0 ? "#00C06A" : Colors.error[500] }
                     ]}>
                       {formatPercentage(metrics?.customerGrowth || 0)}
                     </BodyText>
@@ -504,15 +504,15 @@ export default function DashboardScreen() {
               {/* Pending Orders Card */}
               <Animated.View entering={FadeInRight.delay(350).springify()}>
                 <View style={styles.highlightCardLight}>
-                  <View style={[styles.highlightCardIconLight, { backgroundColor: '#FEF3C7' }]}>
-                    <Ionicons name="time" size={20} color="#F59E0B" />
+                  <View style={[styles.highlightCardIconLight, { backgroundColor: Colors.warning[100] }]}>
+                    <Ionicons name="time" size={20} color={Colors.warning[500]} />
                   </View>
                   <Caption style={styles.highlightCardLabelDark}>Pending Orders</Caption>
                   <Heading2 style={styles.highlightCardValueDark}>
                     {formatNumber(metrics?.pendingOrders || 0)}
                   </Heading2>
-                  <View style={[styles.highlightCardBadgeLight, { backgroundColor: '#FEF3C7' }]}>
-                    <BodyText style={{ color: '#F59E0B', fontSize: 11, fontWeight: '600' }}>
+                  <View style={[styles.highlightCardBadgeLight, { backgroundColor: Colors.warning[100] }]}>
+                    <BodyText style={{ color: Colors.warning[500], fontSize: 11, fontWeight: '600' }}>
                       Needs attention
                     </BodyText>
                   </View>
@@ -528,8 +528,8 @@ export default function DashboardScreen() {
             <View style={styles.actionItemsSection}>
               <View style={styles.actionItemsHeader}>
                 <View style={styles.actionItemsTitleRow}>
-                  <View style={[styles.recentActivityIconBg, { backgroundColor: '#EF4444' }]}>
-                    <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <View style={[styles.recentActivityIconBg, { backgroundColor: Colors.error[500] }]}>
+                    <Ionicons name="checkmark-circle" size={18} color={Colors.text.inverse} />
                   </View>
                   <Heading3 style={styles.recentActivityTitle}>Needs Your Attention</Heading3>
                   <View style={styles.actionBadge}>
@@ -572,7 +572,7 @@ export default function DashboardScreen() {
             <View style={styles.analyticsSectionHeader}>
               <View style={styles.analyticsTitleRow}>
                 <View style={styles.analyticsIconBg}>
-                  <Ionicons name="pulse" size={20} color="#fff" />
+                  <Ionicons name="pulse" size={20} color={Colors.text.inverse} />
                 </View>
                 <Heading3 style={styles.analyticsSectionTitle}>Analytics Overview</Heading3>
               </View>
@@ -611,7 +611,7 @@ export default function DashboardScreen() {
                           <Ionicons
                             name={(metrics?.revenueGrowth || 0) >= 0 ? "arrow-up" : "arrow-down"}
                             size={10}
-                            color="#fff"
+                            color={Colors.text.inverse}
                           />
                           <BodyText style={styles.analyticsChangeBadgeText}>
                             {Math.abs(metrics?.revenueGrowth || 0).toFixed(1)}%
@@ -654,7 +654,7 @@ export default function DashboardScreen() {
                           <Ionicons
                             name={(metrics?.ordersGrowth || 0) >= 0 ? "arrow-up" : "arrow-down"}
                             size={10}
-                            color="#fff"
+                            color={Colors.text.inverse}
                           />
                           <BodyText style={styles.analyticsChangeBadgeText}>
                             {Math.abs(metrics?.ordersGrowth || 0).toFixed(1)}%
@@ -686,7 +686,7 @@ export default function DashboardScreen() {
                           colors={['#F59E0B', '#D97706']}
                           style={styles.analyticsCardIconGradient}
                         >
-                          <Ionicons name="wallet" size={18} color="#fff" />
+                          <Ionicons name="wallet" size={18} color={Colors.text.inverse} />
                         </LinearGradient>
                       </View>
                       <BodyText style={styles.analyticsCardLabelDark}>Avg Order Value</BodyText>
@@ -714,11 +714,11 @@ export default function DashboardScreen() {
                           colors={['#EC4899', '#DB2777']}
                           style={styles.analyticsCardIconGradient}
                         >
-                          <Ionicons name="people" size={18} color="#fff" />
+                          <Ionicons name="people" size={18} color={Colors.text.inverse} />
                         </LinearGradient>
                         <View style={[
                           styles.analyticsChangeBadgeSmall,
-                          { backgroundColor: (metrics?.customerGrowth || 0) >= 0 ? '#DCFCE7' : '#FEE2E2' }
+                          { backgroundColor: (metrics?.customerGrowth || 0) >= 0 ? '#DCFCE7' : Colors.error[100] }
                         ]}>
                           <Ionicons
                             name={(metrics?.customerGrowth || 0) >= 0 ? "arrow-up" : "arrow-down"}
@@ -753,7 +753,7 @@ export default function DashboardScreen() {
                   style={styles.quickStatItem}
                   onPress={() => router.push('/analytics?tab=inventory')}
                 >
-                  <View style={[styles.quickStatDot, { backgroundColor: '#EF4444' }]} />
+                  <View style={[styles.quickStatDot, { backgroundColor: Colors.error[500] }]} />
                   <BodyText style={styles.quickStatLabel}>Low Stock</BodyText>
                   <BodyText style={styles.quickStatValue}>{metrics?.lowStockProducts || 0}</BodyText>
                 </TouchableOpacity>
@@ -762,7 +762,7 @@ export default function DashboardScreen() {
                   style={styles.quickStatItem}
                   onPress={() => router.push('/orders?filter=pending')}
                 >
-                  <View style={[styles.quickStatDot, { backgroundColor: '#F59E0B' }]} />
+                  <View style={[styles.quickStatDot, { backgroundColor: Colors.warning[500] }]} />
                   <BodyText style={styles.quickStatLabel}>Pending</BodyText>
                   <BodyText style={styles.quickStatValue}>{metrics?.pendingOrders || 0}</BodyText>
                 </TouchableOpacity>
@@ -787,7 +787,7 @@ export default function DashboardScreen() {
               <View style={styles.storePerformanceHeader}>
                 <View style={styles.actionItemsTitleRow}>
                   <View style={[styles.recentActivityIconBg, { backgroundColor: '#6366F1' }]}>
-                    <Ionicons name="storefront" size={18} color="#fff" />
+                    <Ionicons name="storefront" size={18} color={Colors.text.inverse} />
                   </View>
                   <Heading3 style={styles.recentActivityTitle}>Store Performance</Heading3>
                 </View>
@@ -826,7 +826,7 @@ export default function DashboardScreen() {
                         </View>
                         {store.rating > 0 && (
                           <View style={styles.storeRatingBadge}>
-                            <Ionicons name="star" size={11} color="#F59E0B" />
+                            <Ionicons name="star" size={11} color={Colors.warning[500]} />
                             <BodyText style={styles.storeRatingText}>{store.rating.toFixed(1)}</BodyText>
                           </View>
                         )}
@@ -844,7 +844,7 @@ export default function DashboardScreen() {
                         </View>
                         <View style={styles.storeMetricItem}>
                           <Caption style={styles.storeMetricLabel}>Today</Caption>
-                          <BodyText style={[styles.storeMetricValue, { color: '#10B981' }]}>₹{store.todayRevenue.toLocaleString()}</BodyText>
+                          <BodyText style={[styles.storeMetricValue, { color: Colors.success[500] }]}>₹{store.todayRevenue.toLocaleString()}</BodyText>
                         </View>
                         <View style={styles.storeMetricItem}>
                           <Caption style={styles.storeMetricLabel}>Customers</Caption>
@@ -855,20 +855,20 @@ export default function DashboardScreen() {
                       {/* Status Pills */}
                       <View style={styles.storeStatusRow}>
                         {store.pendingOrders > 0 && (
-                          <View style={[styles.storeStatusPill, { backgroundColor: '#FEF3C7' }]}>
-                            <View style={[styles.storeStatusDot, { backgroundColor: '#F59E0B' }]} />
-                            <Caption style={{ color: '#92400E', fontSize: 11 }}>{store.pendingOrders} pending</Caption>
+                          <View style={[styles.storeStatusPill, { backgroundColor: Colors.warning[100] }]}>
+                            <View style={[styles.storeStatusDot, { backgroundColor: Colors.warning[500] }]} />
+                            <Caption style={{ color: Colors.warning[800], fontSize: 11 }}>{store.pendingOrders} pending</Caption>
                           </View>
                         )}
                         {store.lowStockProducts > 0 && (
-                          <View style={[styles.storeStatusPill, { backgroundColor: '#FEE2E2' }]}>
-                            <View style={[styles.storeStatusDot, { backgroundColor: '#EF4444' }]} />
-                            <Caption style={{ color: '#991B1B', fontSize: 11 }}>{store.lowStockProducts} low stock</Caption>
+                          <View style={[styles.storeStatusPill, { backgroundColor: Colors.error[100] }]}>
+                            <View style={[styles.storeStatusDot, { backgroundColor: Colors.error[500] }]} />
+                            <Caption style={{ color: Colors.error[800], fontSize: 11 }}>{store.lowStockProducts} low stock</Caption>
                           </View>
                         )}
                         {store.pendingOrders === 0 && store.lowStockProducts === 0 && (
                           <View style={[styles.storeStatusPill, { backgroundColor: '#D1FAE5' }]}>
-                            <View style={[styles.storeStatusDot, { backgroundColor: '#10B981' }]} />
+                            <View style={[styles.storeStatusDot, { backgroundColor: Colors.success[500] }]} />
                             <Caption style={{ color: '#065F46', fontSize: 11 }}>All good</Caption>
                           </View>
                         )}
@@ -891,7 +891,7 @@ export default function DashboardScreen() {
           <View style={styles.quickActionsSection}>
             <View style={styles.quickActionsSectionHeader}>
               <View style={styles.quickActionsIconBg}>
-                <Ionicons name="flash" size={18} color="#fff" />
+                <Ionicons name="flash" size={18} color={Colors.text.inverse} />
               </View>
               <Heading3 style={styles.quickActionsSectionTitle}>Quick Actions</Heading3>
             </View>
@@ -907,7 +907,7 @@ export default function DashboardScreen() {
                   colors={['#00C06A', '#00A85A']}
                   style={styles.primaryActionGradient}
                 >
-                  <Ionicons name="add-circle" size={28} color="#fff" />
+                  <Ionicons name="add-circle" size={28} color={Colors.text.inverse} />
                   <BodyText style={styles.primaryActionText}>Add Product</BodyText>
                 </LinearGradient>
               </TouchableOpacity>
@@ -921,7 +921,7 @@ export default function DashboardScreen() {
                   colors={['#6366F1', '#4F46E5']}
                   style={styles.primaryActionGradient}
                 >
-                  <Ionicons name="receipt" size={28} color="#fff" />
+                  <Ionicons name="receipt" size={28} color={Colors.text.inverse} />
                   <BodyText style={styles.primaryActionText}>View Orders</BodyText>
                 </LinearGradient>
               </TouchableOpacity>
@@ -946,7 +946,7 @@ export default function DashboardScreen() {
                 activeOpacity={0.8}
               >
                 <View style={[styles.secondaryActionIcon, { backgroundColor: '#D1FAE5' }]}>
-                  <Ionicons name="card" size={22} color="#10B981" />
+                  <Ionicons name="card" size={22} color={Colors.success[500]} />
                 </View>
                 <BodyText style={styles.secondaryActionText}>Cashback</BodyText>
               </TouchableOpacity>
@@ -956,8 +956,8 @@ export default function DashboardScreen() {
                 onPress={() => router.push('/analytics')}
                 activeOpacity={0.8}
               >
-                <View style={[styles.secondaryActionIcon, { backgroundColor: '#FEF3C7' }]}>
-                  <Ionicons name="bar-chart" size={22} color="#F59E0B" />
+                <View style={[styles.secondaryActionIcon, { backgroundColor: Colors.warning[100] }]}>
+                  <Ionicons name="bar-chart" size={22} color={Colors.warning[500]} />
                 </View>
                 <BodyText style={styles.secondaryActionText}>Analytics</BodyText>
               </TouchableOpacity>
@@ -1015,8 +1015,8 @@ export default function DashboardScreen() {
             <View style={styles.recentActivitySection}>
               <View style={styles.recentActivityHeader}>
                 <View style={styles.recentActivityTitleRow}>
-                  <View style={[styles.recentActivityIconBg, { backgroundColor: '#10B981' }]}>
-                    <Ionicons name="people" size={18} color="#fff" />
+                  <View style={[styles.recentActivityIconBg, { backgroundColor: Colors.success[500] }]}>
+                    <Ionicons name="people" size={18} color={Colors.text.inverse} />
                   </View>
                   <Heading3 style={styles.recentActivityTitle}>Customer Payments</Heading3>
                 </View>
@@ -1056,7 +1056,7 @@ export default function DashboardScreen() {
                       </View>
                     </View>
                     <View style={styles.recentActivityItemRight}>
-                      <BodyText style={[styles.recentActivityItemAmount, { color: '#10B981' }]}>
+                      <BodyText style={[styles.recentActivityItemAmount, { color: Colors.success[500] }]}>
                         +₹{payment.amount.toLocaleString()}
                       </BodyText>
                       <Caption style={styles.recentActivityItemTime}>
@@ -1079,7 +1079,7 @@ export default function DashboardScreen() {
             <View style={styles.recentActivityHeader}>
               <View style={styles.recentActivityTitleRow}>
                 <View style={styles.recentActivityIconBg}>
-                  <Ionicons name="time" size={18} color="#fff" />
+                  <Ionicons name="time" size={18} color={Colors.text.inverse} />
                 </View>
                 <Heading3 style={styles.recentActivityTitle}>Recent Activity</Heading3>
               </View>
@@ -1097,9 +1097,9 @@ export default function DashboardScreen() {
                 {overview.recentActivity.orders.slice(0, 5).map((order: any, index: number) => {
                   const getStatusColor = (status: string) => {
                     switch (status?.toLowerCase()) {
-                      case 'completed': case 'delivered': return '#10B981';
-                      case 'pending': case 'placed': return '#F59E0B';
-                      case 'cancelled': return '#EF4444';
+                      case 'completed': case 'delivered': return Colors.success[500];
+                      case 'pending': case 'placed': return Colors.warning[500];
+                      case 'cancelled': return Colors.error[500];
                       case 'processing': return '#6366F1';
                       default: return '#64748B';
                     }
@@ -1235,14 +1235,14 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.text.inverse,
   },
   headerTextContainer: {
     flex: 1,
     gap: 4,
   },
   welcomeText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -1280,7 +1280,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   liveText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontWeight: '700',
     fontSize: 11,
     letterSpacing: 0.5,
@@ -1306,10 +1306,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Colors.background.primary,
   },
   notificationCount: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -1642,9 +1642,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     minHeight: 160,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   analyticsCardContent: {
@@ -1683,7 +1683,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   analyticsChangeBadgeText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -1712,7 +1712,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   analyticsCardValue: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 26,
     fontWeight: '800',
     marginBottom: 4,
@@ -1738,12 +1738,12 @@ const styles = StyleSheet.create({
   },
   quickStatsBar: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 16,
     padding: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   quickStatItem: {
@@ -1771,7 +1771,7 @@ const styles = StyleSheet.create({
   quickStatDivider: {
     width: 1,
     height: 24,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: Colors.border.default,
   },
 
   // ==================== HIGHLIGHTS SECTION STYLES ====================
@@ -1815,9 +1815,9 @@ const styles = StyleSheet.create({
     padding: 16,
     minHeight: 150,
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   highlightCardIcon: {
@@ -1850,7 +1850,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   highlightCardValue: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 22,
     fontWeight: '800',
     marginBottom: 8,
@@ -1899,7 +1899,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F59E0B',
+    backgroundColor: Colors.warning[500],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1927,7 +1927,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   primaryActionText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -1938,13 +1938,13 @@ const styles = StyleSheet.create({
   },
   secondaryActionCard: {
     width: (width - Spacing.base * 2 - 20) / 3,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 14,
     padding: 14,
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   secondaryActionIcon: {
@@ -1964,11 +1964,11 @@ const styles = StyleSheet.create({
   // ==================== RECENT ACTIVITY SECTION STYLES ====================
   recentActivitySection: {
     marginBottom: Spacing.xl,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   recentActivityHeader: {
@@ -2115,7 +2115,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   actionBadge: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.error[500],
     borderRadius: 12,
     minWidth: 24,
     height: 24,
@@ -2124,14 +2124,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   actionBadgeText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 12,
     fontWeight: '700',
   },
   actionItemCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 14,
     padding: 14,
     marginBottom: 8,
@@ -2139,7 +2139,7 @@ const styles = StyleSheet.create({
   },
   actionItemUrgent: {
     borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
+    borderLeftColor: Colors.error[500],
   },
   actionItemIconBg: {
     width: 42,
@@ -2156,12 +2156,12 @@ const styles = StyleSheet.create({
   actionItemTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.text.primary,
     marginBottom: 2,
   },
   actionItemDesc: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.text.tertiary,
     lineHeight: 16,
   },
   actionPriorityBadge: {
@@ -2187,7 +2187,7 @@ const styles = StyleSheet.create({
   },
   storeCard: {
     width: width * 0.72,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 16,
     padding: 16,
     ...Shadows.md,
@@ -2214,17 +2214,17 @@ const styles = StyleSheet.create({
   storeCardName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: Colors.text.primary,
   },
   storeCardLocation: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.text.disabled,
   },
   storeRatingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: Colors.warning[50],
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -2232,7 +2232,7 @@ const styles = StyleSheet.create({
   storeRatingText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#92400E',
+    color: Colors.warning[800],
   },
   storeMetricsGrid: {
     flexDirection: 'row',
@@ -2246,13 +2246,13 @@ const styles = StyleSheet.create({
   },
   storeMetricLabel: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: Colors.text.disabled,
     marginBottom: 2,
   },
   storeMetricValue: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: Colors.text.primary,
   },
   storeStatusRow: {
     flexDirection: 'row',

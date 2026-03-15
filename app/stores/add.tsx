@@ -26,6 +26,7 @@ import { uploadsService } from '@/services/api/uploads';
 import { isWeb, handleWebImageUpload } from '@/utils/platform';
 import ErrorModal from '@/components/common/ErrorModal';
 import SuccessModal from '@/components/common/SuccessModal';
+import { Colors } from '@/constants/DesignTokens';
 
 const storeSchema = z.object({
   name: z.string().min(2, 'Store name must be at least 2 characters').max(100),
@@ -159,7 +160,7 @@ export default function AddStoreScreen() {
     formState: { errors },
     watch,
   } = useForm<StoreFormData>({
-    resolver: zodResolver(storeSchema),
+    resolver: zodResolver(storeSchema) as any,
     defaultValues: {
       name: '',
       description: '',
@@ -218,6 +219,8 @@ export default function AddStoreScreen() {
     },
   });
 
+  const typedControl = control as any;
+
   const isPartner = watch('isPartner');
 
   useEffect(() => {
@@ -258,7 +261,7 @@ export default function AddStoreScreen() {
   };
 
   // Image upload handlers
-  const uploadImage = async (imageUri: string, type: 'logo' | 'banner' = 'general', fileObject?: File): Promise<string | null> => {
+  const uploadImage = async (imageUri: string, type: 'logo' | 'banner' | 'general' = 'general', fileObject?: File): Promise<string | null> => {
     try {
       const result = await uploadsService.uploadImage(imageUri, undefined, type, fileObject);
       return result.url;
@@ -583,7 +586,7 @@ export default function AddStoreScreen() {
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#111827" />
+            <Ionicons name="arrow-back" size={24} color={Colors.gray[900]} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create Store</Text>
           <View style={{ width: 24 }} />
@@ -612,11 +615,11 @@ export default function AddStoreScreen() {
                         style={styles.removeImageButton}
                         onPress={() => handleRemoveBanner(index)}
                       >
-                        <Ionicons name="close-circle" size={24} color="#EF4444" />
+                        <Ionicons name="close-circle" size={24} color={Colors.error[500]} />
                       </TouchableOpacity>
                       {uploadingBanner && uploadingBannerIndex === index && (
                         <View style={styles.uploadingOverlay}>
-                          <ActivityIndicator size="small" color="#FFFFFF" />
+                          <ActivityIndicator size="small" color={Colors.text.inverse} />
                           <Text style={styles.uploadingText}>Uploading...</Text>
                         </View>
                       )}
@@ -658,11 +661,11 @@ export default function AddStoreScreen() {
                   style={styles.removeImageButton}
                   onPress={handleRemoveLogo}
                 >
-                  <Ionicons name="close-circle" size={24} color="#EF4444" />
+                  <Ionicons name="close-circle" size={24} color={Colors.error[500]} />
                 </TouchableOpacity>
                 {uploadingLogo && (
                   <View style={styles.uploadingOverlay}>
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={Colors.text.inverse} />
                     <Text style={styles.uploadingText}>Uploading...</Text>
                   </View>
                 )}
@@ -687,7 +690,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="name"
-            control={control}
+            control={typedControl}
             label="Store Name *"
             placeholder="Enter store name"
             error={errors.name?.message}
@@ -695,7 +698,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="description"
-            control={control}
+            control={typedControl}
             label="Description"
             placeholder="Enter store description"
             multiline
@@ -705,7 +708,7 @@ export default function AddStoreScreen() {
 
           <FormSelect
             name="category"
-            control={control}
+            control={typedControl}
             label="Category *"
             placeholder="Select category"
             options={categories}
@@ -715,7 +718,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="address"
-            control={control}
+            control={typedControl}
             label="Address *"
             placeholder="Enter street address"
             error={errors.address?.message}
@@ -723,7 +726,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="city"
-            control={control}
+            control={typedControl}
             label="City *"
             placeholder="Enter city"
             error={errors.city?.message}
@@ -731,7 +734,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="state"
-            control={control}
+            control={typedControl}
             label="State"
             placeholder="Enter state"
             error={errors.state?.message}
@@ -739,7 +742,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="pincode"
-            control={control}
+            control={typedControl}
             label="Pincode"
             placeholder="Enter 6-digit pincode"
             keyboardType="numeric"
@@ -749,7 +752,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="landmark"
-            control={control}
+            control={typedControl}
             label="Landmark"
             placeholder="Enter nearby landmark"
             error={errors.landmark?.message}
@@ -757,7 +760,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="deliveryRadius"
-            control={control}
+            control={typedControl}
             label="Delivery Radius (km)"
             placeholder="5"
             keyboardType="numeric"
@@ -768,7 +771,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="phone"
-            control={control}
+            control={typedControl}
             label="Phone"
             placeholder="Enter phone number"
             keyboardType="phone-pad"
@@ -777,7 +780,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="email"
-            control={control}
+            control={typedControl}
             label="Email"
             placeholder="Enter email address"
             keyboardType="email-address"
@@ -786,7 +789,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="website"
-            control={control}
+            control={typedControl}
             label="Website"
             placeholder="https://example.com"
             keyboardType="url"
@@ -795,7 +798,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="whatsapp"
-            control={control}
+            control={typedControl}
             label="WhatsApp"
             placeholder="Enter WhatsApp number"
             keyboardType="phone-pad"
@@ -814,7 +817,7 @@ export default function AddStoreScreen() {
                   <View style={styles.hoursInputsContainer}>
                     <FormInput
                       name={`${day}Open` as any}
-                      control={control}
+                      control={typedControl}
                       label=""
                       placeholder="09:00"
                       keyboardType="default"
@@ -823,7 +826,7 @@ export default function AddStoreScreen() {
                     <Text style={styles.hoursSeparator}>-</Text>
                     <FormInput
                       name={`${day}Close` as any}
-                      control={control}
+                      control={typedControl}
                       label=""
                       placeholder="21:00"
                       keyboardType="default"
@@ -832,7 +835,7 @@ export default function AddStoreScreen() {
                   </View>
                   <Controller
                     name={`${day}Closed` as any}
-                    control={control}
+                    control={typedControl}
                     render={({ field: { value, onChange } }) => (
                       <TouchableOpacity
                         style={styles.closedToggle}
@@ -841,7 +844,7 @@ export default function AddStoreScreen() {
                         <Ionicons
                           name={value ? "checkbox" : "checkbox-outline"}
                           size={24}
-                          color={value ? "#3B82F6" : "#9CA3AF"}
+                          color={value ? "#3B82F6" : Colors.gray[400]}
                         />
                         <Text style={styles.closedToggleText}>Closed</Text>
                       </TouchableOpacity>
@@ -856,7 +859,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="deliveryTime"
-            control={control}
+            control={typedControl}
             label="Delivery Time"
             placeholder="30-45 mins"
             error={errors.deliveryTime?.message}
@@ -864,7 +867,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="minimumOrder"
-            control={control}
+            control={typedControl}
             label="Minimum Order (₹)"
             placeholder="0"
             keyboardType="numeric"
@@ -873,7 +876,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="deliveryFee"
-            control={control}
+            control={typedControl}
             label="Delivery Fee (₹)"
             placeholder="0"
             keyboardType="numeric"
@@ -882,7 +885,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="freeDeliveryAbove"
-            control={control}
+            control={typedControl}
             label="Free Delivery Above (₹)"
             placeholder="500"
             keyboardType="numeric"
@@ -893,7 +896,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="cashback"
-            control={control}
+            control={typedControl}
             label="Cashback Percentage (%)"
             placeholder="5"
             keyboardType="numeric"
@@ -902,7 +905,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="minOrderAmount"
-            control={control}
+            control={typedControl}
             label="Minimum Order Amount for Cashback (₹)"
             placeholder="100"
             keyboardType="numeric"
@@ -914,7 +917,7 @@ export default function AddStoreScreen() {
             <Text style={styles.switchLabel}>Partner Store</Text>
             <Controller
               name="isPartner"
-              control={control}
+              control={typedControl}
               render={({ field: { value, onChange } }) => (
                 <TouchableOpacity
                   style={styles.switchContainer}
@@ -923,7 +926,7 @@ export default function AddStoreScreen() {
                   <Ionicons
                     name={value ? "toggle" : "toggle-outline"}
                     size={32}
-                    color={value ? "#3B82F6" : "#9CA3AF"}
+                    color={value ? "#3B82F6" : Colors.gray[400]}
                   />
                 </TouchableOpacity>
               )}
@@ -933,7 +936,7 @@ export default function AddStoreScreen() {
           {isPartner && (
             <FormSelect
               name="partnerLevel"
-              control={control}
+              control={typedControl}
               label="Partner Level"
               placeholder="Select partner level"
               options={[
@@ -966,7 +969,7 @@ export default function AddStoreScreen() {
               </View>
               <Controller
                 name={category.key as any}
-                control={control}
+                control={typedControl}
                 render={({ field: { value, onChange } }) => (
                   <TouchableOpacity
                     style={styles.switchContainer}
@@ -975,7 +978,7 @@ export default function AddStoreScreen() {
                     <Ionicons
                       name={value ? "toggle" : "toggle-outline"}
                       size={32}
-                      color={value ? "#3B82F6" : "#9CA3AF"}
+                      color={value ? "#3B82F6" : Colors.gray[400]}
                     />
                   </TouchableOpacity>
                 )}
@@ -999,7 +1002,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={scHomeDelivery ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={scHomeDelivery ? "#3B82F6" : "#9CA3AF"}
+                color={scHomeDelivery ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1013,7 +1016,7 @@ export default function AddStoreScreen() {
                 onChangeText={setScHomeDeliveryRadius}
                 keyboardType="numeric"
                 placeholder="5"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={Colors.gray[400]}
               />
             </View>
           )}
@@ -1031,7 +1034,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={scDriveThru ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={scDriveThru ? "#3B82F6" : "#9CA3AF"}
+                color={scDriveThru ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1049,7 +1052,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={scDineIn ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={scDineIn ? "#3B82F6" : "#9CA3AF"}
+                color={scDineIn ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1067,7 +1070,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={scTableBooking ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={scTableBooking ? "#3B82F6" : "#9CA3AF"}
+                color={scTableBooking ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1085,7 +1088,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={scStorePickup ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={scStorePickup ? "#3B82F6" : "#9CA3AF"}
+                color={scStorePickup ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1095,7 +1098,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="priceForTwo"
-            control={control}
+            control={typedControl}
             label="Price for Two"
             placeholder="e.g. 500"
             keyboardType="numeric"
@@ -1104,7 +1107,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="cuisineType"
-            control={control}
+            control={typedControl}
             label="Cuisine Types"
             placeholder="e.g. Indian, Chinese, Italian"
             error={errors.cuisineType?.message}
@@ -1123,7 +1126,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={isHalal ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={isHalal ? "#3B82F6" : "#9CA3AF"}
+                color={isHalal ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1140,7 +1143,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={isVegetarian ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={isVegetarian ? "#3B82F6" : "#9CA3AF"}
+                color={isVegetarian ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1157,7 +1160,7 @@ export default function AddStoreScreen() {
               <Ionicons
                 name={isVegan ? "checkbox" : "checkbox-outline"}
                 size={28}
-                color={isVegan ? "#3B82F6" : "#9CA3AF"}
+                color={isVegan ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
           </View>
@@ -1167,7 +1170,7 @@ export default function AddStoreScreen() {
             <Text style={styles.switchLabel}>Featured Store</Text>
             <Controller
               name="isFeatured"
-              control={control}
+              control={typedControl}
               render={({ field: { value, onChange } }) => (
                 <TouchableOpacity
                   style={styles.switchContainer}
@@ -1176,7 +1179,7 @@ export default function AddStoreScreen() {
                   <Ionicons
                     name={value ? "toggle" : "toggle-outline"}
                     size={32}
-                    color={value ? "#3B82F6" : "#9CA3AF"}
+                    color={value ? "#3B82F6" : Colors.gray[400]}
                   />
                 </TouchableOpacity>
               )}
@@ -1185,7 +1188,7 @@ export default function AddStoreScreen() {
 
           <FormInput
             name="tags"
-            control={control}
+            control={typedControl}
             label="Tags"
             placeholder="tag1, tag2, tag3"
             error={errors.tags?.message}
@@ -1197,10 +1200,10 @@ export default function AddStoreScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={Colors.text.inverse} />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                <Ionicons name="checkmark-circle" size={20} color={Colors.text.inverse} />
                 <Text style={styles.submitButtonText}>Create Store</Text>
               </>
             )}
@@ -1230,7 +1233,7 @@ export default function AddStoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   keyboardView: {
     flex: 1,
@@ -1240,14 +1243,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   content: {
     flex: 1,
@@ -1256,13 +1259,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     marginTop: 16,
     marginBottom: 12,
   },
   sectionHint: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginBottom: 12,
   },
   imageSection: {
@@ -1280,12 +1283,12 @@ const styles = StyleSheet.create({
   imageLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#111827',
+    color: Colors.gray[900],
     marginBottom: 4,
   },
   imageHint: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginBottom: 8,
   },
   imagePickerButton: {
@@ -1297,7 +1300,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: 8,
     padding: 20,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   imagePickerText: {
     marginLeft: 8,
@@ -1309,7 +1312,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, // Increased for modern look
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     backgroundColor: '#F8FAFC', // Background for container
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1353,7 +1356,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   uploadingText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     marginTop: 8,
     fontSize: 12,
   },
@@ -1369,7 +1372,7 @@ const styles = StyleSheet.create({
     width: 80,
     fontSize: 14,
     fontWeight: '500',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   hoursInputsContainer: {
     flexDirection: 'row',
@@ -1383,7 +1386,7 @@ const styles = StyleSheet.create({
   hoursSeparator: {
     marginHorizontal: 8,
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   closedToggle: {
     flexDirection: 'row',
@@ -1393,7 +1396,7 @@ const styles = StyleSheet.create({
   closedToggleText: {
     marginLeft: 4,
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   switchRow: {
     flexDirection: 'row',
@@ -1401,14 +1404,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderRadius: 8,
     marginBottom: 12,
   },
   switchLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   categoryInfo: {
     flex: 1,
@@ -1416,7 +1419,7 @@ const styles = StyleSheet.create({
   },
   categoryDescription: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 2,
   },
   switchContainer: {
@@ -1426,28 +1429,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
     marginTop: -4,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   scInlineLabel: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#374151',
+    color: Colors.gray[700],
   },
   scInlineInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.gray[300],
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
-    color: '#111827',
+    color: Colors.gray[900],
     width: 100,
     textAlign: 'center',
   },
@@ -1465,7 +1468,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

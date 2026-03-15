@@ -280,7 +280,7 @@ const VariantPricingCard: React.FC<VariantPricingCardProps> = ({
                 disabled={
                   !newPrice ||
                   isNaN(parseFloat(newPrice)) ||
-                  (newSalePrice && parseFloat(newSalePrice) >= parseFloat(newPrice))
+                  (!!newSalePrice && parseFloat(newSalePrice) >= parseFloat(newPrice))
                 }
               >
                 <Text style={styles.submitButtonText}>Update Pricing</Text>

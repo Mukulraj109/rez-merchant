@@ -29,14 +29,3 @@ export { TopOffersCard } from './TopOffersCard';
 export { CustomerSegmentsCard } from './CustomerSegmentsCard';
 export { PopularItemsCard } from './PopularItemsCard';
 
-// Type exports for convenience
-export type { default as LineChartProps } from './LineChart';
-export type { default as BarChartProps } from './BarChart';
-export type { default as ForecastChartProps } from './ForecastChart';
-export type { default as SegmentPieChartProps } from './SegmentPieChart';
-export type { default as MetricCardProps } from './MetricCard';
-export type { default as CustomerMetricCardProps } from './CustomerMetricCard';
-export type { default as StockoutAlertCardProps } from './StockoutAlertCard';
-export type { default as TrendIndicatorProps } from './TrendIndicator';
-export type { default as DateRangeSelectorProps } from './DateRangeSelector';
-export type { default as ExportButtonProps } from './ExportButton';

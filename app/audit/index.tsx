@@ -103,27 +103,27 @@ export default function AuditLogListScreen() {
     isFetchingNextPage,
   } = useInfiniteAuditLogs(activeFilters, {
     enabled: canView,
-  });
+  } as any);
 
   const {
     data: statsData,
     isLoading: statsLoading,
   } = useAuditStatistics(undefined, undefined, {
     enabled: canView,
-  });
+  } as any);
 
   const {
     refetch: exportLogs,
     isFetching: isExporting,
   } = useExportAuditLogs(
     { format: 'csv', ...activeFilters },
-    { enabled: false }
+    { enabled: false } as any
   );
 
   // Flatten paginated data
   const allLogs = useMemo(() => {
-    if (!logsData?.pages) return [];
-    return logsData.pages.flatMap(page => page.logs || []);
+    if (!(logsData as any)?.pages) return [];
+    return (logsData as any).pages.flatMap((page: any) => page.logs || []);
   }, [logsData]);
 
   // Stats calculation
@@ -527,7 +527,7 @@ export default function AuditLogListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: Colors.background.secondary,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   headerTitle: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 20,
     fontWeight: '700',
   },
@@ -613,9 +613,9 @@ const styles = StyleSheet.create({
     padding: 14,
     minHeight: 100,
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   statCardIcon: {
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   statCardValue: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 24,
     fontWeight: '800',
   },
@@ -693,13 +693,13 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 14,
     paddingHorizontal: 16,
     height: 50,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   searchInput: {
@@ -719,10 +719,10 @@ const styles = StyleSheet.create({
   filterChip: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   filterChipActive: {
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   filterChipTextActive: {
-    color: '#fff',
+    color: Colors.text.inverse,
   },
 
   // Log Items
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.error[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#EF4444',
+    color: Colors.error[500],
     marginBottom: 8,
   },
   errorText: {
@@ -823,7 +823,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   retryButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontWeight: '600',
     fontSize: 15,
   },
@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,

@@ -142,7 +142,7 @@ export default function DealsScreen() {
   const renderScanner = () => (
     <View style={styles.scannerContainer}>
       <LinearGradient
-        colors={['#7C3AED', '#6366F1']}
+        colors={[Colors.light.primary, Colors.light.indigo]}
         style={styles.scannerHeader}
       >
         <Ionicons name="qr-code" size={48} color="white" />
@@ -154,11 +154,11 @@ export default function DealsScreen() {
 
       <View style={styles.inputContainer}>
         <View style={styles.codeInputWrapper}>
-          <Ionicons name="ticket-outline" size={24} color="#7C3AED" style={styles.inputIcon} />
+          <Ionicons name="ticket-outline" size={24} color={Colors.light.primary} style={styles.inputIcon} />
           <TextInput
             style={styles.codeInput}
             placeholder="Enter code (e.g., RZ-XXXXXXXX)"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={Colors.light.textMuted}
             value={codeInput}
             onChangeText={setCodeInput}
             autoCapitalize="characters"
@@ -166,7 +166,7 @@ export default function DealsScreen() {
           />
           {codeInput.length > 0 && (
             <TouchableOpacity onPress={() => setCodeInput('')} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+              <Ionicons name="close-circle" size={20} color={Colors.light.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -240,11 +240,11 @@ export default function DealsScreen() {
       >
         {isLoading ? (
           <View style={styles.centered}>
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color={Colors.light.primary} />
           </View>
         ) : redemptions.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="ticket-outline" size={48} color="#9CA3AF" />
+            <Ionicons name="ticket-outline" size={48} color={Colors.light.textMuted} />
             <ThemedText style={styles.emptyText}>No redemptions found</ThemedText>
           </View>
         ) : (
@@ -266,14 +266,14 @@ export default function DealsScreen() {
 
                 <View style={styles.redemptionDetails}>
                   <View style={styles.detailRow}>
-                    <Ionicons name="pricetag" size={16} color="#7C3AED" />
+                    <Ionicons name="pricetag" size={16} color={Colors.light.primary} />
                     <ThemedText style={styles.detailText}>
                       {redemption.campaignSnapshot.title}
                     </ThemedText>
                   </View>
                   {redemption.dealSnapshot.cashback && (
                     <View style={styles.detailRow}>
-                      <Ionicons name="cash" size={16} color="#10b981" />
+                      <Ionicons name="cash" size={16} color={Colors.light.success} />
                       <ThemedText style={styles.detailText}>
                         {redemption.dealSnapshot.cashback} cashback
                       </ThemedText>
@@ -281,7 +281,7 @@ export default function DealsScreen() {
                   )}
                   {redemption.dealSnapshot.discount && (
                     <View style={styles.detailRow}>
-                      <Ionicons name="pricetags" size={16} color="#f59e0b" />
+                      <Ionicons name="pricetags" size={16} color={Colors.light.warning} />
                       <ThemedText style={styles.detailText}>
                         {redemption.dealSnapshot.discount} discount
                       </ThemedText>
@@ -317,7 +317,7 @@ export default function DealsScreen() {
     >
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#7C3AED" />
+          <ActivityIndicator size="large" color={Colors.light.primary} />
         </View>
       ) : stats ? (
         <>
@@ -357,7 +357,7 @@ export default function DealsScreen() {
           {/* Revenue card */}
           <View style={styles.revenueCard}>
             <LinearGradient
-              colors={['#10b981', '#059669']}
+              colors={[Colors.light.success, '#059669']}
               style={styles.revenueGradient}
             >
               <Ionicons name="cash" size={32} color="white" />
@@ -390,7 +390,7 @@ export default function DealsScreen() {
         </>
       ) : (
         <View style={styles.emptyState}>
-          <Ionicons name="stats-chart" size={48} color="#9CA3AF" />
+          <Ionicons name="stats-chart" size={48} color={Colors.light.textMuted} />
           <ThemedText style={styles.emptyText}>No stats available</ThemedText>
         </View>
       )}
@@ -414,13 +414,13 @@ export default function DealsScreen() {
             style={styles.modalClose}
             onPress={() => setShowResultModal(false)}
           >
-            <Ionicons name="close" size={24} color="#6b7280" />
+            <Ionicons name="close" size={24} color={Colors.light.textSecondary} />
           </TouchableOpacity>
 
           {verifyResult?.valid ? (
             <>
               <View style={styles.validHeader}>
-                <Ionicons name="checkmark-circle" size={64} color="#10b981" />
+                <Ionicons name="checkmark-circle" size={64} color={Colors.light.success} />
                 <ThemedText style={styles.validTitle}>Valid Code!</ThemedText>
               </View>
 
@@ -490,7 +490,7 @@ export default function DealsScreen() {
           ) : (
             <>
               <View style={styles.invalidHeader}>
-                <Ionicons name="close-circle" size={64} color="#ef4444" />
+                <Ionicons name="close-circle" size={64} color={Colors.light.error} />
                 <ThemedText style={styles.invalidTitle}>Invalid Code</ThemedText>
                 <ThemedText style={styles.invalidReason}>{verifyResult?.reason}</ThemedText>
               </View>
@@ -570,7 +570,7 @@ export default function DealsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: Colors.light.backgroundSecondary,
   },
   centered: {
     flex: 1,
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: Colors.light.border,
   },
   viewModeTab: {
     flex: 1,
@@ -598,15 +598,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   viewModeTabActive: {
-    backgroundColor: '#f3e8ff',
+    backgroundColor: Colors.light.primaryLight2,
   },
   viewModeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
   },
   viewModeTextActive: {
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
 
   // Scanner styles
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: Colors.light.border,
     paddingHorizontal: 16,
   },
   inputIcon: {
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 1,
-    color: '#1f2937',
+    color: Colors.light.textHeading,
   },
   clearButton: {
     padding: 4,
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#7C3AED',
+    backgroundColor: Colors.light.primary,
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
   instructionsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1f2937',
+    color: Colors.light.textHeading,
     marginBottom: 16,
   },
   instructionRow: {
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#f3e8ff',
+    backgroundColor: Colors.light.primaryLight2,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -703,11 +703,11 @@ const styles = StyleSheet.create({
   instructionNumberText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
   instructionText: {
     fontSize: 14,
-    color: '#4b5563',
+    color: Colors.light.textTertiary,
     flex: 1,
   },
 
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
   tabsScroll: {
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: Colors.light.border,
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -730,15 +730,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: Colors.light.backgroundTertiary,
   },
   activeTab: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: Colors.light.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
   },
   activeTabText: {
     color: 'white',
@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
   redemptionCode: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1f2937',
+    color: Colors.light.textHeading,
     letterSpacing: 1,
   },
   statusBadge: {
@@ -783,12 +783,12 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 14,
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   redemptionDetails: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: Colors.light.border,
     paddingTop: 12,
     gap: 8,
   },
@@ -799,11 +799,11 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#4b5563',
+    color: Colors.light.textTertiary,
   },
   redemptionFooter: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: Colors.light.border,
     paddingTop: 12,
     marginTop: 12,
     flexDirection: 'row',
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: Colors.light.textMuted,
   },
   emptyState: {
     alignItems: 'center',
@@ -820,7 +820,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#9ca3af',
+    color: Colors.light.textMuted,
     marginTop: 12,
   },
 
@@ -840,12 +840,12 @@ const styles = StyleSheet.create({
   statPeriod: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
   },
   statValue: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#1f2937',
+    color: Colors.light.textHeading,
     marginTop: 4,
   },
   statBreakdown: {
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
   },
   statBreakdownText: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: Colors.light.textMuted,
   },
   revenueCard: {
     marginTop: 16,
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
   topDealsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1f2937',
+    color: Colors.light.textHeading,
     marginBottom: 16,
   },
   topDealRow: {
@@ -896,13 +896,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: Colors.light.backgroundTertiary,
   },
   topDealRank: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#f3e8ff',
+    backgroundColor: Colors.light.primaryLight2,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -910,16 +910,16 @@ const styles = StyleSheet.create({
   topDealRankText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
   topDealName: {
     flex: 1,
     fontSize: 14,
-    color: '#1f2937',
+    color: Colors.light.textHeading,
   },
   topDealCount: {
     fontSize: 13,
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
   },
 
   // Modal styles
@@ -949,7 +949,7 @@ const styles = StyleSheet.create({
   validTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#10b981',
+    color: Colors.light.success,
     marginTop: 12,
   },
   invalidHeader: {
@@ -959,17 +959,17 @@ const styles = StyleSheet.create({
   invalidTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#ef4444',
+    color: Colors.light.error,
     marginTop: 12,
   },
   invalidReason: {
     fontSize: 16,
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
     marginTop: 8,
     textAlign: 'center',
   },
   redemptionInfo: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: Colors.light.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     gap: 12,
@@ -981,19 +981,19 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#6b7280',
+    color: Colors.light.textSecondary,
   },
   infoValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
+    color: Colors.light.textHeading,
     textAlign: 'right',
     flex: 1,
     marginLeft: 16,
   },
   termsSection: {
     marginTop: 16,
-    backgroundColor: '#fef3c7',
+    backgroundColor: Colors.light.warningLight,
     borderRadius: 12,
     padding: 16,
   },
@@ -1012,7 +1012,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: Colors.light.success,
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 24,
@@ -1029,7 +1029,7 @@ const styles = StyleSheet.create({
   tryAgainButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#7C3AED',
+    backgroundColor: Colors.light.primary,
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 24,

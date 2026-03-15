@@ -133,7 +133,7 @@ const StatusUpdateModal = ({
                     styles.statusOption,
                     selectedStatus === status && styles.selectedStatusOption
                   ]}
-                  onPress={() => setSelectedStatus(status)}
+                  onPress={() => setSelectedStatus(status as OrderStatus)}
                 >
                   <View style={[styles.statusIndicator, { backgroundColor: statusColors[status] }]} />
                   <ThemedText style={[
@@ -547,7 +547,7 @@ export default function OrderDetailsScreen() {
               {formatAddress(order.delivery.address)}
             </ThemedText>
             <TouchableOpacity
-              onPress={() => openMaps(order.delivery.address)}
+              onPress={() => openMaps(order.delivery!.address)}
               style={styles.mapButton}
             >
               <Ionicons name="map" size={16} color="#2196F3" />

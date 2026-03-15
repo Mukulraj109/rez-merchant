@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal, ScrollView, ViewStyle } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import { MerchantRole } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 import { RoleBadge } from './RoleBadge';
 
 interface RoleSelectorProps {
@@ -28,21 +29,21 @@ const ROLE_OPTIONS: RoleOption[] = [
     label: 'Admin',
     description: 'Full access to manage store, team, and settings',
     permissionCount: 65,
-    color: '#3B82F6',
+    color: Colors.primary[500],
   },
   {
     role: 'manager',
     label: 'Manager',
     description: 'Manage products, orders, and customer interactions',
     permissionCount: 45,
-    color: '#10B981',
+    color: Colors.success[500],
   },
   {
     role: 'staff',
     label: 'Staff',
     description: 'View and update orders, limited product access',
     permissionCount: 20,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
 ];
 
@@ -208,7 +209,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         <Ionicons
           name="chevron-down"
           size={20}
-          color={disabled ? '#9CA3AF' : '#6B7280'}
+          color={disabled ? Colors.gray[400] : Colors.gray[500]}
         />
       </TouchableOpacity>
 
@@ -232,7 +233,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                 onPress={() => setModalVisible(false)}
                 testID={`${testID}-close`}
               >
-                <Ionicons name="close" size={24} color="#6B7280" />
+                <Ionicons name="close" size={24} color={Colors.gray[500]} />
               </TouchableOpacity>
             </View>
 
@@ -268,7 +269,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                     </Text>
 
                     <View style={styles.optionFooter}>
-                      <Ionicons name="key-outline" size={14} color="#6B7280" />
+                      <Ionicons name="key-outline" size={14} color={Colors.gray[500]} />
                       <Text style={styles.permissionCount}>
                         {option.permissionCount} permissions
                       </Text>

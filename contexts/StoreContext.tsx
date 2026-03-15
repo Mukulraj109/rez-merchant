@@ -65,7 +65,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const availableStores = storesList || stores;
       
       // First try to get from storage
-      const storedStoreId = await storageService.getItem(ACTIVE_STORE_KEY);
+      const storedStoreId = await storageService.getItem<string>('ACTIVE_STORE_ID' as any);
       
       if (storedStoreId) {
         // Check if stored store is in the available stores list
@@ -92,7 +92,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         
         // Save to storage
         if (store) {
-          await storageService.setItem(ACTIVE_STORE_KEY, store._id);
+          await storageService.setItem('ACTIVE_STORE_ID' as any, store._id);
         }
         return;
       } catch (apiErr) {
@@ -102,7 +102,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       // If no active store from API, use first store if available
       if (availableStores.length > 0) {
         setActiveStoreState(availableStores[0]);
-        await storageService.setItem(ACTIVE_STORE_KEY, availableStores[0]._id);
+        await storageService.setItem('ACTIVE_STORE_ID' as any, availableStores[0]._id);
       }
     } catch (err: any) {
       console.error('Failed to load active store:', err);
@@ -110,7 +110,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const availableStores = storesList || stores;
       if (availableStores.length > 0) {
         setActiveStoreState(availableStores[0]);
-        await storageService.setItem(ACTIVE_STORE_KEY, availableStores[0]._id);
+        await storageService.setItem('ACTIVE_STORE_ID' as any, availableStores[0]._id);
       }
     }
   }, [stores]);
@@ -136,7 +136,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setActiveStoreState(store);
 
       // Save to storage
-      await storageService.setItem(ACTIVE_STORE_KEY, store._id);
+      await storageService.setItem('ACTIVE_STORE_ID' as any, store._id);
 
       // Refresh stores to get updated status
       await loadStores();
@@ -253,7 +253,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           await setActiveStore(remainingStores[0]);
         } else {
           setActiveStoreState(null);
-          await storageService.removeItem(ACTIVE_STORE_KEY);
+          await storageService.removeItem('ACTIVE_STORE_ID' as any);
         }
       }
     } catch (err: any) {

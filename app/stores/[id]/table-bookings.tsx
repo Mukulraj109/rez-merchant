@@ -29,11 +29,11 @@ const STATUS_TABS = [
 ];
 
 const BOOKING_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: '#FEF3C7', text: '#F59E0B' },
-  confirmed: { bg: '#D1FAE5', text: '#10B981' },
-  cancelled: { bg: '#FEE2E2', text: '#EF4444' },
+  pending: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  confirmed: { bg: Colors.light.successLight, text: Colors.light.success },
+  cancelled: { bg: Colors.light.errorLight, text: Colors.light.error },
   completed: { bg: '#E0E7FF', text: '#6366F1' },
-  no_show: { bg: '#F3F4F6', text: '#6B7280' },
+  no_show: { bg: Colors.light.backgroundTertiary, text: Colors.light.textSecondary },
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -410,7 +410,7 @@ export default function TableBookingsScreen() {
           message={`${actionLabels[actionModal.action].message}\n\nBooking: #${actionModal.booking?.bookingNumber}\nCustomer: ${actionModal.booking ? getCustomerName(actionModal.booking) : ''}\nParty: ${actionModal.booking?.partySize} guests`}
           confirmText={actionModal.action === 'cancelled' ? 'Cancel Booking' : actionModal.action === 'confirmed' ? 'Confirm' : 'Complete'}
           cancelText="Go Back"
-          type={actionModal.action === 'cancelled' ? 'danger' : 'info'}
+          type={actionModal.action === 'cancelled' ? 'danger' : 'default'}
           loading={updatingBooking === actionModal.booking?._id}
           onConfirm={() => actionModal.booking && actionModal.action && handleUpdateStatus(actionModal.booking, actionModal.action)}
           onCancel={() => setActionModal({ visible: false, booking: null, action: null })}

@@ -83,7 +83,7 @@ const SimpleBarChart = ({ data, height, color }: SimpleBarChartProps) => {
 
 export default function OrderAnalyticsScreen() {
   const { state } = useAuth();
-  const [analytics, setAnalytics] = useState<OrderAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<(OrderAnalytics & Record<string, any>) | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
 
@@ -214,11 +214,11 @@ export default function OrderAnalyticsScreen() {
       </View>
 
       {/* Order Volume by Hour */}
-      {analytics && analytics.hourlyOrderDistribution.some(d => d.orderCount > 0) && (
+      {analytics && analytics.hourlyOrderDistribution?.some((d: any) => d.orderCount > 0) && (
         <View style={styles.chartCard}>
           <ThemedText style={styles.chartTitle}>Order Volume by Hour</ThemedText>
           <SimpleBarChart
-            data={analytics.hourlyOrderDistribution.map(d => ({
+            data={analytics.hourlyOrderDistribution.map((d: any) => ({
               label: `${d.hour}:00`,
               value: d.orderCount
             }))}
@@ -232,11 +232,11 @@ export default function OrderAnalyticsScreen() {
       )}
 
       {/* Daily Order Trends */}
-      {analytics && analytics.dailyOrderTrends.some(d => d.orderCount > 0) && (
+      {analytics && analytics.dailyOrderTrends?.some((d: any) => d.orderCount > 0) && (
         <View style={styles.chartCard}>
           <ThemedText style={styles.chartTitle}>Daily Order Trends</ThemedText>
           <SimpleBarChart
-            data={analytics.dailyOrderTrends.slice(-14).map(d => ({
+            data={analytics.dailyOrderTrends.slice(-14).map((d: any) => ({
               label: new Date(d.date).getDate().toString(),
               value: d.orderCount
             }))}
@@ -253,7 +253,7 @@ export default function OrderAnalyticsScreen() {
       {analytics && analytics.topSellingProducts.length > 0 && (
         <View style={styles.chartCard}>
           <ThemedText style={styles.chartTitle}>Top Selling Products</ThemedText>
-          {analytics.topSellingProducts.slice(0, 5).map((product, index) => (
+          {analytics.topSellingProducts.slice(0, 5).map((product: any, index: number) => (
             <View key={product.productId} style={styles.productRow}>
               <View style={styles.productRank}>
                 <ThemedText style={styles.productRankText}>#{index + 1}</ThemedText>

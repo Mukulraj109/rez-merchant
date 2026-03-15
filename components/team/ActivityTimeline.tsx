@@ -3,6 +3,7 @@ import { View, Text, ScrollView, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TeamActivity } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 
 interface ActivityTimelineProps {
   activities: TeamActivity[];
@@ -115,17 +116,17 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
     const configs = {
       invite: {
         icon: 'mail-outline' as const,
-        color: '#3B82F6',
+        color: Colors.primary[500],
         label: 'Invitation Sent',
       },
       accept: {
         icon: 'checkmark-circle-outline' as const,
-        color: '#10B981',
+        color: Colors.success[500],
         label: 'Invitation Accepted',
       },
       role_change: {
         icon: 'swap-horizontal-outline' as const,
-        color: '#F59E0B',
+        color: Colors.warning[500],
         label: 'Role Changed',
       },
       status_change: {
@@ -135,7 +136,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
       },
       remove: {
         icon: 'trash-outline' as const,
-        color: '#EF4444',
+        color: Colors.error[500],
         label: 'Member Removed',
       },
       resend_invite: {
@@ -178,7 +179,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
     return (
       <View style={[styles.container, style]} testID={testID}>
         <View style={styles.emptyState}>
-          <Ionicons name="time-outline" size={48} color="#D1D5DB" />
+          <Ionicons name="time-outline" size={48} color={Colors.gray[300]} />
           <Text style={styles.emptyStateText}>No activity yet</Text>
         </View>
       </View>

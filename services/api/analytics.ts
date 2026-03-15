@@ -904,7 +904,7 @@ class AnalyticsService {
    * @param options Query options
    * @returns URLSearchParams string
    */
-  private buildQueryParams(options?: AnalyticsQueryOptions): string {
+  private buildQueryParams(options?: Record<string, any>): string {
     const params = new URLSearchParams();
 
     if (!options) {

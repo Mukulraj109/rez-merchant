@@ -564,7 +564,7 @@ export default function StoreQRCodeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
   },
   loadingContainer: {
     flex: 1,
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
   },
   qrCode: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   qrCard: {
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
   },
   qrImage: {
     width: QR_SIZE,
@@ -671,14 +671,14 @@ const styles = StyleSheet.create({
   },
   scanInstruction: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginTop: 16,
     paddingHorizontal: 20,
   },
   generatedDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     marginTop: 8,
   },
   actionsContainer: {
@@ -776,7 +776,7 @@ const styles = StyleSheet.create({
   },
   noQRDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,

@@ -337,7 +337,7 @@ export default function AddEventScreen() {
                           category === cat.value && styles.categoryItemActive,
                         ]}
                         onPress={() => {
-                          setCategory(cat.value);
+                          setCategory(cat.value as any);
                           setShowCategoryPicker(false);
                         }}
                       >
@@ -603,16 +603,16 @@ export default function AddEventScreen() {
                   onPress={() => setSchedule([...schedule, { title: '', startTime: '', endTime: '', description: '' }])}
                 >
                   <Ionicons name="add" size={16} color="#7C3AED" />
-                  <Text style={{ color: '#7C3AED', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Item</Text>
+                  <Text style={{ color: Colors.light.primary, fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Item</Text>
                 </TouchableOpacity>
               </View>
               {schedule.length === 0 ? (
-                <Text style={{ color: '#9CA3AF', fontSize: 13, fontStyle: 'italic' }}>No schedule items. Add agenda items for your event.</Text>
+                <Text style={{ color: Colors.light.textMuted, fontSize: 13, fontStyle: 'italic' }}>No schedule items. Add agenda items for your event.</Text>
               ) : (
                 schedule.map((item, index) => (
-                  <View key={index} style={{ backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                  <View key={index} style={{ backgroundColor: Colors.light.backgroundSecondary, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <Text style={{ fontWeight: '600', color: '#374151', fontSize: 13 }}>Item {index + 1}</Text>
+                      <Text style={{ fontWeight: '600', color: Colors.light.textTertiary, fontSize: 13 }}>Item {index + 1}</Text>
                       <TouchableOpacity onPress={() => setSchedule(schedule.filter((_, i) => i !== index))}>
                         <Ionicons name="trash-outline" size={18} color="#EF4444" />
                       </TouchableOpacity>
@@ -677,16 +677,16 @@ export default function AddEventScreen() {
                   onPress={() => setTicketTypes([...ticketTypes, { name: '', price: '', maxQuantity: '', description: '' }])}
                 >
                   <Ionicons name="add" size={16} color="#7C3AED" />
-                  <Text style={{ color: '#7C3AED', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Type</Text>
+                  <Text style={{ color: Colors.light.primary, fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Type</Text>
                 </TouchableOpacity>
               </View>
               {ticketTypes.length === 0 ? (
-                <Text style={{ color: '#9CA3AF', fontSize: 13, fontStyle: 'italic' }}>No ticket types. Default pricing will be used.</Text>
+                <Text style={{ color: Colors.light.textMuted, fontSize: 13, fontStyle: 'italic' }}>No ticket types. Default pricing will be used.</Text>
               ) : (
                 ticketTypes.map((ticket, index) => (
-                  <View key={index} style={{ backgroundColor: '#F9FAFB', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
+                  <View key={index} style={{ backgroundColor: Colors.light.backgroundSecondary, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <Text style={{ fontWeight: '600', color: '#374151', fontSize: 13 }}>Ticket {index + 1}</Text>
+                      <Text style={{ fontWeight: '600', color: Colors.light.textTertiary, fontSize: 13 }}>Ticket {index + 1}</Text>
                       <TouchableOpacity onPress={() => setTicketTypes(ticketTypes.filter((_, i) => i !== index))}>
                         <Ionicons name="trash-outline" size={18} color="#EF4444" />
                       </TouchableOpacity>
@@ -742,7 +742,7 @@ export default function AddEventScreen() {
                   onPress={() => setSponsors([...sponsors, { name: '', logo: '' }])}
                 >
                   <Ionicons name="add" size={16} color="#7C3AED" />
-                  <Text style={{ color: '#7C3AED', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Sponsor</Text>
+                  <Text style={{ color: Colors.light.primary, fontWeight: '600', fontSize: 13, marginLeft: 4 }}>Add Sponsor</Text>
                 </TouchableOpacity>
               </View>
               {sponsors.map((sponsor, index) => (
@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   keyboardView: {
     flex: 1,
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -899,16 +899,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     marginBottom: 16,
   },
   imageUpload: {
     height: 180,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     borderStyle: 'dashed',
   },
   previewImage: {
@@ -924,7 +924,7 @@ const styles = StyleSheet.create({
   imagePlaceholderText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
   },
   uploadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -938,18 +938,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: Colors.light.textTertiary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1F2937',
+    color: Colors.light.textDark,
   },
   textArea: {
     minHeight: 100,
@@ -959,25 +959,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   selectButtonText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: Colors.light.textDark,
     flex: 1,
     marginLeft: 8,
   },
   categoryList: {
     marginTop: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     overflow: 'hidden',
   },
   categoryItem: {
@@ -991,10 +991,10 @@ const styles = StyleSheet.create({
   },
   categoryItemText: {
     fontSize: 14,
-    color: '#374151',
+    color: Colors.light.textTertiary,
   },
   categoryItemTextActive: {
-    color: '#7C3AED',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   row: {
@@ -1009,7 +1009,7 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#374151',
+    color: Colors.light.textTertiary,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -1031,7 +1031,7 @@ const styles = StyleSheet.create({
   draftButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
   publishButton: {
     flex: 1,
@@ -1048,6 +1048,6 @@ const styles = StyleSheet.create({
   publishButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
 });

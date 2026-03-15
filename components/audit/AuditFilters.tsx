@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ViewStyle } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { AuditLogFilters, AuditSeverity, AuditResourceType } from '../../types/audit';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 
 interface AuditFiltersProps {
   filters: AuditLogFilters;
@@ -84,7 +85,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
       color: theme.colors.textSecondary,
     },
     activeQuickFilterText: {
-      color: '#FFFFFF',
+      color: Colors.text.inverse,
       fontWeight: theme.typography.fontWeight.medium,
     },
     resetButton: {
@@ -222,7 +223,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
                   onPress={() => removeFilter('severity')}
                   style={styles.removeButton}
                 >
-                  <Ionicons name="close" size={14} color="#7C3AED" />
+                  <Ionicons name="close" size={14} color={Colors.primary[500]} />
                 </TouchableOpacity>
               </View>
             )}
@@ -235,7 +236,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
                   onPress={() => removeFilter('resourceType')}
                   style={styles.removeButton}
                 >
-                  <Ionicons name="close" size={14} color="#7C3AED" />
+                  <Ionicons name="close" size={14} color={Colors.primary[500]} />
                 </TouchableOpacity>
               </View>
             )}
@@ -248,7 +249,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
                   onPress={() => removeFilter('dateRange')}
                   style={styles.removeButton}
                 >
-                  <Ionicons name="close" size={14} color="#7C3AED" />
+                  <Ionicons name="close" size={14} color={Colors.primary[500]} />
                 </TouchableOpacity>
               </View>
             )}
@@ -338,7 +339,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
       {/* Reset Button */}
       {activeFiltersCount > 0 && (
         <TouchableOpacity style={styles.resetButton} onPress={onReset}>
-          <Ionicons name="refresh" size={16} color="#6B7280" />
+          <Ionicons name="refresh" size={16} color={Colors.gray[500]} />
           <Text style={styles.resetButtonText}>Reset All Filters</Text>
         </TouchableOpacity>
       )}

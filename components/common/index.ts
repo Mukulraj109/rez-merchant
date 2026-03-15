@@ -6,7 +6,7 @@ export { ErrorBoundary, ErrorBoundaryProvider, AsyncErrorBoundary, withErrorBoun
 export type { } from './ErrorBoundary';
 
 export { ErrorFallback, ErrorFallbackScreen } from './ErrorFallback';
-export type { ErrorFallbackProps, ErrorFallbackScreenProps } from './ErrorFallback';
+export type { ErrorFallbackScreenProps } from './ErrorFallback';
 
 // Re-export hooks
 export { useErrorBoundary, useErrorBoundaryContext } from './ErrorBoundary';

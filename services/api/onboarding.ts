@@ -41,7 +41,7 @@ import {
  * OnboardingService handles all merchant onboarding processes
  */
 class OnboardingService {
-  private autoSaveInterval: NodeJS.Timeout | null = null;
+  private autoSaveInterval: ReturnType<typeof setInterval> | null = null;
   private autoSaveDelay: number = 30000; // 30 seconds
 
   /**

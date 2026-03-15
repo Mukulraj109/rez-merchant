@@ -348,7 +348,7 @@ class TeamService {
         roleData
       );
 
-      if (response.success) {
+      if (response.success && response.data) {
         console.log(`✅ Role updated for user ${userId} to ${roleData.role}`);
         return response.data;
       } else {
@@ -379,7 +379,7 @@ class TeamService {
         statusData
       );
 
-      if (response.success) {
+      if (response.success && response.data) {
         console.log(`✅ Status updated for user ${userId} to ${statusData.status}`);
         return response.data;
       } else {
@@ -405,7 +405,7 @@ class TeamService {
         `merchant/team/${userId}`
       );
 
-      if (response.success) {
+      if (response.success && response.data) {
         console.log(`✅ Team member removed: ${userId}`);
         return response.data;
       } else {

@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { showAlert, showConfirm } from '@/utils/alert';
 import * as ImagePicker from 'expo-image-picker';
-import { Video } from 'expo-av';
+import { Video, ResizeMode } from 'expo-av';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { uploadsService } from '@/services';
@@ -241,7 +241,7 @@ export default function VideoUploader({
                   source={{ uri: video.uri }}
                   style={styles.video}
                   useNativeControls={false}
-                  resizeMode="cover"
+                  resizeMode={ResizeMode.COVER}
                   shouldPlay={false}
                 />
               ) : (

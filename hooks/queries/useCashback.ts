@@ -1,6 +1,18 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { cashbackService } from '@/services/api/cashback';
-import { queryKeys, queryConfig } from '@/config/reactQuery';
+import { queryConfig } from '@/config/reactQuery';
+
+// Inline query keys since queryKeys is not exported from reactQuery config
+const cashbackKeys = {
+  all: ['cashback'] as const,
+  list: (filters?: any) => ['cashback', 'list', filters] as const,
+  detail: (id: string) => ['cashback', 'detail', id] as const,
+  pending: () => ['cashback', 'pending'] as const,
+  paid: () => ['cashback', 'paid'] as const,
+  requests: () => ['cashback', 'requests'] as const,
+  analytics: (period: string) => ['cashback', 'analytics', period] as const,
+  metrics: (dateRange?: any) => ['cashback', 'metrics', dateRange] as const,
+};
 
 /**
  * Hook to fetch a paginated list of cashback entries
@@ -13,12 +25,12 @@ export function useCashback(
     sortBy?: string;
     search?: string;
   },
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.cashback.list(filters),
+    queryKey: cashbackKeys.list(filters),
     queryFn: async () => {
-      const response = await cashbackService.getCashback(filters);
+      const response = await cashbackService.getCashbackRequests(filters as any);
       return response;
     },
     ...queryConfig.cashback,
@@ -29,12 +41,12 @@ export function useCashback(
 /**
  * Hook to fetch a single cashback entry by ID
  */
-export function useCashbackDetail(id: string, options?: UseQueryOptions<any>) {
+export function useCashbackDetail(id: string, options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.cashback.detail(id),
+    queryKey: cashbackKeys.detail(id),
     queryFn: async () => {
-      const response = await cashbackService.getCashbackById(id);
-      return response.data;
+      const response = await cashbackService.getCashbackRequest(id);
+      return response;
     },
     enabled: !!id,
     ...queryConfig.cashback,
@@ -45,13 +57,13 @@ export function useCashbackDetail(id: string, options?: UseQueryOptions<any>) {
 /**
  * Hook to fetch pending cashback requests
  */
-export function usePendingCashback(options?: UseQueryOptions<any>) {
+export function usePendingCashback(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.cashback.pending(),
+    queryKey: cashbackKeys.pending(),
     queryFn: async () => {
-      const response = await cashbackService.getCashback({
+      const response = await cashbackService.getCashbackRequests({
         status: 'pending',
-      });
+      } as any);
       return response;
     },
     staleTime: 2 * 60 * 1000, // Update frequently for pending items
@@ -63,13 +75,13 @@ export function usePendingCashback(options?: UseQueryOptions<any>) {
 /**
  * Hook to fetch paid cashback
  */
-export function usePaidCashback(options?: UseQueryOptions<any>) {
+export function usePaidCashback(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.cashback.paid(),
+    queryKey: cashbackKeys.paid(),
     queryFn: async () => {
-      const response = await cashbackService.getCashback({
+      const response = await cashbackService.getCashbackRequests({
         status: 'paid',
-      });
+      } as any);
       return response;
     },
     ...queryConfig.cashback,
@@ -80,12 +92,12 @@ export function usePaidCashback(options?: UseQueryOptions<any>) {
 /**
  * Hook to fetch cashback requests
  */
-export function useCashbackRequests(options?: UseQueryOptions<any>) {
+export function useCashbackRequests(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.cashback.requests(),
+    queryKey: cashbackKeys.requests(),
     queryFn: async () => {
       const response = await cashbackService.getCashbackRequests();
-      return response.data || [];
+      return response.requests || [];
     },
     ...queryConfig.cashback,
     ...options,
@@ -93,35 +105,19 @@ export function useCashbackRequests(options?: UseQueryOptions<any>) {
 }
 
 /**
- * Hook to fetch cashback analytics
+ * Hook to fetch cashback metrics
  */
 export function useCashbackAnalytics(
   period: '7d' | '30d' | '90d' = '30d',
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.cashback.analytics(period),
+    queryKey: cashbackKeys.analytics(period),
     queryFn: async () => {
-      const response = await cashbackService.getCashbackAnalytics(period);
-      return response.data;
+      const response = await cashbackService.getCashbackMetrics();
+      return response;
     },
     ...queryConfig.cashback,
-    ...options,
-  });
-}
-
-/**
- * Hook to fetch cashback rules
- */
-export function useCashbackRules(options?: UseQueryOptions<any>) {
-  return useQuery({
-    queryKey: queryKeys.cashback.rules(),
-    queryFn: async () => {
-      const response = await cashbackService.getCashbackRules();
-      return response.data || [];
-    },
-    staleTime: 30 * 60 * 1000, // Rules don't change frequently
-    gcTime: 60 * 60 * 1000,
     ...options,
   });
 }
@@ -134,7 +130,6 @@ export function useCashbackOverview(options?: {
   includePaid?: boolean;
   includeRequests?: boolean;
   includeAnalytics?: boolean;
-  includeRules?: boolean;
   period?: '7d' | '30d' | '90d';
 }) {
   const {
@@ -142,62 +137,51 @@ export function useCashbackOverview(options?: {
     includePaid = true,
     includeRequests = false,
     includeAnalytics = true,
-    includeRules = false,
     period = '30d',
   } = options || {};
 
   const pendingQuery = useQuery({
-    queryKey: queryKeys.cashback.pending(),
+    queryKey: cashbackKeys.pending(),
     queryFn: async () => {
-      const response = await cashbackService.getCashback({
+      const response = await cashbackService.getCashbackRequests({
         status: 'pending',
-      });
-      return response.data?.items || [];
+      } as any);
+      return response.requests || [];
     },
     enabled: includePending,
     staleTime: 2 * 60 * 1000,
   });
 
   const paidQuery = useQuery({
-    queryKey: queryKeys.cashback.paid(),
+    queryKey: cashbackKeys.paid(),
     queryFn: async () => {
-      const response = await cashbackService.getCashback({
+      const response = await cashbackService.getCashbackRequests({
         status: 'paid',
-      });
-      return response.data?.items || [];
+      } as any);
+      return response.requests || [];
     },
     enabled: includePaid,
     ...queryConfig.cashback,
   });
 
   const requestsQuery = useQuery({
-    queryKey: queryKeys.cashback.requests(),
+    queryKey: cashbackKeys.requests(),
     queryFn: async () => {
       const response = await cashbackService.getCashbackRequests();
-      return response.data || [];
+      return response.requests || [];
     },
     enabled: includeRequests,
     ...queryConfig.cashback,
   });
 
   const analyticsQuery = useQuery({
-    queryKey: queryKeys.cashback.analytics(period),
+    queryKey: cashbackKeys.analytics(period),
     queryFn: async () => {
-      const response = await cashbackService.getCashbackAnalytics(period);
-      return response.data;
+      const response = await cashbackService.getCashbackMetrics();
+      return response;
     },
     enabled: includeAnalytics,
     ...queryConfig.cashback,
-  });
-
-  const rulesQuery = useQuery({
-    queryKey: queryKeys.cashback.rules(),
-    queryFn: async () => {
-      const response = await cashbackService.getCashbackRules();
-      return response.data || [];
-    },
-    enabled: includeRules,
-    staleTime: 30 * 60 * 1000,
   });
 
   return {
@@ -205,18 +189,15 @@ export function useCashbackOverview(options?: {
     paid: paidQuery,
     requests: requestsQuery,
     analytics: analyticsQuery,
-    rules: rulesQuery,
     isLoading:
       pendingQuery.isLoading ||
       paidQuery.isLoading ||
       requestsQuery.isLoading ||
-      analyticsQuery.isLoading ||
-      rulesQuery.isLoading,
+      analyticsQuery.isLoading,
     isError:
       pendingQuery.isError ||
       paidQuery.isError ||
       requestsQuery.isError ||
-      analyticsQuery.isError ||
-      rulesQuery.isError,
+      analyticsQuery.isError,
   };
 }

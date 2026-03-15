@@ -268,7 +268,7 @@ export default function EventDetailScreen() {
               <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
                 <View style={[styles.statusDot, { backgroundColor: statusStyle.text }]} />
                 <Text style={[styles.statusText, { color: statusStyle.text }]}>
-                  {event.eventStatus?.charAt(0).toUpperCase() + event.eventStatus?.slice(1)}
+                  {(event.eventStatus?.charAt(0).toUpperCase() ?? '') + (event.eventStatus?.slice(1) ?? '')}
                 </Text>
               </View>
               {event.featured && (
@@ -603,7 +603,7 @@ export default function EventDetailScreen() {
           message={`Are you sure you want to change this event's status to "${selectedStatus}"?`}
           confirmText="Confirm"
           cancelText="Cancel"
-          type="info"
+          type="default"
           loading={actionLoading}
           onConfirm={handleStatusChange}
           onCancel={() => setStatusModalVisible(false)}
@@ -615,7 +615,7 @@ export default function EventDetailScreen() {
           message="Are you sure you want to cancel this event? Participants will be notified."
           confirmText="Yes, Cancel Event"
           cancelText="No, Keep It"
-          type="error"
+          type="danger"
           loading={actionLoading}
           onConfirm={handleCancel}
           onCancel={() => setCancelModalVisible(false)}

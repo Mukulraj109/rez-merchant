@@ -1,19 +1,31 @@
 import { useQuery, useInfiniteQuery, UseQueryOptions, UseInfiniteQueryOptions } from '@tanstack/react-query';
 import { Product, ProductCategory, ProductSearchRequest } from '@/shared/types';
 import { productsService } from '@/services/api/products';
-import { queryKeys, queryConfig } from '@/config/reactQuery';
+import { queryConfig } from '@/config/reactQuery';
+
+// Inline query keys
+const productKeys = {
+  all: ['products'] as const,
+  list: (filters?: any) => ['products', 'list', filters] as const,
+  detail: (id: string) => ['products', 'detail', id] as const,
+  categories: () => ['products', 'categories'] as const,
+  search: (query: string, filters?: any) => ['products', 'search', query, filters] as const,
+  byCategory: (categoryId: string) => ['products', 'byCategory', categoryId] as const,
+  lowStock: () => ['products', 'lowStock'] as const,
+  stock: (id: string) => ['products', 'stock', id] as const,
+};
 
 /**
  * Hook to fetch a paginated list of products
  */
 export function useProducts(
   filters?: Partial<ProductSearchRequest>,
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.products.list(filters),
+    queryKey: productKeys.list(filters),
     queryFn: async () => {
-      const response = await productsService.getProducts(filters);
+      const response = await productsService.getProducts(filters as any);
       return response;
     },
     ...queryConfig.products,
@@ -26,20 +38,20 @@ export function useProducts(
  */
 export function useInfiniteProducts(
   filters?: Partial<ProductSearchRequest>,
-  options?: UseInfiniteQueryOptions<any>
+  options?: Omit<UseInfiniteQueryOptions<any>, 'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'>
 ) {
   return useInfiniteQuery({
-    queryKey: queryKeys.products.list(filters),
+    queryKey: productKeys.list(filters),
     queryFn: async ({ pageParam = 1 }) => {
       const response = await productsService.getProducts({
         ...filters,
-        page: pageParam,
-      });
+        page: pageParam as number,
+      } as any);
       return response;
     },
-    getNextPageParam: (lastPage) => {
-      if (lastPage.data?.pagination?.hasNext) {
-        return lastPage.data.pagination.page + 1;
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage.page < lastPage.totalPages) {
+        return lastPage.page + 1;
       }
       return undefined;
     },
@@ -52,12 +64,12 @@ export function useInfiniteProducts(
 /**
  * Hook to fetch a single product by ID
  */
-export function useProduct(id: string, options?: UseQueryOptions<Product>) {
+export function useProduct(id: string, options?: Omit<UseQueryOptions<Product>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.products.detail(id),
+    queryKey: productKeys.detail(id),
     queryFn: async () => {
-      const response = await productsService.getProductById(id);
-      return response.data;
+      const response = await productsService.getProduct(id);
+      return response;
     },
     enabled: !!id,
     ...queryConfig.products,
@@ -68,12 +80,12 @@ export function useProduct(id: string, options?: UseQueryOptions<Product>) {
 /**
  * Hook to fetch product categories
  */
-export function useProductCategories(options?: UseQueryOptions<ProductCategory[]>) {
+export function useProductCategories(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.products.categories(),
+    queryKey: productKeys.categories(),
     queryFn: async () => {
       const response = await productsService.getCategories();
-      return response.data || [];
+      return response || [];
     },
     staleTime: 30 * 60 * 1000, // Categories rarely change
     gcTime: 60 * 60 * 1000,
@@ -87,16 +99,19 @@ export function useProductCategories(options?: UseQueryOptions<ProductCategory[]
 export function useSearchProducts(
   query: string,
   filters?: any,
-  options?: UseQueryOptions<Product[]>
+  options?: Omit<UseQueryOptions<Product[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.products.search(query, filters),
+    queryKey: productKeys.search(query, filters),
     queryFn: async () => {
       if (!query.trim()) {
         return [];
       }
-      const response = await productsService.searchProducts(query, filters);
-      return response.data || [];
+      const response = await productsService.getProducts({
+        query,
+        ...filters,
+      } as any);
+      return response.products || [];
     },
     enabled: !!query.trim(),
     ...queryConfig.products,
@@ -109,14 +124,14 @@ export function useSearchProducts(
  */
 export function useProductsByCategory(
   categoryId: string,
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.products.byCategory(categoryId),
+    queryKey: productKeys.byCategory(categoryId),
     queryFn: async () => {
       const response = await productsService.getProducts({
         category: categoryId,
-      });
+      } as any);
       return response;
     },
     enabled: !!categoryId,
@@ -128,12 +143,12 @@ export function useProductsByCategory(
 /**
  * Hook to fetch low stock products
  */
-export function useLowStockProducts(options?: UseQueryOptions<Product[]>) {
+export function useLowStockProducts(options?: Omit<UseQueryOptions<Product[]>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.products.lowStock(),
+    queryKey: productKeys.lowStock(),
     queryFn: async () => {
       const response = await productsService.getLowStockProducts();
-      return response.data || [];
+      return response || [];
     },
     ...queryConfig.products,
     ...options,
@@ -143,12 +158,12 @@ export function useLowStockProducts(options?: UseQueryOptions<Product[]>) {
 /**
  * Hook to fetch product stock status
  */
-export function useProductStock(id: string, options?: UseQueryOptions<any>) {
+export function useProductStock(id: string, options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.products.stock(id),
+    queryKey: productKeys.stock(id),
     queryFn: async () => {
-      const response = await productsService.getProductStock(id);
-      return response.data;
+      const response = await productsService.getProduct(id);
+      return (response as any).inventory || null;
     },
     enabled: !!id,
     staleTime: 2 * 60 * 1000, // Stock changes frequently

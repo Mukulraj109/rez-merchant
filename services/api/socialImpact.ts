@@ -360,7 +360,7 @@ class SocialImpactAdminService {
 
       return {
         participants,
-        pagination: response.pagination,
+        pagination: (response as any).pagination,
       };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to get participants');

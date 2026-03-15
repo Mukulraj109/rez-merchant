@@ -87,7 +87,7 @@ export default function DocumentsOverviewScreen() {
     } catch (error) {
       // Fallback: derive documents from orders if documents API not available
       try {
-        const result = await ordersService.getOrders({ limit: 50, sortBy: 'created', sortOrder: 'desc' });
+        const result = await ordersService.getOrders({ limit: 50, sortBy: 'createdAt', order: 'desc' });
         setOrders(result.orders || []);
 
         const fallbackDocs: DocumentItem[] = [];
@@ -101,7 +101,7 @@ export default function DocumentsOverviewScreen() {
             date: order.createdAt,
             status: 'pending',
           });
-          if (order.delivery.method === 'delivery') {
+          if (order.delivery?.method === 'delivery') {
             fallbackDocs.push({
               id: `lbl-${order.id}`,
               type: 'label',

@@ -258,7 +258,7 @@ const TimelineEntryCard: React.FC<{
                 size="small"
                 initials={getInitials()}
                 backgroundColor={getAvatarColor()}
-                textColor="#FFFFFF"
+                textColor={Colors.text.inverse}
               />
               <View style={styles.entryUserInfo}>
                 <BodyText style={styles.entryUserName}>
@@ -384,7 +384,7 @@ const FilterChip: React.FC<{
           end={{ x: 1, y: 1 }}
           style={styles.filterChipGradient}
         >
-          {icon && <Ionicons name={icon} size={14} color="#FFFFFF" />}
+          {icon && <Ionicons name={icon} size={14} color={Colors.text.inverse} />}
           <Caption style={styles.filterChipTextActive}>{label}</Caption>
         </LinearGradient>
       ) : (
@@ -418,7 +418,7 @@ export default function ActivityTimelineScreen() {
     refetch: refetchToday,
   } = useTodayActivities({
     enabled: canView && activeFilter === 'today',
-  });
+  } as any);
 
   const {
     data: recentData,
@@ -427,7 +427,7 @@ export default function ActivityTimelineScreen() {
     refetch: refetchRecent,
   } = useRecentActivities(50, {
     enabled: canView && activeFilter === 'week',
-  });
+  } as any);
 
   const {
     data: allData,
@@ -436,7 +436,7 @@ export default function ActivityTimelineScreen() {
     refetch: refetchAll,
   } = useActivityTimeline({ limit: 100 }, {
     enabled: canView && activeFilter === 'all',
-  });
+  } as any);
 
   // Get current data based on filter
   const currentData = useMemo(() => {
@@ -471,7 +471,7 @@ export default function ActivityTimelineScreen() {
 
     groupedEntries.forEach((entries, date) => {
       items.push({ type: 'date', data: date, dateIndex });
-      entries.forEach((entry) => {
+      entries.forEach((entry: any) => {
         items.push({ type: 'entry', data: entry, dateIndex });
       });
       dateIndex++;
@@ -512,7 +512,7 @@ export default function ActivityTimelineScreen() {
 
     const entry = item.data as TimelineEntry;
     const dateEntries = groupedEntries.get(new Date(entry.timestamp).toDateString()) || [];
-    const entryIndex = dateEntries.findIndex((e) => e.id === entry.id);
+    const entryIndex = dateEntries.findIndex((e: any) => e.id === entry.id);
     const isFirst = entryIndex === 0;
     const isLast = entryIndex === dateEntries.length - 1;
 
@@ -622,7 +622,7 @@ export default function ActivityTimelineScreen() {
               onPress={handleRefresh}
               disabled={isFetching}
             >
-              <Ionicons name="refresh" size={20} color="#FFFFFF" />
+              <Ionicons name="refresh" size={20} color={Colors.text.inverse} />
             </TouchableOpacity>
           </View>
 
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: Typography.fontSize['2xl'],
     fontWeight: '700',
   },
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filterChipTextActive: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontWeight: '600',
   },
 

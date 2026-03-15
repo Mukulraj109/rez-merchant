@@ -20,6 +20,7 @@ import {
 } from '@/hooks/queries/useNotifications';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { Notification, NotificationType, NotificationStatus } from '@/types/notifications';
+import { Colors } from '@/constants/DesignTokens';
 
 type TabType = 'all' | 'unread' | 'order' | 'product' | 'team' | 'system';
 
@@ -56,21 +57,21 @@ const getNotificationIcon = (type: NotificationType): keyof typeof Ionicons.glyp
 const getNotificationColor = (type: NotificationType): string => {
   switch (type) {
     case NotificationType.ORDER:
-      return '#3B82F6';
+      return Colors.primary[500];
     case NotificationType.PRODUCT:
       return '#8B5CF6';
     case NotificationType.CASHBACK:
-      return '#10B981';
+      return Colors.success[500];
     case NotificationType.TEAM:
-      return '#F59E0B';
+      return Colors.warning[500];
     case NotificationType.PAYMENT:
       return '#EC4899';
     case NotificationType.SYSTEM:
-      return '#6B7280';
+      return Colors.gray[500];
     case NotificationType.REVIEW:
-      return '#F59E0B';
+      return Colors.warning[500];
     default:
-      return '#3B82F6';
+      return Colors.primary[500];
   }
 };
 
@@ -178,14 +179,14 @@ export default function NotificationsScreen() {
               style={styles.actionButton}
               onPress={(e) => handleMarkAsRead(item.id, e)}
             >
-              <Ionicons name="checkmark" size={20} color="#3B82F6" />
+              <Ionicons name="checkmark" size={20} color={Colors.primary[500]} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
             style={styles.actionButton}
             onPress={(e) => handleDelete(item.id, e)}
           >
-            <Ionicons name="trash-outline" size={20} color="#EF4444" />
+            <Ionicons name="trash-outline" size={20} color={Colors.error[500]} />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -194,7 +195,7 @@ export default function NotificationsScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Ionicons name="notifications-off-outline" size={64} color="#D1D5DB" />
+      <Ionicons name="notifications-off-outline" size={64} color={Colors.gray[300]} />
       <Text style={styles.emptyTitle}>No notifications</Text>
       <Text style={styles.emptySubtitle}>
         {activeTab === 'unread'
@@ -219,7 +220,7 @@ export default function NotificationsScreen() {
             badge = unreadCount;
           } else if (item.key === 'unread') {
             badge = unreadCount;
-          } else if (item.key !== 'all' && item.key !== 'unread') {
+          } else if ((item.key as string) !== 'all' && (item.key as string) !== 'unread') {
             badge = unreadByType[item.key] || 0;
           }
 
@@ -255,7 +256,7 @@ export default function NotificationsScreen() {
             onPress={handleMarkAllAsRead}
             disabled={markAllAsReadMutation.isPending}
           >
-            <Ionicons name="checkmark-done" size={18} color="#3B82F6" />
+            <Ionicons name="checkmark-done" size={18} color={Colors.primary[500]} />
             <Text style={styles.bulkActionText}>Mark all as read</Text>
           </TouchableOpacity>
         </View>
@@ -267,7 +268,7 @@ export default function NotificationsScreen() {
     if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footer}>
-        <ActivityIndicator size="small" color="#3B82F6" />
+        <ActivityIndicator size="small" color={Colors.primary[500]} />
       </View>
     );
   };
@@ -275,7 +276,7 @@ export default function NotificationsScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={Colors.primary[500]} />
         <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
     );
@@ -305,16 +306,16 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   header: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.gray[200],
   },
   tabBar: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.gray[200],
   },
   tabBarContent: {
     paddingHorizontal: 16,
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
   },
   activeTab: {
     backgroundColor: '#DBEAFE',
@@ -335,14 +336,14 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginLeft: 6,
   },
   activeTabLabel: {
-    color: '#3B82F6',
+    color: Colors.primary[500],
   },
   badge: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.error[500],
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   bulkActionText: {
-    color: '#3B82F6',
+    color: Colors.primary[500],
     fontSize: 14,
     fontWeight: '500',
     marginLeft: 6,
@@ -377,10 +378,10 @@ const styles = StyleSheet.create({
   },
   notificationItem: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   unreadItem: {
     backgroundColor: '#F0F9FF',
@@ -405,25 +406,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     flex: 1,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3B82F6',
+    backgroundColor: Colors.primary[500],
     marginLeft: 8,
   },
   message: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     lineHeight: 20,
     marginBottom: 4,
   },
   timestamp: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.gray[400],
   },
   actions: {
     flexDirection: 'row',
@@ -442,12 +443,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     marginTop: 16,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 8,
     textAlign: 'center',
   },
@@ -455,11 +456,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   loadingText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 12,
   },
   footer: {

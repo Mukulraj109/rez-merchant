@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { bonusCampaignService, BonusCampaign, BonusCampaignType } from '@/services/api/bonusCampaigns';
+import { Colors } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
@@ -277,7 +278,7 @@ export default function BonusCampaignsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
   },
 
   // Header
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
 
   // Scroll
@@ -396,19 +397,19 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
 
   // Campaign Card
   campaignCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -451,7 +452,7 @@ const styles = StyleSheet.create({
   },
   cardSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     lineHeight: 18,
   },
 
@@ -507,7 +508,7 @@ const styles = StyleSheet.create({
   rewardLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -539,7 +540,7 @@ const styles = StyleSheet.create({
   },
   partnerText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
 
@@ -556,7 +557,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
@@ -567,7 +568,7 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   timeTextUrgent: {
     color: '#EF4444',

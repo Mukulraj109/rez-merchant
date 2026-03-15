@@ -49,7 +49,7 @@ export default function AuditStatisticsScreen() {
     refetch: refetchStats,
   } = useAuditStatistics(undefined, undefined, {
     enabled: canView,
-  });
+  } as any);
 
   const {
     data: heatmapData,
@@ -57,7 +57,7 @@ export default function AuditStatisticsScreen() {
     refetch: refetchHeatmap,
   } = useActivityHeatmap(undefined, undefined, {
     enabled: canView,
-  });
+  } as any);
 
   const {
     data: summaryData,
@@ -65,7 +65,7 @@ export default function AuditStatisticsScreen() {
     refetch: refetchSummary,
   } = useActivitySummary(undefined, undefined, {
     enabled: canView,
-  });
+  } as any);
 
   const {
     data: criticalData,
@@ -73,7 +73,7 @@ export default function AuditStatisticsScreen() {
     refetch: refetchCritical,
   } = useCriticalActivities(10, {
     enabled: canView,
-  });
+  } as any);
 
   const isLoading = statsLoading || heatmapLoading || summaryLoading || criticalLoading;
 
@@ -646,7 +646,7 @@ function formatPeakTime(hour: number): string {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: Colors.background.secondary,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 22,
     fontWeight: '700',
   },
@@ -762,9 +762,9 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     minHeight: 140,
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     ...Shadows.sm,
   },
   statsCardIcon: {
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   statsCardValue: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontSize: 28,
     fontWeight: '800',
   },
@@ -838,7 +838,7 @@ const styles = StyleSheet.create({
   distributionBarBg: {
     flex: 1,
     height: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-end',
     borderRadius: 4,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
   },
   trendBar: {
     width: '100%',
@@ -906,7 +906,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
     gap: Spacing.md,
   },
   listItemLast: {
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -936,7 +936,7 @@ const styles = StyleSheet.create({
   },
   listItemBarBg: {
     height: 4,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     borderRadius: 2,
     overflow: 'hidden',
     marginTop: 4,
@@ -978,7 +978,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
     gap: Spacing.md,
   },
   criticalItemLast: {
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   errorText: {
-    color: '#EF4444',
+    color: Colors.error[500],
     textAlign: 'center',
   },
   errorSubtext: {
@@ -1105,7 +1105,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   retryButtonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontWeight: '600',
   },
 

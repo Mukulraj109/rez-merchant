@@ -138,8 +138,8 @@ export default function ImageUploader({
   };
 
   const updateImageProgress = (uri: string, progress: number) => {
-    onImagesChange(prevImages => 
-      prevImages.map(img =>
+    onImagesChange(
+      images.map(img =>
         img.uri === uri ? { ...img, uploadProgress: progress } : img
       )
     );
@@ -147,19 +147,17 @@ export default function ImageUploader({
 
   const updateImageUrl = (uri: string, url: string, uploading: boolean) => {
     console.log('🖼️ Updating image URL:', { uri, url, uploading });
-    onImagesChange(prevImages => {
-      const updated = prevImages.map(img =>
-        img.uri === uri ? { ...img, url, uploading, uploadProgress: 100, error: undefined } : img
-      );
-      console.log('🖼️ Updated images array:', updated);
-      return updated;
-    });
+    const updated = images.map(img =>
+      img.uri === uri ? { ...img, url, uploading, uploadProgress: 100, error: undefined } : img
+    );
+    console.log('🖼️ Updated images array:', updated);
+    onImagesChange(updated);
   };
 
   const updateImageError = (uri: string, error: string) => {
     console.error('❌ Image upload error:', { uri, error });
-    onImagesChange(prevImages =>
-      prevImages.map(img =>
+    onImagesChange(
+      images.map(img =>
         img.uri === uri ? { ...img, error, uploading: false } : img
       )
     );

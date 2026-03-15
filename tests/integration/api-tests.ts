@@ -10,10 +10,10 @@
  * 3. Check console for results
  */
 
-import { syncService } from './services/api/sync';
-import { profileService } from './services/api/profile';
-import { reviewsService } from './services/api/reviews';
-import { productsService } from './services/api/products';
+import { syncService } from '../../services/api/sync';
+import { profileService } from '../../services/api/profile';
+import { reviewsService } from '../../services/api/reviews';
+import { productsService } from '../../services/api/products';
 
 // Test results interface
 interface TestResult {
@@ -216,9 +216,10 @@ async function testDownloadImportTemplate() {
 
 async function testBulkExportProducts() {
     const exportResult = await productsService.exportProductsAdvanced({
-        fields: ['name', 'sku', 'price', 'stock'],
         format: 'csv',
-        filters: {}
+        filters: {},
+        includeVariants: true,
+        includeInventory: true,
     });
 
     if (!exportResult || !exportResult.url) {

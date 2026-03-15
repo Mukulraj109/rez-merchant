@@ -37,12 +37,12 @@ export default function OnboardingIndex() {
       // Fetch current onboarding status
       const response = await onboardingService.getOnboardingStatus();
 
-      if (response.success && response.data) {
-        const status = response.data;
+      if ((response as any).success !== false && response) {
+        const status = (response as any).data || response;
         console.log('✅ Onboarding status:', status.status, 'Step:', status.currentStep);
 
         // Determine where to redirect based on status
-        const redirectRoute = getRedirectRoute(status);
+        const redirectRoute = getRedirectRoute(status as any);
         console.log('🚀 Redirecting to:', redirectRoute);
 
         router.replace(redirectRoute as any);

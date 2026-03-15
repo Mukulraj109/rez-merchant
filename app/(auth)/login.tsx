@@ -99,7 +99,7 @@ export default function LoginScreen() {
                             label="Password"
                             placeholder="Enter your password"
                             secureTextEntry
-                            autoComplete="current-password"
+                            autoComplete={"current-password" as any}
                             icon="lock-closed-outline"
                         />
 

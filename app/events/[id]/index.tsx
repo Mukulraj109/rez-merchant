@@ -22,10 +22,10 @@ import SuccessModal from '@/components/common/SuccessModal';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const STATUS_COLORS = {
-  draft: { bg: '#FEF3C7', text: '#F59E0B' },
-  published: { bg: '#D1FAE5', text: '#10B981' },
-  cancelled: { bg: '#FEE2E2', text: '#EF4444' },
-  completed: { bg: '#E0E7FF', text: '#6366F1' },
+  draft: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  published: { bg: Colors.light.successLight, text: Colors.light.success },
+  cancelled: { bg: Colors.light.errorLight, text: Colors.light.error },
+  completed: { bg: '#E0E7FF', text: Colors.light.indigo },
   sold_out: { bg: '#FED7AA', text: '#EA580C' },
 };
 
@@ -556,7 +556,7 @@ export default function EventDetailsScreen() {
         message="Are you sure you want to publish this event? It will become visible to all users."
         confirmText="Publish"
         cancelText="Cancel"
-        type="info"
+        type="default"
         loading={actionLoading}
         onConfirm={handlePublish}
         onCancel={() => setPublishModalVisible(false)}
@@ -582,7 +582,7 @@ export default function EventDetailsScreen() {
         message="Are you sure you want to permanently delete this event? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
-        type="error"
+        type="danger"
         loading={actionLoading}
         onConfirm={handleDelete}
         onCancel={() => setDeleteModalVisible(false)}
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   backButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   featuredText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -994,7 +994,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
     fontSize: 16,
     fontWeight: '600',
   },

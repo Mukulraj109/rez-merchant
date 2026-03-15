@@ -43,9 +43,9 @@ const businessInfoSchema = z.object({
     .string()
     .min(1, 'Phone number is required')
     .regex(/^\d{10}$/, 'Phone number must be 10 digits'),
-  businessType: z.enum(['sole_proprietor', 'partnership', 'pvt_ltd', 'llp', 'other'], {
+  businessType: z.enum(['sole_proprietor', 'partnership', 'pvt_ltd', 'llp', 'other'] as const, {
     errorMap: () => ({ message: 'Please select a business type' }),
-  }),
+  } as any),
   businessCategory: z
     .string()
     .min(1, 'Business category is required'),

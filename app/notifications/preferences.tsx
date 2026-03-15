@@ -17,6 +17,7 @@ import {
   useUpdateNotificationPreferences,
 } from '@/hooks/queries/useNotifications';
 import { NotificationType } from '@/types/notifications';
+import { Colors } from '@/constants/DesignTokens';
 
 const NOTIFICATION_CATEGORIES = [
   { type: NotificationType.ORDER, label: 'Order Notifications', icon: 'cart' },
@@ -75,7 +76,7 @@ export default function NotificationPreferencesScreen() {
         ...preferences?.email,
         [field]: value,
       },
-    });
+    } as any);
   };
 
   const handleToggleQuietHours = (value: boolean) => {
@@ -84,7 +85,7 @@ export default function NotificationPreferencesScreen() {
         ...preferences?.doNotDisturb,
         enabled: value,
       },
-    });
+    } as any);
   };
 
   const handleStartTimeChange = (event: any, selectedTime?: Date) => {
@@ -96,7 +97,7 @@ export default function NotificationPreferencesScreen() {
           ...preferences?.doNotDisturb,
           startTime: timeString,
         },
-      });
+      } as any);
     }
   };
 
@@ -109,7 +110,7 @@ export default function NotificationPreferencesScreen() {
           ...preferences?.doNotDisturb,
           endTime: timeString,
         },
-      });
+      } as any);
     }
   };
 
@@ -120,7 +121,7 @@ export default function NotificationPreferencesScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={Colors.primary[500]} />
         <Text style={styles.loadingText}>Loading preferences...</Text>
       </View>
     );
@@ -137,7 +138,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="notifications" size={24} color="#3B82F6" />
+              <Ionicons name="notifications" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Enable Push Notifications</Text>
                 <Text style={styles.settingDescription}>
@@ -162,7 +163,7 @@ export default function NotificationPreferencesScreen() {
                 return (
                   <View key={category.type} style={styles.categoryRow}>
                     <View style={styles.settingLeft}>
-                      <Ionicons name={category.icon as any} size={20} color="#6B7280" />
+                      <Ionicons name={category.icon as any} size={20} color={Colors.gray[500]} />
                       <Text style={styles.categoryLabel}>{category.label}</Text>
                     </View>
                     <Switch
@@ -184,7 +185,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="mail" size={24} color="#3B82F6" />
+              <Ionicons name="mail" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Daily Digest</Text>
                 <Text style={styles.settingDescription}>
@@ -197,7 +198,7 @@ export default function NotificationPreferencesScreen() {
               onValueChange={(value) =>
                 updateMutation.mutate({
                   dailyDigest: { ...preferences?.dailyDigest, enabled: value },
-                })
+                } as any)
               }
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
               thumbColor={preferences?.dailyDigest?.enabled ? '#3B82F6' : '#F3F4F6'}
@@ -206,7 +207,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="calendar" size={24} color="#3B82F6" />
+              <Ionicons name="calendar" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Weekly Summary</Text>
                 <Text style={styles.settingDescription}>
@@ -219,7 +220,7 @@ export default function NotificationPreferencesScreen() {
               onValueChange={(value) =>
                 updateMutation.mutate({
                   weeklyDigest: { ...preferences?.weeklyDigest, enabled: value },
-                })
+                } as any)
               }
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
               thumbColor={preferences?.weeklyDigest?.enabled ? '#3B82F6' : '#F3F4F6'}
@@ -228,7 +229,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="megaphone" size={24} color="#3B82F6" />
+              <Ionicons name="megaphone" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Marketing Emails</Text>
                 <Text style={styles.settingDescription}>
@@ -251,7 +252,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="volume-high" size={24} color="#3B82F6" />
+              <Ionicons name="volume-high" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Sound</Text>
                 <Text style={styles.settingDescription}>
@@ -276,7 +277,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="phone-portrait" size={24} color="#3B82F6" />
+              <Ionicons name="phone-portrait" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Vibration</Text>
                 <Text style={styles.settingDescription}>
@@ -301,7 +302,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="notifications-circle" size={24} color="#3B82F6" />
+              <Ionicons name="notifications-circle" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Badge Count</Text>
                 <Text style={styles.settingDescription}>
@@ -331,7 +332,7 @@ export default function NotificationPreferencesScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <Ionicons name="moon" size={24} color="#3B82F6" />
+              <Ionicons name="moon" size={24} color={Colors.primary[500]} />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Enable Quiet Hours</Text>
                 <Text style={styles.settingDescription}>
@@ -357,7 +358,7 @@ export default function NotificationPreferencesScreen() {
                 <Text style={styles.timeValue}>
                   {preferences?.doNotDisturb?.startTime || '22:00'}
                 </Text>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
               </TouchableOpacity>
 
               {showStartTimePicker && (
@@ -378,7 +379,7 @@ export default function NotificationPreferencesScreen() {
                 <Text style={styles.timeValue}>
                   {preferences?.doNotDisturb?.endTime || '08:00'}
                 </Text>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
               </TouchableOpacity>
 
               {showEndTimePicker && (
@@ -393,7 +394,7 @@ export default function NotificationPreferencesScreen() {
 
               <View style={styles.settingRow}>
                 <View style={styles.settingLeft}>
-                  <Ionicons name="alert-circle" size={20} color="#F59E0B" />
+                  <Ionicons name="alert-circle" size={20} color={Colors.warning[500]} />
                   <Text style={styles.settingLabel}>Allow Urgent Notifications</Text>
                 </View>
                 <Switch
@@ -423,10 +424,10 @@ export default function NotificationPreferencesScreen() {
           disabled={updateMutation.isPending}
         >
           {updateMutation.isPending ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={Colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+              <Ionicons name="checkmark" size={20} color={Colors.text.inverse} />
               <Text style={styles.saveButtonText}>Save Preferences</Text>
             </>
           )}
@@ -439,7 +440,7 @@ export default function NotificationPreferencesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   scrollView: {
     flex: 1,
@@ -448,14 +449,14 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     marginTop: 16,
     paddingVertical: 8,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.gray[500],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     paddingHorizontal: 20,
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   settingLeft: {
     flexDirection: 'row',
@@ -483,12 +484,12 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#111827',
+    color: Colors.gray[900],
     marginLeft: 12,
   },
   settingDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 2,
   },
   categoryRow: {
@@ -499,11 +500,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingLeft: 52,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   categoryLabel: {
     fontSize: 15,
-    color: '#374151',
+    color: Colors.gray[700],
     marginLeft: 12,
   },
   timePickerButton: {
@@ -512,17 +513,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.gray[100],
   },
   timeLabel: {
     fontSize: 15,
-    color: '#6B7280',
+    color: Colors.gray[500],
     flex: 1,
   },
   timeValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     marginRight: 8,
   },
   footer: {
@@ -530,16 +531,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: Colors.gray[200],
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3B82F6',
+    backgroundColor: Colors.primary[500],
     paddingVertical: 14,
     borderRadius: 12,
   },
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#93C5FD',
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -556,11 +557,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   loadingText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 12,
   },
 });

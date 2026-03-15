@@ -76,9 +76,9 @@ export default function ProductsScreen() {
       }));
       
       if (isRefresh || page === 1) {
-        setProducts(processedProducts);
+        setProducts(processedProducts as any);
       } else {
-        setProducts(prev => [...prev, ...processedProducts]);
+        setProducts(prev => [...prev, ...processedProducts] as any);
       }
 
       setTotalCount(data.totalCount);
@@ -181,9 +181,10 @@ export default function ProductsScreen() {
     
     const mainImage = typeof validImages[0] === 'string' 
       ? validImages[0] 
-      : validImages[0]?.url;
-    const isLowStock = item.inventory.stock <= item.inventory.lowStockThreshold;
-    const isOutOfStock = item.inventory.stock === 0;
+      : (validImages[0] as any)?.url;
+    const stockQty = (item.inventory as any).stock ?? item.inventory.quantity ?? 0;
+    const isLowStock = stockQty <= item.inventory.lowStockThreshold;
+    const isOutOfStock = stockQty === 0;
 
     return (
       <Animated.View 
@@ -234,7 +235,7 @@ export default function ProductsScreen() {
           </BodyText>
           
           <Heading3 style={styles.productPrice}>
-            ₹{(Number(item.pricing?.selling) || Number(item.price) || 0).toFixed(2)}
+            ₹{(Number((item as any).pricing?.selling) || Number(item.price) || 0).toFixed(2)}
           </Heading3>
 
           {item.sku && (
@@ -249,12 +250,12 @@ export default function ProductsScreen() {
           )}
           
           <View style={styles.productMeta}>
-             <Badge variant={(item.status === 'active' || item.isActive) ? 'success' : 'default'} size="small">
-                {(item.status === 'active' || item.isActive) ? 'ACTIVE' : 'INACTIVE'}
+             <Badge variant={((item as any).status === 'active' || item.isActive) ? 'success' : 'default'} size="small">
+                {((item as any).status === 'active' || item.isActive) ? 'ACTIVE' : 'INACTIVE'}
              </Badge>
-            
+
             <Caption style={styles.stockText}>
-              Stock: {item.inventory.stock}
+              Stock: {(item.inventory as any).stock ?? item.inventory.quantity ?? 0}
             </Caption>
           </View>
         </View>

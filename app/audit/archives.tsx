@@ -74,7 +74,7 @@ export default function ArchivesScreen() {
     isFetching: archivesFetching,
   } = useArchivedLogs({
     enabled: hasAccess,
-  });
+  } as any);
 
   const {
     data: retentionStats,
@@ -82,7 +82,7 @@ export default function ArchivesScreen() {
     refetch: refetchStats,
   } = useRetentionStatistics({
     enabled: hasAccess,
-  });
+  } as any);
 
   // Handlers
   const handleRefresh = useCallback(async () => {
@@ -481,7 +481,7 @@ export default function ArchivesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: Colors.background.secondary,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     ...Shadows.md,
   },
   storageCardLoading: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: BorderRadius['2xl'],
     padding: Spacing['2xl'],
     marginBottom: Spacing.lg,
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
   },
   archiveCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.primary,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     flexDirection: 'row',

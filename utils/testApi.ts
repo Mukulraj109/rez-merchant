@@ -50,7 +50,7 @@ export const testApi = {
         headers: Object.fromEntries(response.headers)
       };
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Test failed:', error);
       return { error: error.message };
     }
@@ -116,7 +116,7 @@ export const testApi = {
         data
       };
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Create sample product failed:', error);
       return { error: error.message };
     }

@@ -109,22 +109,23 @@ export default function EditVariantScreen() {
     try {
       setLoading(true);
       const variantIdStr = Array.isArray(variantId) ? variantId[0] : variantId;
-      const variantData = await productsService.getVariant(variantIdStr);
+      const productIdStr = Array.isArray(params.productId) ? params.productId[0] : (params.productId as string) || '';
+      const variantData = await productsService.getVariant(productIdStr, variantIdStr) as any;
 
-      setVariant(variantData);
+      setVariant(variantData as any);
       setAttributes(variantData.attributes || []);
-      setVariantImage(variantData.image || null);
+      setVariantImage(variantData.images?.[0]?.url || variantData.image || null);
 
       // Populate form
       reset({
         name: variantData.name || '',
         sku: variantData.sku || '',
-        price: variantData.price?.toString() || '',
-        salePrice: variantData.salePrice?.toString() || '',
-        quantity: variantData.inventory?.quantity?.toString() || '0',
-        trackQuantity: variantData.inventory?.trackQuantity !== false,
+        price: (variantData.pricing?.finalPrice ?? variantData.price)?.toString() || '',
+        salePrice: (variantData.pricing?.compareAtPrice ?? variantData.salePrice)?.toString() || '',
+        quantity: (variantData.inventory?.stock ?? variantData.inventory?.quantity)?.toString() || '0',
+        trackQuantity: (variantData.inventory?.trackInventory ?? variantData.inventory?.trackQuantity) !== false,
         isDefault: variantData.isDefault || false,
-        status: variantData.status || 'active',
+        status: variantData.isActive === false ? 'inactive' : (variantData.status || 'active'),
       });
     } catch (error: any) {
       console.error('Error loading variant:', error);
@@ -211,10 +212,10 @@ export default function EditVariantScreen() {
           const quantity = watch('quantity');
           await productsService.updateVariant(variant.productId, variant.id, {
             inventory: {
-              quantity: parseInt(quantity),
-              trackQuantity: watch('trackQuantity'),
+              stock: parseInt(quantity),
+              trackInventory: watch('trackQuantity'),
             },
-          });
+          } as any);
           showAlert('Success', 'Inventory updated successfully');
           loadVariant();
         } catch (error: any) {
@@ -233,7 +234,7 @@ export default function EditVariantScreen() {
       async () => {
         try {
           setDeleting(true);
-          await productsService.deleteVariant(variant.id);
+          await productsService.deleteVariant(variant.productId, variant.id);
           showAlert('Success', 'Variant deleted successfully', [
             {
               text: 'OK',
@@ -277,7 +278,7 @@ export default function EditVariantScreen() {
         status: data.status,
       };
 
-      await productsService.updateVariant(variant.productId, variant.id, updateData);
+      await productsService.updateVariant(variant.productId, variant.id, updateData as any);
 
       showAlert('Success', 'Variant updated successfully', [
         {

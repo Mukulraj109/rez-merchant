@@ -53,7 +53,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
     });
   };
 
-  const getDocumentIcon = (type: string): string => {
+  const getDocumentIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     switch (type) {
       case 'pan_card':
         return 'card-outline';
@@ -102,7 +102,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
     }
   };
 
-  const getVerificationIcon = (status?: string) => {
+  const getVerificationIcon = (status?: string): keyof typeof Ionicons.glyphMap => {
     switch (status) {
       case 'verified':
         return 'checkmark-circle';

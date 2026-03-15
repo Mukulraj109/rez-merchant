@@ -69,8 +69,8 @@ export function useFormPersistence<T extends Record<string, any>>({
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousFormDataRef = useRef<T | null>(null);
   const isInitializedRef = useRef(false);
 
@@ -84,16 +84,16 @@ export function useFormPersistence<T extends Record<string, any>>({
 
     // Remove excluded fields
     excludeFields.forEach(field => {
-      delete filtered[field];
+      delete (filtered as any)[field];
     });
 
     // Remove image/video blob data but keep URIs
     Object.keys(filtered).forEach(key => {
-      const value = filtered[key];
+      const value = (filtered as any)[key];
 
       // Handle array of objects (like images/videos)
       if (Array.isArray(value)) {
-        filtered[key] = value.map(item => {
+        (filtered as any)[key] = value.map(item => {
           if (typeof item === 'object' && item !== null) {
             // Keep only URLs and metadata, remove blobs
             const { uri, url, id, altText, title, thumbnailUrl, sortOrder, isMain, duration } = item;

@@ -545,7 +545,7 @@ export default function StoreReviewsScreen() {
                             variant={
                               review.moderationStatus === 'pending'
                                 ? 'warning'
-                                : review.moderationStatus === 'approved'
+                                : (review.moderationStatus as string) === 'approved'
                                 ? 'success'
                                 : 'error'
                             }
@@ -559,7 +559,7 @@ export default function StoreReviewsScreen() {
                                   color:
                                     review.moderationStatus === 'pending'
                                       ? Colors.warning[700]
-                                      : review.moderationStatus === 'approved'
+                                      : (review.moderationStatus as string) === 'approved'
                                       ? Colors.success[700]
                                       : Colors.error[700],
                                 },

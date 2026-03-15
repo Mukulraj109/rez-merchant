@@ -7,6 +7,7 @@ export interface StorageKeys {
   MERCHANT_DATA: 'merchant_data';
   DASHBOARD_CACHE: 'dashboard_cache';
   SETTINGS: 'app_settings';
+  ACTIVE_STORE_ID: 'active_store_id';
 }
 
 const STORAGE_KEYS: StorageKeys = {
@@ -15,6 +16,7 @@ const STORAGE_KEYS: StorageKeys = {
   MERCHANT_DATA: 'merchant_data',
   DASHBOARD_CACHE: 'dashboard_cache',
   SETTINGS: 'app_settings',
+  ACTIVE_STORE_ID: 'active_store_id',
 };
 
 class StorageService {

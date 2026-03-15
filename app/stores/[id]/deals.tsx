@@ -63,7 +63,7 @@ export default function StoreDealsScreen() {
       setError(null);
       const response = await offersService.getStoreOffers(storeId);
       if (response.success && response.data) {
-        setDeals(response.data.deals || []);
+        setDeals((response.data.deals || []) as any);
       } else {
         setError(response.message || 'Failed to load deals');
       }

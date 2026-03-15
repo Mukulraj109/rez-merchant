@@ -28,6 +28,7 @@ import { isWeb, handleWebImageUpload } from '@/utils/platform';
 import ErrorModal from '@/components/common/ErrorModal';
 import SuccessModal from '@/components/common/SuccessModal';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import { Colors } from '@/constants/DesignTokens';
 
 const storeSchema = z.object({
   name: z.string().min(2, 'Store name must be at least 2 characters').max(100),
@@ -191,8 +192,10 @@ export default function EditStoreScreen() {
     watch,
     formState: { errors },
   } = useForm<StoreFormData>({
-    resolver: zodResolver(storeSchema),
+    resolver: zodResolver(storeSchema) as any,
   });
+
+  const typedControl = control as any;
   
   // Watch form values for toggles
   const isPartner = watch('isPartner');
@@ -396,7 +399,7 @@ export default function EditStoreScreen() {
   };
 
   // Image upload handlers
-  const uploadImage = async (imageUri: string, type: 'logo' | 'banner' = 'general', fileObject?: File): Promise<string | null> => {
+  const uploadImage = async (imageUri: string, type: 'logo' | 'banner' | 'general' = 'general', fileObject?: File): Promise<string | null> => {
     try {
       const result = await uploadsService.uploadImage(imageUri, undefined, type, fileObject);
       return result.url;
@@ -810,7 +813,7 @@ export default function EditStoreScreen() {
       >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={Colors.gray[900]} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Store</Text>
         <View style={{ width: 24 }} />
@@ -835,11 +838,11 @@ export default function EditStoreScreen() {
                       style={styles.removeImageButton}
                       onPress={() => handleRemoveBanner(index)}
                     >
-                      <Ionicons name="close-circle" size={24} color="#EF4444" />
+                      <Ionicons name="close-circle" size={24} color={Colors.error[500]} />
                     </TouchableOpacity>
                     {uploadingBanner && uploadingBannerIndex === index && (
                       <View style={styles.uploadingOverlay}>
-                        <ActivityIndicator size="small" color="#FFFFFF" />
+                        <ActivityIndicator size="small" color={Colors.text.inverse} />
                         <Text style={styles.uploadingText}>Uploading...</Text>
                       </View>
                     )}
@@ -881,11 +884,11 @@ export default function EditStoreScreen() {
                 style={styles.removeImageButton}
                 onPress={handleRemoveLogo}
               >
-                <Ionicons name="close-circle" size={24} color="#EF4444" />
+                <Ionicons name="close-circle" size={24} color={Colors.error[500]} />
               </TouchableOpacity>
               {uploadingLogo && (
                 <View style={styles.uploadingOverlay}>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={Colors.text.inverse} />
                   <Text style={styles.uploadingText}>Uploading...</Text>
                 </View>
               )}
@@ -910,7 +913,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="name"
-          control={control}
+          control={typedControl}
           label="Store Name *"
           placeholder="Enter store name"
           error={errors.name?.message}
@@ -918,7 +921,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="description"
-          control={control}
+          control={typedControl}
           label="Description"
           placeholder="Enter store description"
           multiline
@@ -928,7 +931,7 @@ export default function EditStoreScreen() {
 
         <FormSelect
           name="category"
-          control={control}
+          control={typedControl}
           label="Category *"
           placeholder="Select category"
           options={categories}
@@ -938,7 +941,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="address"
-          control={control}
+          control={typedControl}
           label="Address *"
           placeholder="Enter street address"
           error={errors.address?.message}
@@ -946,7 +949,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="city"
-          control={control}
+          control={typedControl}
           label="City *"
           placeholder="Enter city"
           error={errors.city?.message}
@@ -954,7 +957,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="state"
-          control={control}
+          control={typedControl}
           label="State"
           placeholder="Enter state"
           error={errors.state?.message}
@@ -962,7 +965,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="pincode"
-          control={control}
+          control={typedControl}
           label="Pincode"
           placeholder="Enter 6-digit pincode"
           keyboardType="numeric"
@@ -972,7 +975,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="landmark"
-          control={control}
+          control={typedControl}
           label="Landmark"
           placeholder="Enter nearby landmark"
           error={errors.landmark?.message}
@@ -980,7 +983,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="deliveryRadius"
-          control={control}
+          control={typedControl}
           label="Delivery Radius (km)"
           placeholder="5"
           keyboardType="numeric"
@@ -991,7 +994,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="phone"
-          control={control}
+          control={typedControl}
           label="Phone"
           placeholder="Enter phone number"
           keyboardType="phone-pad"
@@ -1000,7 +1003,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="email"
-          control={control}
+          control={typedControl}
           label="Email"
           placeholder="Enter email address"
           keyboardType="email-address"
@@ -1009,7 +1012,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="website"
-          control={control}
+          control={typedControl}
           label="Website"
           placeholder="https://example.com"
           keyboardType="url"
@@ -1018,7 +1021,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="whatsapp"
-          control={control}
+          control={typedControl}
           label="WhatsApp"
           placeholder="Enter WhatsApp number"
           keyboardType="phone-pad"
@@ -1037,7 +1040,7 @@ export default function EditStoreScreen() {
                 <View style={styles.hoursInputsContainer}>
                   <FormInput
                     name={`${day}Open` as any}
-                    control={control}
+                    control={typedControl}
                     label=""
                     placeholder="09:00"
                     keyboardType="default"
@@ -1046,7 +1049,7 @@ export default function EditStoreScreen() {
                   <Text style={styles.hoursSeparator}>-</Text>
                   <FormInput
                     name={`${day}Close` as any}
-                    control={control}
+                    control={typedControl}
                     label=""
                     placeholder="21:00"
                     keyboardType="default"
@@ -1055,7 +1058,7 @@ export default function EditStoreScreen() {
                 </View>
                 <Controller
                   name={`${day}Closed` as any}
-                  control={control}
+                  control={typedControl}
                   render={({ field: { value, onChange } }) => (
                     <TouchableOpacity
                       style={styles.closedToggle}
@@ -1064,7 +1067,7 @@ export default function EditStoreScreen() {
                       <Ionicons
                         name={value ? "checkbox" : "checkbox-outline"}
                         size={24}
-                        color={value ? "#3B82F6" : "#9CA3AF"}
+                        color={value ? "#3B82F6" : Colors.gray[400]}
                       />
                       <Text style={styles.closedToggleText}>Closed</Text>
                     </TouchableOpacity>
@@ -1079,7 +1082,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="deliveryTime"
-          control={control}
+          control={typedControl}
           label="Delivery Time"
           placeholder="30-45 mins"
           error={errors.deliveryTime?.message}
@@ -1087,7 +1090,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="minimumOrder"
-          control={control}
+          control={typedControl}
           label="Minimum Order (₹)"
           placeholder="0"
           keyboardType="numeric"
@@ -1096,7 +1099,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="deliveryFee"
-          control={control}
+          control={typedControl}
           label="Delivery Fee (₹)"
           placeholder="0"
           keyboardType="numeric"
@@ -1105,7 +1108,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="freeDeliveryAbove"
-          control={control}
+          control={typedControl}
           label="Free Delivery Above (₹)"
           placeholder="500"
           keyboardType="numeric"
@@ -1116,7 +1119,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="cashback"
-          control={control}
+          control={typedControl}
           label="Cashback Percentage (%)"
           placeholder="5"
           keyboardType="numeric"
@@ -1125,7 +1128,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="minOrderAmount"
-          control={control}
+          control={typedControl}
           label="Minimum Order Amount for Cashback (₹)"
           placeholder="100"
           keyboardType="numeric"
@@ -1153,7 +1156,7 @@ export default function EditStoreScreen() {
             </View>
             <Controller
               name={category.key as any}
-              control={control}
+              control={typedControl}
               render={({ field: { value, onChange } }) => (
                 <TouchableOpacity
                   style={styles.switchContainer}
@@ -1162,7 +1165,7 @@ export default function EditStoreScreen() {
                   <Ionicons
                     name={value ? "toggle" : "toggle-outline"}
                     size={32}
-                    color={value ? "#3B82F6" : "#9CA3AF"}
+                    color={value ? "#3B82F6" : Colors.gray[400]}
                   />
                 </TouchableOpacity>
               )}
@@ -1175,7 +1178,7 @@ export default function EditStoreScreen() {
           <Text style={styles.switchLabel}>Partner Store</Text>
           <Controller
             name="isPartner"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={styles.switchContainer}
@@ -1184,7 +1187,7 @@ export default function EditStoreScreen() {
                 <Ionicons
                   name={value ? "toggle" : "toggle-outline"}
                   size={32}
-                  color={value ? "#3B82F6" : "#9CA3AF"}
+                  color={value ? "#3B82F6" : Colors.gray[400]}
                 />
               </TouchableOpacity>
             )}
@@ -1194,7 +1197,7 @@ export default function EditStoreScreen() {
         {isPartner && (
           <FormSelect
             name="partnerLevel"
-            control={control}
+            control={typedControl}
             label="Partner Level"
             placeholder="Select partner level"
             options={[
@@ -1220,7 +1223,7 @@ export default function EditStoreScreen() {
           <View style={styles.dealsButtonContent}>
             <Ionicons name="pricetag" size={20} color="#3B82F6" />
             <Text style={styles.dealsButtonText}>Manage Walk-In Deals</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
           </View>
         </TouchableOpacity>
 
@@ -1240,7 +1243,7 @@ export default function EditStoreScreen() {
           <Ionicons
             name={homeDeliveryEnabled ? "toggle" : "toggle-outline"}
             size={40}
-            color={homeDeliveryEnabled ? "#3B82F6" : "#9CA3AF"}
+            color={homeDeliveryEnabled ? "#3B82F6" : Colors.gray[400]}
           />
         </TouchableOpacity>
 
@@ -1319,7 +1322,7 @@ export default function EditStoreScreen() {
           <Ionicons
             name={driveThruEnabled ? "toggle" : "toggle-outline"}
             size={40}
-            color={driveThruEnabled ? "#3B82F6" : "#9CA3AF"}
+            color={driveThruEnabled ? "#3B82F6" : Colors.gray[400]}
           />
         </TouchableOpacity>
 
@@ -1365,7 +1368,7 @@ export default function EditStoreScreen() {
           <Ionicons
             name={dineInEnabled ? "toggle" : "toggle-outline"}
             size={40}
-            color={dineInEnabled ? "#3B82F6" : "#9CA3AF"}
+            color={dineInEnabled ? "#3B82F6" : Colors.gray[400]}
           />
         </TouchableOpacity>
 
@@ -1386,7 +1389,7 @@ export default function EditStoreScreen() {
           <Ionicons
             name={tableBookingCapEnabled ? "toggle" : "toggle-outline"}
             size={40}
-            color={tableBookingCapEnabled ? "#3B82F6" : "#9CA3AF"}
+            color={tableBookingCapEnabled ? "#3B82F6" : Colors.gray[400]}
           />
         </TouchableOpacity>
 
@@ -1402,7 +1405,7 @@ export default function EditStoreScreen() {
           <Ionicons
             name={storePickupEnabled ? "toggle" : "toggle-outline"}
             size={40}
-            color={storePickupEnabled ? "#3B82F6" : "#9CA3AF"}
+            color={storePickupEnabled ? "#3B82F6" : Colors.gray[400]}
           />
         </TouchableOpacity>
 
@@ -1436,7 +1439,7 @@ export default function EditStoreScreen() {
           <Ionicons
             name={bookingEnabled ? "toggle" : "toggle-outline"}
             size={40}
-            color={bookingEnabled ? "#3B82F6" : "#9CA3AF"}
+            color={bookingEnabled ? "#3B82F6" : Colors.gray[400]}
           />
         </TouchableOpacity>
 
@@ -1514,7 +1517,7 @@ export default function EditStoreScreen() {
               <Ionicons
                 name={requiresAdvanceBooking ? "toggle" : "toggle-outline"}
                 size={36}
-                color={requiresAdvanceBooking ? "#3B82F6" : "#9CA3AF"}
+                color={requiresAdvanceBooking ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
 
@@ -1529,7 +1532,7 @@ export default function EditStoreScreen() {
               <Ionicons
                 name={allowWalkIn ? "toggle" : "toggle-outline"}
                 size={36}
-                color={allowWalkIn ? "#3B82F6" : "#9CA3AF"}
+                color={allowWalkIn ? "#3B82F6" : Colors.gray[400]}
               />
             </TouchableOpacity>
 
@@ -1546,7 +1549,7 @@ export default function EditStoreScreen() {
               <View style={styles.dealsButtonContent}>
                 <Ionicons name="calendar" size={20} color="#3B82F6" />
                 <Text style={styles.dealsButtonText}>View Table Bookings</Text>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
               </View>
             </TouchableOpacity>
           </View>
@@ -1567,7 +1570,7 @@ export default function EditStoreScreen() {
           <View style={styles.dealsButtonContent}>
             <Ionicons name="star" size={20} color="#FFB800" />
             <Text style={styles.dealsButtonText}>View Store Reviews</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
           </View>
         </TouchableOpacity>
 
@@ -1583,7 +1586,7 @@ export default function EditStoreScreen() {
           <View style={styles.dealsButtonContent}>
             <Ionicons name="images" size={20} color="#10B981" />
             <Text style={styles.dealsButtonText}>View UGC Content</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
           </View>
         </TouchableOpacity>
 
@@ -1603,7 +1606,7 @@ export default function EditStoreScreen() {
             <Ionicons
               name={actionButtonsEnabled ? "toggle" : "toggle-outline"}
               size={32}
-              color={actionButtonsEnabled ? "#3B82F6" : "#9CA3AF"}
+              color={actionButtonsEnabled ? "#3B82F6" : Colors.gray[400]}
             />
           </TouchableOpacity>
         </View>
@@ -1622,7 +1625,7 @@ export default function EditStoreScreen() {
                   <Ionicons
                     name={callButtonEnabled ? "checkbox" : "checkbox-outline"}
                     size={24}
-                    color={callButtonEnabled ? "#3B82F6" : "#9CA3AF"}
+                    color={callButtonEnabled ? "#3B82F6" : Colors.gray[400]}
                   />
                 </TouchableOpacity>
               </View>
@@ -1654,7 +1657,7 @@ export default function EditStoreScreen() {
                   <Ionicons
                     name={productButtonEnabled ? "checkbox" : "checkbox-outline"}
                     size={24}
-                    color={productButtonEnabled ? "#3B82F6" : "#9CA3AF"}
+                    color={productButtonEnabled ? "#3B82F6" : Colors.gray[400]}
                   />
                 </TouchableOpacity>
               </View>
@@ -1686,7 +1689,7 @@ export default function EditStoreScreen() {
                   <Ionicons
                     name={locationButtonEnabled ? "checkbox" : "checkbox-outline"}
                     size={24}
-                    color={locationButtonEnabled ? "#3B82F6" : "#9CA3AF"}
+                    color={locationButtonEnabled ? "#3B82F6" : Colors.gray[400]}
                   />
                 </TouchableOpacity>
               </View>
@@ -1713,7 +1716,7 @@ export default function EditStoreScreen() {
           <Text style={styles.switchLabel}>Featured Store</Text>
           <Controller
             name="isFeatured"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={styles.switchContainer}
@@ -1722,7 +1725,7 @@ export default function EditStoreScreen() {
                 <Ionicons
                   name={value ? "toggle" : "toggle-outline"}
                   size={32}
-                  color={value ? "#3B82F6" : "#9CA3AF"}
+                  color={value ? "#3B82F6" : Colors.gray[400]}
                 />
               </TouchableOpacity>
             )}
@@ -1731,7 +1734,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="tags"
-          control={control}
+          control={typedControl}
           label="Tags"
           placeholder="tag1, tag2, tag3"
           error={errors.tags?.message}
@@ -1743,7 +1746,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="priceForTwo"
-          control={control}
+          control={typedControl}
           label="Price for Two"
           placeholder="e.g. 500"
           keyboardType="numeric"
@@ -1752,7 +1755,7 @@ export default function EditStoreScreen() {
 
         <FormInput
           name="cuisineType"
-          control={control}
+          control={typedControl}
           label="Cuisine Types"
           placeholder="e.g. Indian, Chinese, Italian"
           error={errors.cuisineType?.message}
@@ -1771,7 +1774,7 @@ export default function EditStoreScreen() {
             <Ionicons
               name={isHalal ? "checkbox" : "checkbox-outline"}
               size={28}
-              color={isHalal ? "#3B82F6" : "#9CA3AF"}
+              color={isHalal ? "#3B82F6" : Colors.gray[400]}
             />
           </TouchableOpacity>
         </View>
@@ -1788,7 +1791,7 @@ export default function EditStoreScreen() {
             <Ionicons
               name={isVegetarian ? "checkbox" : "checkbox-outline"}
               size={28}
-              color={isVegetarian ? "#3B82F6" : "#9CA3AF"}
+              color={isVegetarian ? "#3B82F6" : Colors.gray[400]}
             />
           </TouchableOpacity>
         </View>
@@ -1805,7 +1808,7 @@ export default function EditStoreScreen() {
             <Ionicons
               name={isVegan ? "checkbox" : "checkbox-outline"}
               size={28}
-              color={isVegan ? "#3B82F6" : "#9CA3AF"}
+              color={isVegan ? "#3B82F6" : Colors.gray[400]}
             />
           </TouchableOpacity>
         </View>
@@ -1825,10 +1828,10 @@ export default function EditStoreScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={Colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+              <Ionicons name="checkmark-circle" size={20} color={Colors.text.inverse} />
               <Text style={styles.submitButtonText}>Update Store</Text>
             </>
           )}
@@ -1858,7 +1861,7 @@ export default function EditStoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   keyboardView: {
     flex: 1,
@@ -1867,26 +1870,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   content: {
     flex: 1,
@@ -1896,7 +1899,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     marginTop: 16,
     marginBottom: 12,
   },
@@ -1914,7 +1917,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -1925,12 +1928,12 @@ const styles = StyleSheet.create({
   imageLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     marginBottom: 4,
   },
   imageHint: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginBottom: 12,
   },
   imagePickerButton: {
@@ -1942,7 +1945,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: 8,
     padding: 20,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     gap: 8,
   },
   imagePickerText: {
@@ -1955,7 +1958,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, // Increased for modern look
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     backgroundColor: '#F8FAFC', // Background for container
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1983,7 +1986,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderRadius: 20,
     padding: 4,
     shadowColor: '#000',
@@ -2004,23 +2007,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   uploadingText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 12,
     fontWeight: '600',
   },
   sectionHint: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginBottom: 12,
     fontStyle: 'italic',
   },
   dealsButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.gray[100],
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   dealsButtonContent: {
     flexDirection: 'row',
@@ -2032,15 +2035,15 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     fontWeight: '500',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   hoursRow: {
     marginBottom: 12,
     padding: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   hoursDayContainer: {
     flexDirection: 'row',
@@ -2050,7 +2053,7 @@ const styles = StyleSheet.create({
   hoursDayLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
     width: 80,
   },
   hoursInputsContainer: {
@@ -2065,7 +2068,7 @@ const styles = StyleSheet.create({
   },
   hoursSeparator: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginHorizontal: 4,
   },
   closedToggle: {
@@ -2075,7 +2078,7 @@ const styles = StyleSheet.create({
   },
   closedToggleText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   switchRow: {
     flexDirection: 'row',
@@ -2088,7 +2091,7 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   categoryInfo: {
     flex: 1,
@@ -2096,7 +2099,7 @@ const styles = StyleSheet.create({
   },
   categoryDescription: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 2,
   },
   switchContainer: {
@@ -2104,25 +2107,25 @@ const styles = StyleSheet.create({
   },
   hintText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: -8,
     marginBottom: 12,
     fontStyle: 'italic',
   },
   // Action Buttons Styles
   actionButtonsContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
   },
   actionButtonRow: {
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   actionButtonToggle: {
     flexDirection: 'row',
@@ -2133,7 +2136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   actionButtonInput: {
     marginTop: 12,
@@ -2141,20 +2144,20 @@ const styles = StyleSheet.create({
   },
   actionButtonInputLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginBottom: 6,
   },
   textInputContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.gray[300],
   },
   textInput: {
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
+    color: Colors.gray[900],
   },
   toggleRow: {
     flexDirection: 'row',
@@ -2167,20 +2170,20 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.gray[900],
   },
   toggleHint: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginTop: 2,
   },
   serviceConfigContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     gap: 12,
   },
   configInputWithPrefix: {
@@ -2191,16 +2194,16 @@ const styles = StyleSheet.create({
   configInputPrefix: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: Colors.gray[700],
     marginRight: 4,
   },
   bookingConfigContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
     gap: 12,
   },
   configRow: {
@@ -2209,7 +2212,7 @@ const styles = StyleSheet.create({
   configLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: Colors.gray[700],
     marginBottom: 8,
   },
   configChipsRow: {
@@ -2220,9 +2223,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.gray[300],
   },
   configChipActive: {
     backgroundColor: '#3B82F6',
@@ -2231,26 +2234,35 @@ const styles = StyleSheet.create({
   configChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: Colors.gray[700],
   },
   configChipTextActive: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
   },
   configInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.gray[300],
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
+    color: Colors.gray[900],
     width: 100,
   },
   hoursTo: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
     marginHorizontal: 8,
+  },
+  bannerGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 12,
+  },
+  bannerItemContainer: {
+    width: '48%' as any,
   },
 });
 

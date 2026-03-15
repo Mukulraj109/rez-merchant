@@ -19,6 +19,7 @@ import FormSelect from '@/components/forms/FormSelect';
 import { discountsService, CreateDiscountRequest } from '@/services/api/discounts';
 import { useStore } from '@/contexts/StoreContext';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import { Colors } from '@/constants/DesignTokens';
 
 const discountSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(100),
@@ -82,7 +83,7 @@ export default function AddDiscountScreen() {
     formState: { errors },
     watch,
   } = useForm<DiscountFormData>({
-    resolver: zodResolver(discountSchema),
+    resolver: zodResolver(discountSchema) as any,
     defaultValues: {
       name: '',
       description: '',
@@ -105,6 +106,8 @@ export default function AddDiscountScreen() {
       cardBins: '',
     },
   });
+
+  const typedControl = control as any;
 
   const discountType = watch('type');
 
@@ -230,7 +233,7 @@ export default function AddDiscountScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color={Colors.gray[800]} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create Discount</Text>
         <View style={{ width: 24 }} />
@@ -246,7 +249,7 @@ export default function AddDiscountScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <FormInput
           name="name"
-          control={control}
+          control={typedControl}
           label="Discount Name *"
           placeholder="e.g., UPI Payment Discount"
           error={errors.name?.message}
@@ -254,7 +257,7 @@ export default function AddDiscountScreen() {
 
         <FormInput
           name="description"
-          control={control}
+          control={typedControl}
           label="Description"
           placeholder="Brief description of the discount"
           multiline
@@ -264,7 +267,7 @@ export default function AddDiscountScreen() {
 
         <FormSelect
           name="type"
-          control={control}
+          control={typedControl}
           label="Discount Type *"
           options={[
             { label: 'Percentage (%)', value: 'percentage' },
@@ -274,7 +277,7 @@ export default function AddDiscountScreen() {
 
         <FormInput
           name="value"
-          control={control}
+          control={typedControl}
           label={discountType === 'percentage' ? 'Discount Percentage (%) *' : 'Discount Amount (₹) *'}
           placeholder={discountType === 'percentage' ? '10' : '100'}
           keyboardType="numeric"
@@ -284,7 +287,7 @@ export default function AddDiscountScreen() {
         {discountType === 'percentage' && (
           <FormInput
             name="maxDiscountAmount"
-            control={control}
+            control={typedControl}
             label="Maximum Discount Amount (₹)"
             placeholder="500"
             keyboardType="numeric"
@@ -294,7 +297,7 @@ export default function AddDiscountScreen() {
 
         <FormInput
           name="minOrderValue"
-          control={control}
+          control={typedControl}
           label="Minimum Order Value (₹) *"
           placeholder="1000"
           keyboardType="numeric"
@@ -304,7 +307,7 @@ export default function AddDiscountScreen() {
         <Text style={styles.sectionTitle}>Validity Period *</Text>
         <FormInput
           name="validFrom"
-          control={control}
+          control={typedControl}
           label="Start Date"
           placeholder="YYYY-MM-DD"
           error={errors.validFrom?.message}
@@ -312,7 +315,7 @@ export default function AddDiscountScreen() {
 
         <FormInput
           name="validUntil"
-          control={control}
+          control={typedControl}
           label="End Date"
           placeholder="YYYY-MM-DD"
           error={errors.validUntil?.message}
@@ -321,7 +324,7 @@ export default function AddDiscountScreen() {
         <Text style={styles.sectionTitle}>Usage Limits (Optional)</Text>
         <FormInput
           name="usageLimit"
-          control={control}
+          control={typedControl}
           label="Total Usage Limit"
           placeholder="1000"
           keyboardType="numeric"
@@ -330,7 +333,7 @@ export default function AddDiscountScreen() {
 
         <FormInput
           name="usageLimitPerUser"
-          control={control}
+          control={typedControl}
           label="Usage Limit Per User *"
           placeholder="1"
           keyboardType="numeric"
@@ -339,7 +342,7 @@ export default function AddDiscountScreen() {
 
         <FormInput
           name="priority"
-          control={control}
+          control={typedControl}
           label="Priority (0-100)"
           placeholder="0"
           keyboardType="numeric"
@@ -349,12 +352,12 @@ export default function AddDiscountScreen() {
         <Text style={styles.sectionTitle}>Restrictions</Text>
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="storefront-outline" size={20} color="#6B7280" />
+            <Ionicons name="storefront-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Offline Only</Text>
           </View>
           <Controller
             name="isOfflineOnly"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -368,12 +371,12 @@ export default function AddDiscountScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="ban-outline" size={20} color="#6B7280" />
+            <Ionicons name="ban-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Not Valid Above Store Discount</Text>
           </View>
           <Controller
             name="notValidAboveStoreDiscount"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -387,12 +390,12 @@ export default function AddDiscountScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="document-text-outline" size={20} color="#6B7280" />
+            <Ionicons name="document-text-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Single Voucher Per Bill</Text>
           </View>
           <Controller
             name="singleVoucherPerBill"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -407,7 +410,7 @@ export default function AddDiscountScreen() {
         <Text style={styles.sectionTitle}>Payment Method *</Text>
         <FormSelect
           name="paymentMethod"
-          control={control}
+          control={typedControl}
           label="Payment Method"
           options={[
             { label: 'All Payment Methods', value: 'all' },
@@ -420,7 +423,7 @@ export default function AddDiscountScreen() {
           <>
             <FormSelect
               name="cardType"
-              control={control}
+              control={typedControl}
               label="Card Type"
               options={[
                 { label: 'All Cards', value: 'all' },
@@ -431,7 +434,7 @@ export default function AddDiscountScreen() {
 
             <FormInput
               name="bankNames"
-              control={control}
+              control={typedControl}
               label="Bank Names (Optional)"
               placeholder="HDFC, ICICI, SBI (comma-separated)"
               error={errors.bankNames?.message}
@@ -439,7 +442,7 @@ export default function AddDiscountScreen() {
 
             <FormInput
               name="cardBins"
-              control={control}
+              control={typedControl}
               label="Card BINs (Optional)"
               placeholder="411111, 555555 (comma-separated, 6 digits each)"
               keyboardType="numeric"
@@ -451,7 +454,7 @@ export default function AddDiscountScreen() {
         <Text style={styles.sectionTitle}>Display Settings (Optional)</Text>
         <FormInput
           name="displayText"
-          control={control}
+          control={typedControl}
           label="Display Text"
           placeholder="e.g., 10% Off on bill payment"
           error={errors.displayText?.message}
@@ -459,14 +462,14 @@ export default function AddDiscountScreen() {
 
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit as any)}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={Colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+              <Ionicons name="checkmark-circle" size={20} color={Colors.text.inverse} />
               <Text style={styles.submitButtonText}>Create Discount</Text>
             </>
           )}
@@ -496,7 +499,7 @@ export default function AddDiscountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   header: {
     flexDirection: 'row',
@@ -504,30 +507,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   storeInfo: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   storeName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginBottom: 4,
   },
   storeSubtext: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   content: {
     flex: 1,
@@ -539,7 +542,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginTop: 16,
     marginBottom: 12,
   },
@@ -549,7 +552,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   switchLabelContainer: {
     flexDirection: 'row',
@@ -559,14 +562,14 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 14,
-    color: '#1F2937',
+    color: Colors.gray[800],
     flex: 1,
   },
   switch: {
     width: 50,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: Colors.gray[300],
     justifyContent: 'center',
     padding: 2,
   },
@@ -577,7 +580,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     alignSelf: 'flex-start',
   },
   switchThumbActive: {
@@ -597,7 +600,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },

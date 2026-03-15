@@ -303,13 +303,13 @@ export default function ServicesListScreen() {
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: item.isActive ? '#D1FAE5' : '#F3F4F6' },
+                { backgroundColor: item.isActive ? Colors.light.successLight : Colors.light.backgroundTertiary },
               ]}
             >
               <Text
                 style={[
                   styles.statusBadgeText,
-                  { color: item.isActive ? '#10B981' : '#6B7280' },
+                  { color: item.isActive ? Colors.light.success : Colors.light.textSecondary },
                 ]}
               >
                 {item.isActive ? 'Active' : 'Inactive'}
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
   },
   filterChipActive: {
     backgroundColor: '#0EA5E9',
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   filterChipTextActive: {
     color: '#fff',
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
   },
   statusChipActive: {
     backgroundColor: '#1E293B',
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
   statusChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   statusChipTextActive: {
     color: '#fff',
@@ -665,11 +665,11 @@ const styles = StyleSheet.create({
   },
   originalPrice: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     textDecorationLine: 'line-through',
   },
   discountBadge: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.light.errorLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   discountText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#EF4444',
+    color: Colors.light.error,
   },
   cashbackBadge: {
     flexDirection: 'row',
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
   cashbackText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: Colors.light.warning,
   },
   // Info
   infoRow: {
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
+    borderTopColor: Colors.light.backgroundSecondary,
   },
   infoItem: {
     flexDirection: 'row',
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
   },
   // Actions
   actionRow: {

@@ -182,8 +182,8 @@ export const businessInfoSchema = z.object({
     .min(1, 'Business name is required')
     .refine(validateBusinessName, 'Invalid business name format'),
   businessType: z
-    .enum(['proprietorship', 'partnership', 'pvt_ltd', 'llp', 'sole_trader'], {
-      errorMap: () => ({ message: 'Invalid business type' }),
+    .enum(['proprietorship', 'partnership', 'pvt_ltd', 'llp', 'sole_trader'] as const, {
+      message: 'Invalid business type',
     }),
   gst: z
     .string()
@@ -237,8 +237,8 @@ export const bankDetailsSchema = z.object({
   bankName: z
     .string()
     .min(1, 'Bank name is required'),
-  accountType: z.enum(['savings', 'current'], {
-    errorMap: () => ({ message: 'Please select a valid account type' }),
+  accountType: z.enum(['savings', 'current'] as const, {
+    message: 'Please select a valid account type',
   }),
   upiId: z
     .string()
@@ -326,8 +326,8 @@ export const inviteMemberSchema = z.object({
     .string()
     .min(1, 'Last name is required')
     .min(2, 'Last name must be at least 2 characters'),
-  role: z.enum(['admin', 'manager', 'staff', 'viewer'], {
-    errorMap: () => ({ message: 'Please select a valid role' }),
+  role: z.enum(['admin', 'manager', 'staff', 'viewer'] as const, {
+    message: 'Please select a valid role',
   }),
   permissions: z
     .array(z.string())

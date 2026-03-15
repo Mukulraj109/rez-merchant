@@ -279,7 +279,7 @@ export function useAnalyticsWithDateRange(
  */
 export function useInventoryAnalytics(dateRange?: DateRangeFilter) {
   const stockout = useStockoutPredictions(dateRange);
-  const performance = useProductPerformance({ timeRange: dateRange });
+  const performance = useProductPerformance({ timeRange: dateRange as any });
 
   return {
     stockout,

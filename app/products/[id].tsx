@@ -247,7 +247,7 @@ export default function ProductDetailScreen() {
             // Handle both string URLs and object formats
             const imageUrl = typeof image === 'string' 
               ? debugImageUrl(image) 
-              : debugImageUrl(image.url || '');
+              : debugImageUrl((image as any).url || '');
             return (
               <Image
                 key={index}
@@ -307,7 +307,7 @@ export default function ProductDetailScreen() {
 
   const renderStockStatus = () => {
     if (!product || !product.inventory) return null;
-    const { stock = 0, lowStockThreshold = 5 } = product.inventory;
+    const { quantity: stock = 0, lowStockThreshold = 5 } = product.inventory as any;
     const isOutOfStock = stock === 0;
     const isLowStock = stock <= lowStockThreshold && stock > 0;
     if (isOutOfStock) {
@@ -455,8 +455,8 @@ export default function ProductDetailScreen() {
                   </View>
                 )}
               </View>
-              {product.shortDescription && (
-                <ThemedText style={styles.shortDescription}>{product.shortDescription}</ThemedText>
+              {(product as any).shortDescription && (
+                <ThemedText style={styles.shortDescription}>{(product as any).shortDescription}</ThemedText>
               )}
             </View>
           </Animated.View>
@@ -468,7 +468,7 @@ export default function ProductDetailScreen() {
             <View style={styles.inventoryGrid}>
               <View style={styles.inventoryItem}>
                 <ThemedText style={styles.inventoryLabel}>Stock Quantity</ThemedText>
-                <ThemedText style={styles.inventoryValue}>{product.inventory.stock || 0}</ThemedText>
+                <ThemedText style={styles.inventoryValue}>{(product.inventory as any).stock || product.inventory.quantity || 0}</ThemedText>
               </View>
               <View style={styles.inventoryItem}>
                 <ThemedText style={styles.inventoryLabel}>Low Stock Threshold</ThemedText>
@@ -546,22 +546,22 @@ export default function ProductDetailScreen() {
                 {(product.category as any)?.name || (typeof product.category === 'string' ? 'N/A' : 'N/A')}
               </ThemedText>
             </View>
-            {product.subcategory && (
+            {(product as any).subcategory && (
               <View style={styles.detailRow}>
                 <ThemedText style={styles.detailLabel}>Subcategory</ThemedText>
-                <ThemedText style={styles.detailValue}>{product.subcategory}</ThemedText>
+                <ThemedText style={styles.detailValue}>{(product as any).subcategory}</ThemedText>
               </View>
             )}
-            {product.brand && (
+            {(product as any).brand && (
               <View style={styles.detailRow}>
                 <ThemedText style={styles.detailLabel}>Brand</ThemedText>
-                <ThemedText style={styles.detailValue}>{product.brand}</ThemedText>
+                <ThemedText style={styles.detailValue}>{(product as any).brand}</ThemedText>
               </View>
             )}
-            {product.barcode && (
+            {(product as any).barcode && (
               <View style={styles.detailRow}>
                 <ThemedText style={styles.detailLabel}>Barcode</ThemedText>
-                <ThemedText style={styles.detailValue}>{product.barcode}</ThemedText>
+                <ThemedText style={styles.detailValue}>{(product as any).barcode}</ThemedText>
               </View>
             )}
             <View style={styles.detailRow}>
@@ -679,11 +679,11 @@ export default function ProductDetailScreen() {
                 {new Date(product.updatedAt).toLocaleDateString()}
               </ThemedText>
             </View>
-            {product.publishedAt && (
+            {(product as any).publishedAt && (
               <View style={styles.detailRow}>
                 <ThemedText style={styles.detailLabel}>Published</ThemedText>
                 <ThemedText style={styles.detailValue}>
-                  {new Date(product.publishedAt).toLocaleDateString()}
+                  {new Date((product as any).publishedAt).toLocaleDateString()}
                 </ThemedText>
               </View>
             )}
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   imageCounterText: {
-    color: '#FFFFFF',
+    color: Colors.light.background,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   discountText: {
-    color: '#FFFFFF',
+    color: Colors.light.background,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.5,

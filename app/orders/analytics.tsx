@@ -131,14 +131,18 @@ const TopProductsCard = ({ products }: TopProductsCardProps) => (
   </View>
 );
 
-const statusColors: Record<OrderStatus, string> = {
+const statusColors: Record<string, string> = {
   pending: '#FF9800',
+  placed: '#FF9800',
   confirmed: '#2196F3',
   preparing: '#FF5722',
   ready: '#4CAF50',
+  dispatched: '#9C27B0',
   out_for_delivery: '#9C27B0',
   delivered: '#4CAF50',
+  cancelling: '#FF9800',
   cancelled: '#F44336',
+  returned: '#607D8B',
   refunded: '#607D8B'
 };
 

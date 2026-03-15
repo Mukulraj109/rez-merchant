@@ -18,6 +18,7 @@ import { showAlert } from '@/utils/alert';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Colors } from '@/constants/Colors';
+import { Colors as DesignColors } from '@/constants/DesignTokens';
 import { DocumentType, DocumentUpload } from '@/types/onboarding';
 
 export interface DocumentUploaderProps {
@@ -87,15 +88,16 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
   };
 
   const uploadFile = async (uri: string, fileName: string, fileSize?: number) => {
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
     try {
       setUploading(true);
       setUploadProgress(0);
 
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
-            clearInterval(progressInterval);
+            if (progressInterval) clearInterval(progressInterval);
             return 90;
           }
           return prev + 10;
@@ -128,7 +130,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         setUploadProgress(0);
       }, 500);
     } catch (error) {
-      clearInterval(progressInterval);
+      if (progressInterval) clearInterval(progressInterval);
       setUploading(false);
       setUploadProgress(0);
       const errorMessage = error instanceof Error ? error.message : 'Upload failed';
@@ -285,7 +287,7 @@ const DocumentUploader: React.FC<DocumentUploaderProps> = ({
           <Ionicons
             name="cloud-upload-outline"
             size={32}
-            color={documentType.isRequired ? '#FFFFFF' : colors.textMuted}
+            color={documentType.isRequired ? DesignColors.text.inverse : colors.textMuted}
           />
         </View>
 
@@ -358,7 +360,7 @@ const styles = StyleSheet.create({
   requiredText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: DesignColors.text.inverse,
   },
   description: {
     fontSize: 13,

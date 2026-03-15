@@ -656,5 +656,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
+  paymentMethodBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F3F0FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  paymentMethodText: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+    color: '#8B5CF6',
+  },
 });
 

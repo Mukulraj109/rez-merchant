@@ -144,7 +144,7 @@ export default function CashbackScreen() {
   }
 
   // If social media tab is selected, render SocialMediaPostsList
-  if (viewMode === 'social_media') {
+  if ((viewMode as string) === 'social_media') {
     return (
       <View style={styles.container}>
         <ThemedView style={styles.content}>
@@ -168,28 +168,28 @@ export default function CashbackScreen() {
           {/* View Mode Tabs */}
           <View style={styles.viewModeTabs}>
             <TouchableOpacity
-              style={[styles.viewModeTab, viewMode === 'cashback' && styles.viewModeTabActive]}
+              style={[styles.viewModeTab, (viewMode as string) === 'cashback' && styles.viewModeTabActive]}
               onPress={() => setViewMode('cashback')}
             >
               <Ionicons
                 name="receipt-outline"
                 size={18}
-                color={viewMode === 'cashback' ? Colors.light.background : Colors.light.text}
+                color={(viewMode as string) === 'cashback' ? Colors.light.background : Colors.light.text}
               />
-              <ThemedText style={[styles.viewModeTabText, viewMode === 'cashback' && styles.viewModeTabTextActive]}>
+              <ThemedText style={[styles.viewModeTabText, (viewMode as string) === 'cashback' && styles.viewModeTabTextActive]}>
                 Cashback Requests
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.viewModeTab, viewMode === 'social_media' && styles.viewModeTabActive]}
+              style={[styles.viewModeTab, (viewMode as string) === 'social_media' && styles.viewModeTabActive]}
               onPress={() => setViewMode('social_media')}
             >
               <Ionicons
                 name="logo-instagram"
                 size={18}
-                color={viewMode === 'social_media' ? Colors.light.background : Colors.light.text}
+                color={(viewMode as string) === 'social_media' ? Colors.light.background : Colors.light.text}
               />
-              <ThemedText style={[styles.viewModeTabText, viewMode === 'social_media' && styles.viewModeTabTextActive]}>
+              <ThemedText style={[styles.viewModeTabText, (viewMode as string) === 'social_media' && styles.viewModeTabTextActive]}>
                 Social Media
               </ThemedText>
             </TouchableOpacity>
@@ -230,28 +230,28 @@ export default function CashbackScreen() {
         {/* View Mode Tabs */}
         <View style={styles.viewModeTabs}>
           <TouchableOpacity
-            style={[styles.viewModeTab, viewMode === 'cashback' && styles.viewModeTabActive]}
+            style={[styles.viewModeTab, (viewMode as string) === 'cashback' && styles.viewModeTabActive]}
             onPress={() => setViewMode('cashback')}
           >
             <Ionicons
               name="receipt-outline"
               size={18}
-              color={viewMode === 'cashback' ? Colors.light.background : Colors.light.text}
+              color={(viewMode as string) === 'cashback' ? Colors.light.background : Colors.light.text}
             />
-            <ThemedText style={[styles.viewModeTabText, viewMode === 'cashback' && styles.viewModeTabTextActive]}>
+            <ThemedText style={[styles.viewModeTabText, (viewMode as string) === 'cashback' && styles.viewModeTabTextActive]}>
               Cashback Requests
             </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.viewModeTab, viewMode === 'social_media' && styles.viewModeTabActive]}
+            style={[styles.viewModeTab, (viewMode as string) === 'social_media' && styles.viewModeTabActive]}
             onPress={() => setViewMode('social_media')}
           >
             <Ionicons
               name="logo-instagram"
               size={18}
-              color={viewMode === 'social_media' ? Colors.light.background : Colors.light.text}
+              color={(viewMode as string) === 'social_media' ? Colors.light.background : Colors.light.text}
             />
-            <ThemedText style={[styles.viewModeTabText, viewMode === 'social_media' && styles.viewModeTabTextActive]}>
+            <ThemedText style={[styles.viewModeTabText, (viewMode as string) === 'social_media' && styles.viewModeTabTextActive]}>
               Social Media
             </ThemedText>
           </TouchableOpacity>

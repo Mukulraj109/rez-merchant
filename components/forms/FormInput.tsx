@@ -46,6 +46,7 @@ export interface FormInputProps<T extends FieldValues> {
   testID?: string;
   autoComplete?: 'off' | 'email' | 'password' | 'name' | 'tel' | 'postal-code' | 'street-address';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  error?: string;
 }
 
 const FormInput = React.forwardRef<TextInput, FormInputProps<any>>(

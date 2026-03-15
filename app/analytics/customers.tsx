@@ -671,7 +671,7 @@ export default function CustomerInsightsScreen() {
       backgroundColor: REZ_COLORS.grayLight,
     },
     innerContainer: {
-      width: '100%',
+      width: '100%' as const,
       maxWidth: contentMaxWidth,
       paddingHorizontal: horizontalPadding,
     },
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
   statCard: {
     flexGrow: 1,
     flexShrink: 0,
-    flexBasis: Platform.OS === 'web' ? 'calc(25% - 12px)' : '45%',
+    flexBasis: (Platform.OS === 'web' ? 'calc(25% - 12px)' : '45%') as any,
     minWidth: 140,
     maxWidth: Platform.OS === 'web' ? 280 : undefined,
     backgroundColor: REZ_COLORS.white,

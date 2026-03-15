@@ -27,7 +27,7 @@ import {
 import { Colors } from '@/constants/Colors';
 import { BottomNav, BOTTOM_NAV_HEIGHT_CONSTANT } from '@/components/navigation/BottomNav';
 
-const ACCENT = '#0EA5E9';
+const ACCENT = Colors.light.info;
 
 const STATUS_TABS: { key: string; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -38,28 +38,28 @@ const STATUS_TABS: { key: string; label: string }[] = [
 ];
 
 const BOOKING_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: '#FEF3C7', text: '#F59E0B' },
-  confirmed: { bg: '#D1FAE5', text: '#10B981' },
-  assigned: { bg: '#DBEAFE', text: '#3B82F6' },
-  in_progress: { bg: '#E0E7FF', text: '#6366F1' },
-  completed: { bg: '#D1FAE5', text: '#059669' },
-  cancelled: { bg: '#FEE2E2', text: '#EF4444' },
-  no_show: { bg: '#F3F4F6', text: '#6B7280' },
+  pending: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  confirmed: { bg: Colors.light.successLight, text: Colors.light.success },
+  assigned: { bg: Colors.light.infoLight, text: Colors.light.info },
+  in_progress: { bg: '#E0E7FF', text: Colors.light.indigo },
+  completed: { bg: Colors.light.successLight, text: '#059669' },
+  cancelled: { bg: Colors.light.errorLight, text: Colors.light.error },
+  no_show: { bg: Colors.light.backgroundTertiary, text: Colors.light.textSecondary },
 };
 
 const PAYMENT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: '#FEF3C7', text: '#F59E0B' },
-  paid: { bg: '#D1FAE5', text: '#10B981' },
+  pending: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  paid: { bg: Colors.light.successLight, text: Colors.light.success },
   partial: { bg: '#FED7AA', text: '#EA580C' },
-  refunded: { bg: '#E0E7FF', text: '#6366F1' },
-  failed: { bg: '#FEE2E2', text: '#EF4444' },
+  refunded: { bg: '#E0E7FF', text: Colors.light.indigo },
+  failed: { bg: Colors.light.errorLight, text: Colors.light.error },
 };
 
 const CASHBACK_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: '#FEF3C7', text: '#F59E0B' },
-  held: { bg: '#DBEAFE', text: '#3B82F6' },
-  credited: { bg: '#D1FAE5', text: '#10B981' },
-  clawed_back: { bg: '#FEE2E2', text: '#EF4444' },
+  pending: { bg: Colors.light.warningLight, text: Colors.light.warning },
+  held: { bg: Colors.light.infoLight, text: Colors.light.info },
+  credited: { bg: Colors.light.successLight, text: Colors.light.success },
+  clawed_back: { bg: Colors.light.errorLight, text: Colors.light.error },
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -204,11 +204,11 @@ export default function ServiceBookingsScreen() {
     if (!stats) return null;
 
     const statItems = [
-      { label: 'Total', value: stats.totalBookings, color: '#1F2937', bg: '#F3F4F6' },
-      { label: 'Pending', value: stats.pending, color: '#F59E0B', bg: '#FEF3C7' },
-      { label: 'Confirmed', value: stats.confirmed, color: '#10B981', bg: '#D1FAE5' },
-      { label: 'Completed', value: stats.completed, color: '#059669', bg: '#D1FAE5' },
-      { label: 'Cancelled', value: stats.cancelled, color: '#EF4444', bg: '#FEE2E2' },
+      { label: 'Total', value: stats.totalBookings, color: Colors.light.textDark, bg: Colors.light.backgroundTertiary },
+      { label: 'Pending', value: stats.pending, color: Colors.light.warning, bg: Colors.light.warningLight },
+      { label: 'Confirmed', value: stats.confirmed, color: Colors.light.success, bg: Colors.light.successLight },
+      { label: 'Completed', value: stats.completed, color: '#059669', bg: Colors.light.successLight },
+      { label: 'Cancelled', value: stats.cancelled, color: Colors.light.error, bg: Colors.light.errorLight },
       { label: 'Revenue', value: formatCurrency(stats.revenue), color: ACCENT, bg: '#F0F9FF' },
     ];
 
@@ -255,7 +255,7 @@ export default function ServiceBookingsScreen() {
   // ── Status Badge ────────────────────────────────────────────────────────
 
   const StatusBadge = ({ status, colorMap }: { status: string; colorMap: Record<string, { bg: string; text: string }> }) => {
-    const style = colorMap[status] || { bg: '#F3F4F6', text: '#6B7280' };
+    const style = colorMap[status] || { bg: Colors.light.backgroundTertiary, text: Colors.light.textSecondary };
     const label = STATUS_LABELS[status] || status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     return (
       <View style={[styles.badge, { backgroundColor: style.bg }]}>
@@ -299,7 +299,7 @@ export default function ServiceBookingsScreen() {
             <Text style={styles.infoText}>{getCustomerName(item)}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="call-outline" size={16} color="#6B7280" />
+            <Ionicons name="call-outline" size={16} color={Colors.light.textSecondary} />
             <Text style={styles.infoTextSecondary}>{getCustomerPhone(item)}</Text>
           </View>
         </View>
@@ -312,7 +312,7 @@ export default function ServiceBookingsScreen() {
           </View>
           {item.serviceCategory?.name && (
             <View style={styles.infoRow}>
-              <Ionicons name="folder-outline" size={16} color="#6B7280" />
+              <Ionicons name="folder-outline" size={16} color={Colors.light.textSecondary} />
               <Text style={styles.infoTextSecondary}>{item.serviceCategory.name}</Text>
             </View>
           )}
@@ -327,8 +327,8 @@ export default function ServiceBookingsScreen() {
           <StatusBadge status={item.paymentStatus} colorMap={PAYMENT_STATUS_COLORS} />
           {item.cashbackStatus && (
             <View style={styles.cashbackBadge}>
-              <Ionicons name="gift-outline" size={12} color={CASHBACK_STATUS_COLORS[item.cashbackStatus]?.text || '#6B7280'} />
-              <Text style={[styles.badgeText, { color: CASHBACK_STATUS_COLORS[item.cashbackStatus]?.text || '#6B7280', marginLeft: 3 }]}>
+              <Ionicons name="gift-outline" size={12} color={CASHBACK_STATUS_COLORS[item.cashbackStatus]?.text || Colors.light.textSecondary} />
+              <Text style={[styles.badgeText, { color: CASHBACK_STATUS_COLORS[item.cashbackStatus]?.text || Colors.light.textSecondary, marginLeft: 3 }]}>
                 CB: {item.cashbackStatus.replace(/_/g, ' ')}
               </Text>
             </View>
@@ -340,15 +340,15 @@ export default function ServiceBookingsScreen() {
           <View style={styles.travelSection}>
             <View style={styles.routeRow}>
               <View style={styles.routePoint}>
-                <View style={[styles.routeDot, { backgroundColor: '#10B981' }]} />
+                <View style={[styles.routeDot, { backgroundColor: Colors.light.success }]} />
                 <Text style={styles.routeText}>
                   {item.travelDetails.route.from}
                   {item.travelDetails.route.fromCode ? ` (${item.travelDetails.route.fromCode})` : ''}
                 </Text>
               </View>
-              <Ionicons name="arrow-forward" size={14} color="#9CA3AF" style={{ marginHorizontal: 6 }} />
+              <Ionicons name="arrow-forward" size={14} color={Colors.light.textMuted} style={{ marginHorizontal: 6 }} />
               <View style={styles.routePoint}>
-                <View style={[styles.routeDot, { backgroundColor: '#EF4444' }]} />
+                <View style={[styles.routeDot, { backgroundColor: Colors.light.error }]} />
                 <Text style={styles.routeText}>
                   {item.travelDetails.route.to}
                   {item.travelDetails.route.toCode ? ` (${item.travelDetails.route.toCode})` : ''}
@@ -357,7 +357,7 @@ export default function ServiceBookingsScreen() {
             </View>
             {item.travelDetails.passengers && (
               <View style={styles.infoRow}>
-                <Ionicons name="people-outline" size={14} color="#6B7280" />
+                <Ionicons name="people-outline" size={14} color={Colors.light.textSecondary} />
                 <Text style={styles.infoTextSecondary}>
                   {item.travelDetails.passengers.adults} Adult{item.travelDetails.passengers.adults !== 1 ? 's' : ''}
                   {item.travelDetails.passengers.children ? `, ${item.travelDetails.passengers.children} Child` : ''}
@@ -366,7 +366,7 @@ export default function ServiceBookingsScreen() {
             )}
             {item.pnr && (
               <View style={styles.infoRow}>
-                <Ionicons name="document-text-outline" size={14} color="#6B7280" />
+                <Ionicons name="document-text-outline" size={14} color={Colors.light.textSecondary} />
                 <Text style={styles.infoTextSecondary}>PNR: {item.pnr}</Text>
               </View>
             )}
@@ -378,28 +378,28 @@ export default function ServiceBookingsScreen() {
           <View style={styles.actionsRow}>
             {canConfirm && (
               <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: '#10B981' }]}
+                style={[styles.actionButton, { backgroundColor: Colors.light.success }]}
                 onPress={() => setActionModal({ visible: true, booking: item, action: 'confirmed' })}
               >
-                <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+                <Ionicons name="checkmark-circle-outline" size={18} color={Colors.light.card} />
                 <Text style={styles.actionButtonText}>Confirm</Text>
               </TouchableOpacity>
             )}
             {canComplete && (
               <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: '#6366F1' }]}
+                style={[styles.actionButton, { backgroundColor: Colors.light.indigo }]}
                 onPress={() => setActionModal({ visible: true, booking: item, action: 'completed' })}
               >
-                <Ionicons name="checkbox-outline" size={18} color="#FFFFFF" />
+                <Ionicons name="checkbox-outline" size={18} color={Colors.light.card} />
                 <Text style={styles.actionButtonText}>Complete</Text>
               </TouchableOpacity>
             )}
             {canCancel && (
               <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: '#EF4444' }]}
+                style={[styles.actionButton, { backgroundColor: Colors.light.error }]}
                 onPress={() => setActionModal({ visible: true, booking: item, action: 'cancelled' })}
               >
-                <Ionicons name="close-circle-outline" size={18} color="#FFFFFF" />
+                <Ionicons name="close-circle-outline" size={18} color={Colors.light.card} />
                 <Text style={styles.actionButtonText}>Cancel</Text>
               </TouchableOpacity>
             )}
@@ -429,7 +429,7 @@ export default function ServiceBookingsScreen() {
     if (loading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="calendar-outline" size={64} color="#D1D5DB" />
+        <Ionicons name="calendar-outline" size={64} color={Colors.light.borderDark} />
         <Text style={styles.emptyTitle}>No Bookings Found</Text>
         <Text style={styles.emptySubtitle}>
           {activeTab === 'all'
@@ -456,20 +456,20 @@ export default function ServiceBookingsScreen() {
   const getActionConfig = () => {
     switch (actionModal.action) {
       case 'confirmed':
-        return { title: 'Confirm Booking', color: '#10B981', label: 'Confirm', icon: 'checkmark-circle' as const };
+        return { title: 'Confirm Booking', color: Colors.light.success, label: 'Confirm', icon: 'checkmark-circle' as const };
       case 'completed':
-        return { title: 'Complete Booking', color: '#6366F1', label: 'Complete', icon: 'checkbox' as const };
+        return { title: 'Complete Booking', color: Colors.light.indigo, label: 'Complete', icon: 'checkbox' as const };
       case 'cancelled':
-        return { title: 'Cancel Booking', color: '#EF4444', label: 'Cancel Booking', icon: 'close-circle' as const };
+        return { title: 'Cancel Booking', color: Colors.light.error, label: 'Cancel Booking', icon: 'close-circle' as const };
       default:
-        return { title: '', color: '#6B7280', label: '', icon: 'help-circle' as const };
+        return { title: '', color: Colors.light.textSecondary, label: '', icon: 'help-circle' as const };
     }
   };
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[ACCENT, '#0284C7', '#F3F4F6']}
+        colors={[ACCENT, '#0284C7', Colors.light.backgroundTertiary]}
         locations={[0, 0.15, 0.4]}
         style={styles.backgroundGradient}
       />
@@ -477,11 +477,11 @@ export default function ServiceBookingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={24} color={Colors.light.card} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Service Bookings</Text>
           <TouchableOpacity onPress={handleRefresh} style={styles.backButton}>
-            <Ionicons name="refresh" size={22} color="#FFFFFF" />
+            <Ionicons name="refresh" size={22} color={Colors.light.card} />
           </TouchableOpacity>
         </View>
 
@@ -542,7 +542,7 @@ export default function ServiceBookingsScreen() {
                     value={actionNote}
                     onChangeText={setActionNote}
                     placeholder="Add a note (optional)"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={Colors.light.textMuted}
                     multiline
                     numberOfLines={2}
                   />
@@ -577,7 +577,7 @@ export default function ServiceBookingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
   },
   backgroundGradient: {
     position: 'absolute',
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
   loadingContainer: {
     flex: 1,
@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontSize: 14,
   },
   listContent: {
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 2,
   },
 
@@ -657,9 +657,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
   },
   tabActive: {
     backgroundColor: ACCENT,
@@ -668,10 +668,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   tabTextActive: {
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
 
   // Result count
@@ -682,19 +682,19 @@ const styles = StyleSheet.create({
   },
   resultCountText: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     fontWeight: '500',
   },
 
   // Booking Card
   bookingCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     marginHorizontal: 16,
     marginTop: 10,
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -718,11 +718,11 @@ const styles = StyleSheet.create({
   bookingNumber: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
   },
   bookingDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     marginTop: 2,
   },
 
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   cardSection: {
     marginBottom: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.light.backgroundTertiary,
     paddingTop: 10,
   },
   infoRow: {
@@ -753,12 +753,12 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     flex: 1,
   },
   infoTextSecondary: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     flex: 1,
   },
 
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.light.backgroundTertiary,
     paddingTop: 10,
     marginBottom: 4,
   },
@@ -777,12 +777,12 @@ const styles = StyleSheet.create({
   },
   paymentLabel: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
   },
   paymentAmount: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
   },
   cashbackBadge: {
     flexDirection: 'row',
@@ -790,13 +790,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
   },
 
   // Travel section
   travelSection: {
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.light.backgroundTertiary,
     paddingTop: 10,
     marginBottom: 4,
   },
@@ -818,7 +818,7 @@ const styles = StyleSheet.create({
   routeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: Colors.light.textTertiary,
   },
 
   // Actions
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.light.backgroundTertiary,
     paddingTop: 12,
   },
   actionButton: {
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
 
   // Empty state
@@ -854,12 +854,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#374151',
+    color: Colors.light.textTertiary,
     marginTop: 16,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
@@ -874,7 +874,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -892,26 +892,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
+    color: Colors.light.textDark,
     marginBottom: 8,
   },
   modalMessage: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 16,
   },
   noteInput: {
     width: '100%',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.light.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#1F2937',
+    color: Colors.light.textDark,
     minHeight: 60,
     textAlignVertical: 'top',
     marginBottom: 20,
@@ -926,13 +926,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.light.borderDark,
     alignItems: 'center',
   },
   modalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   modalConfirmBtn: {
     flex: 1,
@@ -943,6 +943,6 @@ const styles = StyleSheet.create({
   modalConfirmText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.light.card,
   },
 });

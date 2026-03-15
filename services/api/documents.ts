@@ -104,10 +104,8 @@ class DocumentsService {
       const requestData: GenerateDocumentRequest = {
         type: DocumentType.SHIPPING_LABEL,
         orderId,
-        options: {
-          ...options,
-          carrier
-        }
+        options,
+        data: { carrier }
       };
 
       const response = await fetch(`${this.baseUrl}/generate`, {

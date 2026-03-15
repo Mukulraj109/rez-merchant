@@ -187,7 +187,7 @@ export default function AddProductScreen() {
       // Show draft resume modal
       setShowDraftModal(true);
     },
-    excludeFields: ['images', 'videos'], // Don't persist image/video blobs
+    excludeFields: ['images', 'videos'] as any, // Don't persist image/video blobs
     autoSaveInterval: 30000, // 30 seconds
     debounceDelay: 2000, // 2 seconds
     expiryDays: 7,
@@ -639,8 +639,7 @@ export default function AddProductScreen() {
                 setErrors({});
               },
             },
-          ],
-          { cancelable: false }
+          ]
         );
         
         // Auto-redirect to products page after 2 seconds if user doesn't choose

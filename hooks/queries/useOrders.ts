@@ -1,7 +1,20 @@
 import { useQuery, useInfiniteQuery, UseQueryOptions, UseInfiniteQueryOptions } from '@tanstack/react-query';
 import { Order, OrderStatus } from '@/shared/types';
-import { ordersService } from '@/services/api/orders';
-import { queryKeys, queryConfig } from '@/config/reactQuery';
+import { ordersService, OrderSearchParams } from '@/services/api/orders';
+import { queryConfig } from '@/config/reactQuery';
+
+// Inline query keys
+const orderKeys = {
+  all: ['orders'] as const,
+  list: (filters?: any) => ['orders', 'list', filters] as const,
+  detail: (id: string) => ['orders', 'detail', id] as const,
+  pending: () => ['orders', 'pending'] as const,
+  completed: () => ['orders', 'completed'] as const,
+  cancelled: () => ['orders', 'cancelled'] as const,
+  byStatus: (status: string) => ['orders', 'byStatus', status] as const,
+  analytics: (period: string) => ['orders', 'analytics', period] as const,
+  timeline: (orderId: string) => ['orders', 'timeline', orderId] as const,
+};
 
 /**
  * Hook to fetch a paginated list of orders
@@ -14,12 +27,17 @@ export function useOrders(
     sortBy?: string;
     search?: string;
   },
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.orders.list(filters),
+    queryKey: orderKeys.list(filters),
     queryFn: async () => {
-      const response = await ordersService.getOrders(filters);
+      const params: OrderSearchParams = {};
+      if (filters?.status) params.status = filters.status;
+      if (filters?.page) params.page = filters.page;
+      if (filters?.limit) params.limit = filters.limit;
+      if (filters?.sortBy) params.sortBy = filters.sortBy as OrderSearchParams['sortBy'];
+      const response = await ordersService.getOrders(params);
       return response;
     },
     ...queryConfig.orders,
@@ -36,21 +54,21 @@ export function useInfiniteOrders(
     sortBy?: string;
     search?: string;
   },
-  options?: UseInfiniteQueryOptions<any>
+  options?: Omit<UseInfiniteQueryOptions<any>, 'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'>
 ) {
   return useInfiniteQuery({
-    queryKey: queryKeys.orders.list(filters),
+    queryKey: orderKeys.list(filters),
     queryFn: async ({ pageParam = 1 }) => {
       const response = await ordersService.getOrders({
         ...filters,
-        page: pageParam,
+        page: pageParam as number,
         limit: 20,
-      });
+      } as OrderSearchParams);
       return response;
     },
-    getNextPageParam: (lastPage) => {
-      if (lastPage.data?.pagination?.hasNext) {
-        return lastPage.data.pagination.page + 1;
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage.page < lastPage.totalPages) {
+        return lastPage.page + 1;
       }
       return undefined;
     },
@@ -63,12 +81,12 @@ export function useInfiniteOrders(
 /**
  * Hook to fetch a single order by ID
  */
-export function useOrder(id: string, options?: UseQueryOptions<Order>) {
+export function useOrder(id: string, options?: Omit<UseQueryOptions<Order>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.orders.detail(id),
+    queryKey: orderKeys.detail(id),
     queryFn: async () => {
       const response = await ordersService.getOrderById(id);
-      return response.data;
+      return response;
     },
     enabled: !!id,
     ...queryConfig.orders,
@@ -79,16 +97,16 @@ export function useOrder(id: string, options?: UseQueryOptions<Order>) {
 /**
  * Hook to fetch pending orders
  */
-export function usePendingOrders(options?: UseQueryOptions<any>) {
+export function usePendingOrders(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.orders.pending(),
+    queryKey: orderKeys.pending(),
     queryFn: async () => {
       const response = await ordersService.getOrders({
-        status: 'pending' as OrderStatus,
+        status: 'placed',
       });
       return response;
     },
-    staleTime: 1 * 60 * 1000, // Update frequently for pending orders
+    staleTime: 1 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
     ...options,
   });
@@ -97,12 +115,12 @@ export function usePendingOrders(options?: UseQueryOptions<any>) {
 /**
  * Hook to fetch completed orders
  */
-export function useCompletedOrders(options?: UseQueryOptions<any>) {
+export function useCompletedOrders(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.orders.completed(),
+    queryKey: orderKeys.completed(),
     queryFn: async () => {
       const response = await ordersService.getOrders({
-        status: 'completed' as OrderStatus,
+        status: 'delivered',
       });
       return response;
     },
@@ -114,12 +132,12 @@ export function useCompletedOrders(options?: UseQueryOptions<any>) {
 /**
  * Hook to fetch cancelled orders
  */
-export function useCancelledOrders(options?: UseQueryOptions<any>) {
+export function useCancelledOrders(options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>) {
   return useQuery({
-    queryKey: queryKeys.orders.cancelled(),
+    queryKey: orderKeys.cancelled(),
     queryFn: async () => {
       const response = await ordersService.getOrders({
-        status: 'cancelled' as OrderStatus,
+        status: 'cancelled',
       });
       return response;
     },
@@ -133,10 +151,10 @@ export function useCancelledOrders(options?: UseQueryOptions<any>) {
  */
 export function useOrdersByStatus(
   status: OrderStatus,
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.orders.byStatus(status),
+    queryKey: orderKeys.byStatus(status),
     queryFn: async () => {
       const response = await ordersService.getOrders({
         status,
@@ -154,35 +172,15 @@ export function useOrdersByStatus(
  */
 export function useOrderAnalytics(
   period: '7d' | '30d' | '90d' = '30d',
-  options?: UseQueryOptions<any>
+  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: queryKeys.orders.analytics(period),
+    queryKey: orderKeys.analytics(period),
     queryFn: async () => {
-      const response = await ordersService.getOrderAnalytics(period);
-      return response.data;
+      const response = await ordersService.getAnalytics();
+      return response;
     },
     ...queryConfig.orders,
-    ...options,
-  });
-}
-
-/**
- * Hook to fetch order timeline/status updates
- */
-export function useOrderTimeline(
-  orderId: string,
-  options?: UseQueryOptions<any>
-) {
-  return useQuery({
-    queryKey: queryKeys.orders.timeline(orderId),
-    queryFn: async () => {
-      const response = await ordersService.getOrderTimeline(orderId);
-      return response.data || [];
-    },
-    enabled: !!orderId,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
     ...options,
   });
 }
@@ -206,46 +204,46 @@ export function useOrdersOverview(options?: {
   } = options || {};
 
   const pendingQuery = useQuery({
-    queryKey: queryKeys.orders.pending(),
+    queryKey: orderKeys.pending(),
     queryFn: async () => {
       const response = await ordersService.getOrders({
-        status: 'pending' as OrderStatus,
+        status: 'placed',
       });
-      return response.data?.items || [];
+      return response.orders || [];
     },
     enabled: includePending,
     staleTime: 1 * 60 * 1000,
   });
 
   const completedQuery = useQuery({
-    queryKey: queryKeys.orders.completed(),
+    queryKey: orderKeys.completed(),
     queryFn: async () => {
       const response = await ordersService.getOrders({
-        status: 'completed' as OrderStatus,
+        status: 'delivered',
       });
-      return response.data?.items || [];
+      return response.orders || [];
     },
     enabled: includeCompleted,
     ...queryConfig.orders,
   });
 
   const cancelledQuery = useQuery({
-    queryKey: queryKeys.orders.cancelled(),
+    queryKey: orderKeys.cancelled(),
     queryFn: async () => {
       const response = await ordersService.getOrders({
-        status: 'cancelled' as OrderStatus,
+        status: 'cancelled',
       });
-      return response.data?.items || [];
+      return response.orders || [];
     },
     enabled: includeCancelled,
     ...queryConfig.orders,
   });
 
   const analyticsQuery = useQuery({
-    queryKey: queryKeys.orders.analytics(period),
+    queryKey: orderKeys.analytics(period),
     queryFn: async () => {
-      const response = await ordersService.getOrderAnalytics(period);
-      return response.data;
+      const response = await ordersService.getAnalytics();
+      return response;
     },
     enabled: includeAnalytics,
     ...queryConfig.orders,

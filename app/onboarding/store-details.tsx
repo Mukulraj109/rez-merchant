@@ -32,9 +32,9 @@ const storeDetailsSchema = z.object({
     .string()
     .min(1, 'Store name is required')
     .min(3, 'Store name must be at least 3 characters'),
-  storeType: z.enum(['online', 'offline', 'both'], {
+  storeType: z.enum(['online', 'offline', 'both'] as const, {
     errorMap: () => ({ message: 'Please select a store type' }),
-  }),
+  } as any),
   street: z
     .string()
     .min(1, 'Street address is required')
@@ -92,7 +92,7 @@ export default function StoreDetailsScreen() {
     watch,
     formState: { errors },
   } = useForm<StoreDetailsFormData>({
-    resolver: zodResolver(storeDetailsSchema),
+    resolver: zodResolver(storeDetailsSchema) as any,
     defaultValues: {
       storeName: '',
       storeType: 'offline',
@@ -450,7 +450,7 @@ export default function StoreDetailsScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit as any)}
           disabled={loading}
         >
           {loading ? (

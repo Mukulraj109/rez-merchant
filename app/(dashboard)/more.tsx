@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '@/contexts/StoreContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { StoreSelector } from '@/components/stores/StoreSelector';
+import { Colors } from '@/constants/Colors';
 
 interface MenuItem {
   id: string;
@@ -307,7 +308,7 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.backgroundTertiary,
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 54 : (StatusBar.currentHeight || 40) + 10,
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
     flexShrink: 1,
   },
   scroll: {
@@ -346,18 +347,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 10,
     marginLeft: 4,
   },
   sectionCards: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.border,
   },
 
   // Menu card
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.light.backgroundTertiary,
   },
   menuCardLast: {
     borderBottomWidth: 0,
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.light.textHeading,
   },
   menuBadge: {
     backgroundColor: '#8B5CF6',
@@ -402,12 +403,12 @@ const styles = StyleSheet.create({
   menuBadgeText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.card,
     letterSpacing: 0.5,
   },
   menuSubtitle: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     marginTop: 2,
   },
 
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.light.card,
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#EF4444',
+    color: Colors.light.error,
     marginLeft: 14,
   },
 });

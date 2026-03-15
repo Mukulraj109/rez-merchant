@@ -164,10 +164,11 @@ function onboardingReducer(state: OnboardingState, action: OnboardingAction): On
 
     case 'UPDATE_STEP_DATA':
       const stepKey = getStepKey(action.payload.step);
+      const existingStepData = state[stepKey as keyof OnboardingState];
       return {
         ...state,
         [stepKey]: {
-          ...state[stepKey as keyof OnboardingState],
+          ...(typeof existingStepData === 'object' && existingStepData !== null ? existingStepData : {}),
           ...action.payload.data,
         },
       };
@@ -292,7 +293,8 @@ function getStepKey(step: number): keyof OnboardingState {
 
 function getStepData(state: OnboardingState, step: number): Partial<any> {
   const key = getStepKey(step);
-  return state[key] || {};
+  const data = state[key as keyof OnboardingState];
+  return (typeof data === 'object' && data !== null ? data : {}) as Partial<any>;
 }
 
 // ============================================================================

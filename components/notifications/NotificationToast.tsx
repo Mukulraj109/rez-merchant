@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Notification } from '../../types/notifications';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 import { NotificationTypeIcon } from './NotificationTypeIcon';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -33,7 +34,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
 }) => {
   const slideAnim = useRef(new Animated.Value(-TOAST_HEIGHT)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const styles = useThemedStyles((theme) => ({
     container: {
@@ -106,19 +107,19 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'order':
-        return '#3B82F6';
+        return Colors.primary[500];
       case 'product':
-        return '#10B981';
+        return Colors.success[500];
       case 'cashback':
-        return '#F59E0B';
+        return Colors.warning[500];
       case 'team':
-        return '#7C3AED';
+        return Colors.primary[700];
       case 'system':
-        return '#6B7280';
+        return Colors.gray[500];
       case 'alert':
-        return '#EF4444';
+        return Colors.error[500];
       default:
-        return '#6B7280';
+        return Colors.gray[500];
     }
   };
 
@@ -250,7 +251,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
           style={styles.closeButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close" size={20} color="#6B7280" />
+          <Ionicons name="close" size={20} color={Colors.gray[500]} />
         </TouchableOpacity>
 
         {/* Progress bar */}

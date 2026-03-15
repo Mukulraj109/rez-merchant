@@ -567,8 +567,7 @@ export default function EditProductScreen() {
               style: 'cancel',
               onPress: () => router.back(),
             },
-          ],
-          { cancelable: false }
+          ]
         );
       }
     } catch (error: any) {

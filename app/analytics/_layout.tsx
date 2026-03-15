@@ -6,7 +6,7 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Web-compatible RBAC import
-let useRBAC;
+let useRBAC: any;
 if (Platform.OS !== 'web') {
   useRBAC = require('@/hooks/useRBAC').useRBAC;
 }

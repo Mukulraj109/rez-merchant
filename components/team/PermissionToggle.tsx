@@ -3,6 +3,7 @@ import { View, Text, Switch, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Permission } from '../../types/team';
 import { useThemedStyles } from '../ui/ThemeProvider';
+import { Colors } from '../../constants/DesignTokens';
 
 interface PermissionToggleProps {
   permission: Permission;
@@ -122,7 +123,7 @@ export const PermissionToggle: React.FC<PermissionToggleProps> = ({
           <Ionicons
             name={icon}
             size={18}
-            color={enabled ? '#7C3AED' : '#6B7280'}
+            color={enabled ? Colors.primary[500] : Colors.gray[500]}
           />
         </View>
 
@@ -141,11 +142,11 @@ export const PermissionToggle: React.FC<PermissionToggleProps> = ({
         onValueChange={onChange}
         disabled={disabled || !onChange}
         trackColor={{
-          false: '#D1D5DB',
-          true: '#7C3AED',
+          false: Colors.gray[300],
+          true: Colors.primary[500],
         }}
-        thumbColor="#FFFFFF"
-        ios_backgroundColor="#D1D5DB"
+        thumbColor={Colors.background.primary}
+        ios_backgroundColor={Colors.gray[300]}
         testID={`${testID}-switch`}
       />
     </View>

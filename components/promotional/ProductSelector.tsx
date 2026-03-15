@@ -340,11 +340,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: Typography.fontSize.base,
     color: Colors.text.primary,
-    ...Platform.select({
+    ...(Platform.select({
       web: {
         outlineStyle: 'none',
       },
-    }),
+    }) as any),
   },
   dropdown: {
     position: 'absolute',

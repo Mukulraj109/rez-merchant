@@ -18,6 +18,7 @@ import FormSelect from '@/components/forms/FormSelect';
 import { storeVouchersService, MerchantStoreVoucher, UpdateStoreVoucherRequest } from '@/services/api/storeVouchers';
 import { useStore } from '@/contexts/StoreContext';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import { Colors } from '@/constants/DesignTokens';
 
 const voucherSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(100),
@@ -88,7 +89,7 @@ export default function EditVoucherScreen() {
     watch,
     reset,
   } = useForm<VoucherFormData>({
-    resolver: zodResolver(voucherSchema),
+    resolver: zodResolver(voucherSchema) as any,
     defaultValues: {
       name: '',
       description: '',
@@ -108,6 +109,8 @@ export default function EditVoucherScreen() {
       isActive: true,
     },
   });
+
+  const typedControl = control as any;
 
   const discountType = watch('discountType');
   const voucherType = watch('type');
@@ -302,7 +305,7 @@ export default function EditVoucherScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <Ionicons name="arrow-back" size={24} color={Colors.gray[800]} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Voucher</Text>
           <View style={{ width: 24 }} />
@@ -319,14 +322,14 @@ export default function EditVoucherScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color={Colors.gray[800]} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Voucher</Text>
         <TouchableOpacity onPress={handleDelete} disabled={deleting}>
           {deleting ? (
-            <ActivityIndicator size="small" color="#EF4444" />
+            <ActivityIndicator size="small" color={Colors.error[500]} />
           ) : (
-            <Ionicons name="trash-outline" size={24} color="#EF4444" />
+            <Ionicons name="trash-outline" size={24} color={Colors.error[500]} />
           )}
         </TouchableOpacity>
       </View>
@@ -349,7 +352,7 @@ export default function EditVoucherScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <FormInput
           name="name"
-          control={control}
+          control={typedControl}
           label="Voucher Name *"
           placeholder="e.g., Store Visit Discount"
           error={errors.name?.message}
@@ -357,7 +360,7 @@ export default function EditVoucherScreen() {
 
         <FormInput
           name="description"
-          control={control}
+          control={typedControl}
           label="Description"
           placeholder="Brief description of the voucher"
           multiline
@@ -367,7 +370,7 @@ export default function EditVoucherScreen() {
 
         <FormSelect
           name="type"
-          control={control}
+          control={typedControl}
           label="Voucher Type *"
           options={[
             { label: 'Store Visit', value: 'store_visit' },
@@ -397,7 +400,7 @@ export default function EditVoucherScreen() {
 
         <FormSelect
           name="discountType"
-          control={control}
+          control={typedControl}
           label="Discount Type *"
           options={[
             { label: 'Percentage (%)', value: 'percentage' },
@@ -407,7 +410,7 @@ export default function EditVoucherScreen() {
 
         <FormInput
           name="discountValue"
-          control={control}
+          control={typedControl}
           label={discountType === 'percentage' ? 'Discount Percentage (%) *' : 'Discount Amount (₹) *'}
           placeholder={discountType === 'percentage' ? '10' : '100'}
           keyboardType="numeric"
@@ -417,7 +420,7 @@ export default function EditVoucherScreen() {
         {discountType === 'percentage' && (
           <FormInput
             name="maxDiscountAmount"
-            control={control}
+            control={typedControl}
             label="Maximum Discount Amount (₹)"
             placeholder="500"
             keyboardType="numeric"
@@ -427,7 +430,7 @@ export default function EditVoucherScreen() {
 
         <FormInput
           name="minBillAmount"
-          control={control}
+          control={typedControl}
           label="Minimum Bill Amount (₹) *"
           placeholder="500"
           keyboardType="numeric"
@@ -437,7 +440,7 @@ export default function EditVoucherScreen() {
         <Text style={styles.sectionTitle}>Validity Period *</Text>
         <FormInput
           name="validFrom"
-          control={control}
+          control={typedControl}
           label="Start Date"
           placeholder="YYYY-MM-DD"
           error={errors.validFrom?.message}
@@ -445,7 +448,7 @@ export default function EditVoucherScreen() {
 
         <FormInput
           name="validUntil"
-          control={control}
+          control={typedControl}
           label="End Date"
           placeholder="YYYY-MM-DD"
           error={errors.validUntil?.message}
@@ -454,7 +457,7 @@ export default function EditVoucherScreen() {
         <Text style={styles.sectionTitle}>Usage Limits</Text>
         <FormInput
           name="usageLimit"
-          control={control}
+          control={typedControl}
           label="Total Usage Limit *"
           placeholder="100"
           keyboardType="numeric"
@@ -463,7 +466,7 @@ export default function EditVoucherScreen() {
 
         <FormInput
           name="usageLimitPerUser"
-          control={control}
+          control={typedControl}
           label="Usage Limit Per User *"
           placeholder="1"
           keyboardType="numeric"
@@ -473,12 +476,12 @@ export default function EditVoucherScreen() {
         <Text style={styles.sectionTitle}>Restrictions</Text>
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="storefront-outline" size={20} color="#6B7280" />
+            <Ionicons name="storefront-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Offline Only</Text>
           </View>
           <Controller
             name="isOfflineOnly"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -492,12 +495,12 @@ export default function EditVoucherScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="ban-outline" size={20} color="#6B7280" />
+            <Ionicons name="ban-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Not Valid Above Store Discount</Text>
           </View>
           <Controller
             name="notValidAboveStoreDiscount"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -511,12 +514,12 @@ export default function EditVoucherScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="document-text-outline" size={20} color="#6B7280" />
+            <Ionicons name="document-text-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Single Voucher Per Bill</Text>
           </View>
           <Controller
             name="singleVoucherPerBill"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -530,12 +533,12 @@ export default function EditVoucherScreen() {
 
         <View style={styles.switchRow}>
           <View style={styles.switchLabelContainer}>
-            <Ionicons name="checkmark-circle-outline" size={20} color="#6B7280" />
+            <Ionicons name="checkmark-circle-outline" size={20} color={Colors.gray[500]} />
             <Text style={styles.switchLabel}>Active</Text>
           </View>
           <Controller
             name="isActive"
-            control={control}
+            control={typedControl}
             render={({ field: { value, onChange } }) => (
               <TouchableOpacity
                 style={[styles.switch, value && styles.switchActive]}
@@ -550,7 +553,7 @@ export default function EditVoucherScreen() {
         <Text style={styles.sectionTitle}>Display Settings (Optional)</Text>
         <FormInput
           name="displayText"
-          control={control}
+          control={typedControl}
           label="Display Text"
           placeholder="e.g., Save 10% on your visit!"
           error={errors.displayText?.message}
@@ -558,14 +561,14 @@ export default function EditVoucherScreen() {
 
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit as any)}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={Colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="save" size={20} color="#FFFFFF" />
+              <Ionicons name="save" size={20} color={Colors.text.inverse} />
               <Text style={styles.submitButtonText}>Save Changes</Text>
             </>
           )}
@@ -577,10 +580,10 @@ export default function EditVoucherScreen() {
           disabled={deleting}
         >
           {deleting ? (
-            <ActivityIndicator size="small" color="#EF4444" />
+            <ActivityIndicator size="small" color={Colors.error[500]} />
           ) : (
             <>
-              <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              <Ionicons name="trash-outline" size={20} color={Colors.error[500]} />
               <Text style={styles.deleteButtonText}>Delete Voucher</Text>
             </>
           )}
@@ -622,7 +625,7 @@ export default function EditVoucherScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.gray[50],
   },
   header: {
     flexDirection: 'row',
@@ -630,14 +633,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
   },
   loadingContainer: {
     flex: 1,
@@ -647,13 +650,13 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   storeInfo: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   codeContainer: {
     flexDirection: 'row',
@@ -675,7 +678,7 @@ const styles = StyleSheet.create({
   storeName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginBottom: 4,
   },
   usageStats: {
@@ -684,7 +687,7 @@ const styles = StyleSheet.create({
   },
   usageText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   content: {
     flex: 1,
@@ -696,7 +699,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.gray[800],
     marginTop: 24,
     marginBottom: 12,
   },
@@ -719,7 +722,7 @@ const styles = StyleSheet.create({
   },
   typeInfoText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: Colors.gray[500],
   },
   switchRow: {
     flexDirection: 'row',
@@ -727,7 +730,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   switchLabelContainer: {
     flexDirection: 'row',
@@ -737,14 +740,14 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 14,
-    color: '#374151',
+    color: Colors.gray[700],
     flex: 1,
   },
   switch: {
     width: 50,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: Colors.gray[300],
     justifyContent: 'center',
     padding: 2,
   },
@@ -755,7 +758,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   switchThumbActive: {
     marginLeft: 22,
@@ -774,7 +777,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: Colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -782,16 +785,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.error[50],
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 12,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: Colors.error[200],
   },
   deleteButtonText: {
-    color: '#EF4444',
+    color: Colors.error[500],
     fontSize: 16,
     fontWeight: '600',
   },

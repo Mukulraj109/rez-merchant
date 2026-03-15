@@ -7,7 +7,8 @@ import {
   SalesData,
 } from '@/services/api/dashboard';
 import { dashboardService } from '@/services/api/dashboard';
-import { queryKeys, queryConfig } from '@/config/reactQuery';
+import { queryConfig } from '@/config/reactQuery';
+import { queryKeys } from './queryKeys';
 
 /**
  * Hook to fetch complete dashboard data
