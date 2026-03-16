@@ -332,6 +332,22 @@ export default function DashboardLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="campaign-simulator"
+        options={{
+          title: 'Campaign Simulator',
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="integrations"
+        options={{
+          title: 'Integrations',
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

@@ -20,12 +20,14 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { dealRedemptionsService, DealRedemption, RedemptionStats, VerifyCodeResponse } from '@/services/api/dealRedemptions';
 import { useStore } from '@/contexts/StoreContext';
+import { useRouter } from 'expo-router';
 
 type ViewMode = 'scanner' | 'list' | 'stats';
 type RedemptionStatus = 'all' | 'active' | 'used' | 'expired';
 
 export default function DealsScreen() {
   const { activeStore } = useStore();
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>('scanner');
   const [redemptions, setRedemptions] = useState<DealRedemption[]>([]);
   const [stats, setStats] = useState<RedemptionStats | null>(null);
@@ -439,20 +441,25 @@ export default function DealsScreen() {
                   <ThemedText style={styles.infoLabel}>Customer</ThemedText>
                   <ThemedText style={styles.infoValue}>{verifyResult.redemption?.user.name}</ThemedText>
                 </View>
-                {verifyResult.redemption?.dealSnapshot.cashback && (
-                  <View style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Cashback</ThemedText>
-                    <ThemedText style={[styles.infoValue, { color: '#10b981' }]}>
-                      {verifyResult.redemption.dealSnapshot.cashback}
+                {/* Prominent Reward Preview */}
+                {(verifyResult.redemption?.dealSnapshot.cashback || verifyResult.redemption?.dealSnapshot.discount) && (
+                  <View style={{
+                    backgroundColor: '#ECFDF5', borderRadius: 12, padding: 14, marginVertical: 8,
+                    borderWidth: 1, borderColor: '#D1FAE5',
+                  }}>
+                    <ThemedText style={{ fontSize: 11, color: '#065F46', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Customer Reward
                     </ThemedText>
-                  </View>
-                )}
-                {verifyResult.redemption?.dealSnapshot.discount && (
-                  <View style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Discount</ThemedText>
-                    <ThemedText style={[styles.infoValue, { color: '#f59e0b' }]}>
-                      {verifyResult.redemption.dealSnapshot.discount}
-                    </ThemedText>
+                    {verifyResult.redemption?.dealSnapshot.cashback && (
+                      <ThemedText style={{ fontSize: 20, fontWeight: '800', color: '#10B981', marginTop: 4 }}>
+                        {verifyResult.redemption.dealSnapshot.cashback} cashback
+                      </ThemedText>
+                    )}
+                    {verifyResult.redemption?.dealSnapshot.discount && (
+                      <ThemedText style={{ fontSize: 20, fontWeight: '800', color: '#F59E0B', marginTop: 4 }}>
+                        {verifyResult.redemption.dealSnapshot.discount} discount
+                      </ThemedText>
+                    )}
                   </View>
                 )}
                 <View style={styles.infoRow}>
@@ -563,6 +570,19 @@ export default function DealsScreen() {
 
       {/* Result modal */}
       {renderResultModal()}
+
+      {/* Floating Create Offer button */}
+      <TouchableOpacity
+        style={{
+          position: 'absolute', bottom: 24, right: 20,
+          width: 56, height: 56, borderRadius: 28,
+          backgroundColor: Colors.light.primary, alignItems: 'center', justifyContent: 'center',
+          elevation: 6, shadowColor: Colors.light.primary, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
+        }}
+        onPress={() => router.push('/(dashboard)/create-offer' as any)}
+      >
+        <Ionicons name="add" size={28} color="white" />
+      </TouchableOpacity>
     </ThemedView>
   );
 }

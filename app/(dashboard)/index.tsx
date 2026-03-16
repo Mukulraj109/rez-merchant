@@ -24,6 +24,8 @@ import { useStore } from '@/contexts/StoreContext';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useDashboardRealTime } from '@/hooks/useRealTimeUpdates';
 import { dashboardService, CustomerPayment, StorePerformance, ActionItem } from '@/services/api/dashboard';
+import DailyCommandBar from '@/components/dashboard/DailyCommandBar';
+import BudgetGauge from '@/components/dashboard/BudgetGauge';
 
 const { width } = Dimensions.get('window');
 
@@ -320,6 +322,14 @@ export default function DashboardScreen() {
         colors={[Colors.primary[100], Colors.primary[50], Colors.gray[50]]}
         style={styles.backgroundGradient}
       />
+    {/* Daily Command Bar — sticky above scroll */}
+    {metrics && (
+      <DailyCommandBar
+        todayScans={metrics.monthlyOrders || 0}
+        liabilityAmount={metrics.totalCashbackPaid || 0}
+      />
+    )}
+
     <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -519,6 +529,56 @@ export default function DashboardScreen() {
                 </View>
               </Animated.View>
             </ScrollView>
+          </View>
+        </Animated.View>
+
+        {/* Story Card — Revenue narrative */}
+        {metrics && (
+          <Animated.View entering={FadeInDown.delay(150).springify()} style={{ marginHorizontal: 16, marginBottom: 12 }}>
+            <LinearGradient
+              colors={['#7C3AED', '#6366F1']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ borderRadius: 14, padding: 16 }}
+            >
+              <BodyText style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500' }}>This Month's Highlight</BodyText>
+              <Heading3 style={{ color: '#fff', fontSize: 18, marginTop: 4 }}>
+                Rez brought you {'\u20B9'}{(metrics.monthlyRevenue || 0).toLocaleString()} from {metrics.monthlyOrders || 0} orders
+              </Heading3>
+              {metrics.revenueGrowth > 0 ? (
+                <BodyText style={{ color: '#A5F3FC', fontSize: 13, marginTop: 4 }}>
+                  {'\u{1F4C8}'} That's {metrics.revenueGrowth.toFixed(1)}% more than last month!
+                </BodyText>
+              ) : (
+                <BodyText style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 }}>
+                  Keep going — your loyal customers are coming back
+                </BodyText>
+              )}
+            </LinearGradient>
+          </Animated.View>
+        )}
+
+        {/* Quick Action Cards — 2x2 grid */}
+        <Animated.View entering={FadeInDown.delay(200).springify()} style={{ marginHorizontal: 16, marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {[
+              { icon: 'ticket-outline' as const, label: 'Verify Deal', route: '/(dashboard)/deals', bg: '#EFF6FF', color: '#3B82F6' },
+              { icon: 'add-circle-outline' as const, label: 'Create Offer', route: '/(dashboard)/create-offer', bg: '#F0FDF4', color: '#10B981' },
+              { icon: 'people-outline' as const, label: 'Customers', route: '/analytics/customers', bg: '#FDF4FF', color: '#A855F7' },
+              { icon: 'receipt-outline' as const, label: 'Settlements', route: '/settlements', bg: '#FEF3C7', color: '#D97706' },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.label}
+                onPress={() => router.push(item.route as any)}
+                style={{
+                  flex: 1, minWidth: '45%', flexDirection: 'row', alignItems: 'center', gap: 10,
+                  backgroundColor: item.bg, borderRadius: 12, padding: 12,
+                }}
+              >
+                <Ionicons name={item.icon} size={22} color={item.color} />
+                <BodyText style={{ fontSize: 13, fontWeight: '600', color: '#374151' }}>{item.label}</BodyText>
+              </TouchableOpacity>
+            ))}
           </View>
         </Animated.View>
 
@@ -886,6 +946,16 @@ export default function DashboardScreen() {
           </Animated.View>
         )}
 
+        {/* Budget Gauge — Monthly Liability Overview */}
+        {metrics && (
+          <Animated.View entering={FadeInDown.delay(450).springify()} style={{ marginHorizontal: 16, marginBottom: 12 }}>
+            <BudgetGauge
+              used={metrics.totalCashbackPaid || 0}
+              total={Math.max(metrics.totalCashbackPaid || 0, 20000)}
+            />
+          </Animated.View>
+        )}
+
         {/* Quick Actions - Premium Grid */}
         <Animated.View entering={FadeInDown.delay(500).springify()}>
           <View style={styles.quickActionsSection}>
@@ -982,6 +1052,28 @@ export default function DashboardScreen() {
                   <Ionicons name="calendar" size={22} color="#7C3AED" />
                 </View>
                 <BodyText style={styles.secondaryActionText}>Store Visits</BodyText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryActionCard}
+                onPress={() => router.push('/tickets')}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.secondaryActionIcon, { backgroundColor: '#FEF3C7' }]}>
+                  <Ionicons name="chatbubbles" size={22} color="#D97706" />
+                </View>
+                <BodyText style={styles.secondaryActionText}>Tickets</BodyText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryActionCard}
+                onPress={() => router.push('/settlements')}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.secondaryActionIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Ionicons name="receipt-outline" size={22} color="#059669" />
+                </View>
+                <BodyText style={styles.secondaryActionText}>Settlements</BodyText>
               </TouchableOpacity>
 
               <TouchableOpacity
