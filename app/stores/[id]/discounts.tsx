@@ -93,7 +93,7 @@ export default function StoreDiscountsScreen() {
         setError(response.message || 'Failed to load discounts');
       }
     } catch (err: any) {
-      console.error('Error loading discounts:', err);
+      if (__DEV__) console.error('Error loading discounts:', err);
       setError(err.message || 'Failed to load discounts');
     } finally {
       setLoading(false);

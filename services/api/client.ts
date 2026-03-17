@@ -40,6 +40,8 @@ class ApiClient {
   private isTokenInvalid: boolean = false;
   private cachedToken: string | null = null;
   private tokenInitPromise: Promise<void> | null = null;
+  private isRefreshing: boolean = false;
+  private refreshSubscribers: Array<(token: string) => void> = [];
 
   constructor() {
     const baseURL = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
@@ -104,13 +106,74 @@ class ApiClient {
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse<ApiResponse>) => response,
       async (error) => {
-        if (error.response?.status === 401) {
+        const originalRequest = error.config;
+
+        // Only attempt refresh on 401, not on auth endpoints, and not already retried
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          !originalRequest.url?.includes('/auth/')
+        ) {
+          originalRequest._retry = true;
+
+          // If already refreshing, queue this request to retry after refresh completes
+          if (this.isRefreshing) {
+            return new Promise((resolve) => {
+              this.refreshSubscribers.push((newToken: string) => {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                resolve(this.axiosInstance(originalRequest));
+              });
+            });
+          }
+
+          this.isRefreshing = true;
+
+          try {
+            // Attempt token refresh — the backend accepts the expired token
+            // from the Authorization header and returns a new one
+            const currentToken = this.cachedToken || await storageService.getAuthToken();
+            if (currentToken) {
+              const baseURL = this.axiosInstance.defaults.baseURL || '';
+              const refreshResponse = await axios.post(
+                `${baseURL}/merchant/auth/refresh`,
+                {},
+                { headers: { Authorization: `Bearer ${currentToken}` } }
+              );
+
+              if (refreshResponse.data?.success && refreshResponse.data?.data?.token) {
+                const newToken = refreshResponse.data.data.token;
+
+                // Update stored token
+                this.cachedToken = newToken;
+                this.isTokenInvalid = false;
+                await storageService.setAuthToken(newToken);
+
+                if (__DEV__) console.log('[Merchant API] Token refreshed successfully');
+
+                // Retry all queued requests with the new token
+                this.refreshSubscribers.forEach((cb) => cb(newToken));
+                this.refreshSubscribers = [];
+
+                // Retry the original request
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                return this.axiosInstance(originalRequest);
+              }
+            }
+          } catch (refreshError) {
+            if (__DEV__) console.error('[Merchant API] Token refresh failed:', refreshError);
+          } finally {
+            this.isRefreshing = false;
+          }
+
+          // Refresh failed — clear auth and reject
           this.isTokenInvalid = true;
           this.cachedToken = null;
+          this.refreshSubscribers = [];
           await storageService.removeAuthToken();
           await storageService.removeUserData();
           await storageService.removeMerchantData();
         }
+
         return Promise.reject(error);
       }
     );

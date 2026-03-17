@@ -195,7 +195,7 @@ export default function BonusCampaignsScreen() {
       const result = await bonusCampaignService.getActiveCampaigns();
       setCampaigns(result.campaigns);
     } catch (error: any) {
-      console.error('[BonusCampaigns] Error loading campaigns:', error.message);
+      if (__DEV__) console.error('[BonusCampaigns] Error loading campaigns:', error.message);
     } finally {
       setIsLoading(false);
       setRefreshing(false);

@@ -32,7 +32,7 @@ export default function EarningAnalyticsScreen() {
       const data = await earningAnalyticsService.getStoreAnalytics(storeId);
       setAnalytics(data);
     } catch (err: any) {
-      console.error('Error loading earning analytics:', err);
+      if (__DEV__) console.error('Error loading earning analytics:', err);
       setError(err?.message || 'Failed to load earning analytics');
     } finally {
       setLoading(false);

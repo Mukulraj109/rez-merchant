@@ -98,7 +98,7 @@ class SettlementService {
         pagination: { currentPage: 1, totalPages: 0, totalItems: 0, hasNextPage: false, hasPrevPage: false },
       };
     } catch (error) {
-      console.error('[Settlement] Error fetching settlements:', error);
+      if (__DEV__) console.error('[Settlement] Error fetching settlements:', error);
       throw error;
     }
   }
@@ -117,7 +117,7 @@ class SettlementService {
       if (data.success && data.data) return data.data;
       return null;
     } catch (error) {
-      console.error('[Settlement] Error fetching summary:', error);
+      if (__DEV__) console.error('[Settlement] Error fetching summary:', error);
       return null;
     }
   }

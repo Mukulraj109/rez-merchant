@@ -50,7 +50,7 @@ export default function PackingSlipScreen() {
       }));
       setItems(packingItems);
     } catch (error) {
-      console.error('Error fetching order:', error);
+      if (__DEV__) console.error('Error fetching order:', error);
       showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
@@ -81,7 +81,7 @@ export default function PackingSlipScreen() {
 
       showAlert('Success', 'Packing slip generated successfully!');
     } catch (error) {
-      console.error('Error generating packing slip:', error);
+      if (__DEV__) console.error('Error generating packing slip:', error);
       showAlert('Error', 'Failed to generate packing slip');
     } finally {
       setGenerating(false);
@@ -120,7 +120,7 @@ export default function PackingSlipScreen() {
         }
       }
     } catch (error) {
-      console.error('Error downloading packing slip:', error);
+      if (__DEV__) console.error('Error downloading packing slip:', error);
       showAlert('Error', 'Failed to download packing slip');
     } finally {
       setDownloading(false);
@@ -152,7 +152,7 @@ export default function PackingSlipScreen() {
         title: 'Share Packing Slip'
       });
     } catch (error) {
-      console.error('Error sharing packing slip:', error);
+      if (__DEV__) console.error('Error sharing packing slip:', error);
     }
   };
 

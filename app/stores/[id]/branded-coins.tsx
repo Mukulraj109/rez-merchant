@@ -71,7 +71,7 @@ export default function BrandedCoinsScreen() {
         setHasMore(customersRes.data.pagination?.hasNext || false);
       }
     } catch (err: any) {
-      console.error('Error loading branded coins data:', err);
+      if (__DEV__) console.error('Error loading branded coins data:', err);
       setError(err.message || 'Failed to load branded coin data');
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ export default function BrandedCoinsScreen() {
         setHasMore(response.data.pagination?.hasNext || false);
       }
     } catch (err: any) {
-      console.error('Error loading more customers:', err);
+      if (__DEV__) console.error('Error loading more customers:', err);
     } finally {
       setLoadingMore(false);
     }

@@ -119,7 +119,7 @@ class CoinsService {
         throw new Error(data.message || 'Failed to search customers');
       }
     } catch (error: any) {
-      console.error('Search customer error:', error);
+      if (__DEV__) console.error('Search customer error:', error);
       throw new Error(error.message || 'Failed to search customers');
     }
   }
@@ -152,7 +152,7 @@ class CoinsService {
         throw new Error(data.message || 'Failed to get recent customers');
       }
     } catch (error: any) {
-      console.error('Get recent customers error:', error);
+      if (__DEV__) console.error('Get recent customers error:', error);
       throw new Error(error.message || 'Failed to get recent customers');
     }
   }
@@ -181,7 +181,7 @@ class CoinsService {
         data: data.data
       };
     } catch (error: any) {
-      console.error('Award coins error:', error);
+      if (__DEV__) console.error('Award coins error:', error);
       throw new Error(error.message || 'Failed to award coins');
     }
   }
@@ -221,7 +221,7 @@ class CoinsService {
         throw new Error(data.message || 'Failed to get award history');
       }
     } catch (error: any) {
-      console.error('Get award history error:', error);
+      if (__DEV__) console.error('Get award history error:', error);
       throw new Error(error.message || 'Failed to get award history');
     }
   }
@@ -254,7 +254,7 @@ class CoinsService {
         throw new Error(data.message || 'Failed to get coin stats');
       }
     } catch (error: any) {
-      console.error('Get coin stats error:', error);
+      if (__DEV__) console.error('Get coin stats error:', error);
       throw new Error(error.message || 'Failed to get coin stats');
     }
   }
@@ -282,7 +282,7 @@ class CoinsService {
         throw new Error(data.message || 'Failed to get wallet balance');
       }
     } catch (error: any) {
-      console.error('Get wallet balance error:', error);
+      if (__DEV__) console.error('Get wallet balance error:', error);
       throw new Error(error.message || 'Failed to get wallet balance');
     }
   }

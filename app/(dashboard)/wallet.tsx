@@ -40,7 +40,7 @@ export default function WalletScreen() {
         setBankDetails(summary.bankDetails);
       }
     } catch (error: any) {
-      console.error('Error fetching wallet data:', error);
+      if (__DEV__) console.error('Error fetching wallet data:', error);
       showAlert('Error', error.message || 'Failed to load wallet data');
     } finally {
       setIsLoading(false);

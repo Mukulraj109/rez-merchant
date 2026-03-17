@@ -260,7 +260,7 @@ export default function OrderDetailsScreen() {
         router.back();
       }
     } catch (error) {
-      console.error('Error fetching order:', error);
+      if (__DEV__) console.error('Error fetching order:', error);
       showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
@@ -296,7 +296,7 @@ export default function OrderDetailsScreen() {
         showAlert('Error', 'Failed to update order status');
       }
     } catch (error) {
-      console.error('Error updating order status:', error);
+      if (__DEV__) console.error('Error updating order status:', error);
       showAlert('Error', 'Failed to update order status');
     } finally {
       setStatusUpdateLoading(false);
@@ -338,7 +338,7 @@ export default function OrderDetailsScreen() {
                 showAlert('Error', errorData.message || 'Failed to process refund');
               }
             } catch (error) {
-              console.error('Error initiating refund:', error);
+              if (__DEV__) console.error('Error initiating refund:', error);
               showAlert('Error', 'Failed to process refund. Please try again.');
             } finally {
               setRefundLoading(false);

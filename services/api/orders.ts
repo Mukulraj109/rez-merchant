@@ -63,7 +63,7 @@ class OrdersService {
       });
 
       const url = `${this.baseUrl}?${searchParams.toString()}`;
-      console.log('📦 [ORDERS] Fetching orders from:', url);
+      if (__DEV__) console.log('📦 [ORDERS] Fetching orders from:', url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -79,10 +79,10 @@ class OrdersService {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-          console.error('📦 [ORDERS] API Error Response:', errorData);
+          if (__DEV__) console.error('📦 [ORDERS] API Error Response:', errorData);
         } catch (e) {
           const errorText = await response.text();
-          console.error('📦 [ORDERS] API Error Text:', errorText);
+          if (__DEV__) console.error('📦 [ORDERS] API Error Text:', errorText);
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -90,23 +90,23 @@ class OrdersService {
 
       const data = await response.json();
       
-      console.log('📦 [ORDERS SERVICE] Raw API response:', JSON.stringify(data, null, 2));
-      console.log('📦 [ORDERS SERVICE] Response success:', data.success);
-      console.log('📦 [ORDERS SERVICE] Response data:', data.data);
+      if (__DEV__) console.log('📦 [ORDERS SERVICE] Raw API response:', JSON.stringify(data, null, 2));
+      if (__DEV__) console.log('📦 [ORDERS SERVICE] Response success:', data.success);
+      if (__DEV__) console.log('📦 [ORDERS SERVICE] Response data:', data.data);
       
       if (data.success && data.data) {
-        console.log('📦 [ORDERS SERVICE] Orders in response:', data.data.orders);
-        console.log('📦 [ORDERS SERVICE] Orders count:', data.data.orders?.length);
+        if (__DEV__) console.log('📦 [ORDERS SERVICE] Orders in response:', data.data.orders);
+        if (__DEV__) console.log('📦 [ORDERS SERVICE] Orders count:', data.data.orders?.length);
         if (data.data.orders && data.data.orders.length > 0) {
-          console.log('📦 [ORDERS SERVICE] First order from API:', JSON.stringify(data.data.orders[0], null, 2));
-          console.log('📦 [ORDERS SERVICE] First order keys:', Object.keys(data.data.orders[0]));
+          if (__DEV__) console.log('📦 [ORDERS SERVICE] First order from API:', JSON.stringify(data.data.orders[0], null, 2));
+          if (__DEV__) console.log('📦 [ORDERS SERVICE] First order keys:', Object.keys(data.data.orders[0]));
         }
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get orders');
       }
     } catch (error: any) {
-      console.error('📦 [ORDERS] Get orders error:', error);
+      if (__DEV__) console.error('📦 [ORDERS] Get orders error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get orders');
     }
   }
@@ -115,8 +115,8 @@ class OrdersService {
   async getOrderById(orderId: string): Promise<Order> {
     try {
       const url = `${this.baseUrl}/${orderId}`;
-      console.log('📦 [ORDERS SERVICE] Fetching order by ID from:', url);
-      console.log('📦 [ORDERS SERVICE] Order ID:', orderId);
+      if (__DEV__) console.log('📦 [ORDERS SERVICE] Fetching order by ID from:', url);
+      if (__DEV__) console.log('📦 [ORDERS SERVICE] Order ID:', orderId);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -130,7 +130,7 @@ class OrdersService {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
           const errorData = await response.json();
-          console.error('📦 [ORDERS SERVICE] API Error Response:', JSON.stringify(errorData, null, 2));
+          if (__DEV__) console.error('📦 [ORDERS SERVICE] API Error Response:', JSON.stringify(errorData, null, 2));
           
           // Extract error message from various possible structures
           // Try message first (most common)
@@ -170,26 +170,26 @@ class OrdersService {
             }
           }
           
-          console.error('📦 [ORDERS SERVICE] Extracted error message:', errorMessage);
+          if (__DEV__) console.error('📦 [ORDERS SERVICE] Extracted error message:', errorMessage);
         } catch (e) {
           const errorText = await response.text();
-          console.error('📦 [ORDERS SERVICE] API Error Text:', errorText);
+          if (__DEV__) console.error('📦 [ORDERS SERVICE] API Error Text:', errorText);
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      console.log('📦 [ORDERS SERVICE] Raw API response:', JSON.stringify(data, null, 2));
+      if (__DEV__) console.log('📦 [ORDERS SERVICE] Raw API response:', JSON.stringify(data, null, 2));
       
       if (data.success && data.data) {
-        console.log('📦 [ORDERS SERVICE] Order data:', JSON.stringify(data.data, null, 2));
+        if (__DEV__) console.log('📦 [ORDERS SERVICE] Order data:', JSON.stringify(data.data, null, 2));
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get order');
       }
     } catch (error: any) {
-      console.error('📦 [ORDERS SERVICE] Get order error:', error);
+      if (__DEV__) console.error('📦 [ORDERS SERVICE] Get order error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get order');
     }
   }
@@ -224,7 +224,7 @@ class OrdersService {
         throw new Error(data.message || 'Failed to update order status');
       }
     } catch (error: any) {
-      console.error('Update order status error:', error);
+      if (__DEV__) console.error('Update order status error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to update order status');
     }
   }
@@ -256,7 +256,7 @@ class OrdersService {
         throw new Error(data.message || 'Failed to perform bulk action');
       }
     } catch (error: any) {
-      console.error('Bulk action error:', error);
+      if (__DEV__) console.error('Bulk action error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to perform bulk action');
     }
   }
@@ -264,7 +264,7 @@ class OrdersService {
   // Get order analytics
   async getAnalytics(dateStart?: string, dateEnd?: string): Promise<OrderAnalytics> {
     try {
-      console.log('📊 Order analytics endpoint not implemented in backend, using dashboard metrics instead');
+      if (__DEV__) console.log('📊 Order analytics endpoint not implemented in backend, using dashboard metrics instead');
       
       // TEMPORARILY: Use dashboard metrics to provide analytics data
       // since /api/orders/analytics endpoint doesn't exist in backend
@@ -294,10 +294,10 @@ class OrdersService {
         topProducts: []
       };
       
-      console.log('✅ Order analytics generated from dashboard metrics');
+      if (__DEV__) console.log('✅ Order analytics generated from dashboard metrics');
       return analyticsData;
     } catch (error: any) {
-      console.error('Get order analytics error:', error);
+      if (__DEV__) console.error('Get order analytics error:', error);
       
       // Return fallback analytics data instead of throwing error
       const fallbackAnalytics: OrderAnalytics = {
@@ -319,7 +319,7 @@ class OrdersService {
         topProducts: []
       };
       
-      console.warn('Using fallback order analytics due to API error');
+      if (__DEV__) console.warn('Using fallback order analytics due to API error');
       return fallbackAnalytics;
     }
   }
@@ -351,7 +351,7 @@ class OrdersService {
         throw new Error(data.message || 'Failed to create sample orders');
       }
     } catch (error: any) {
-      console.error('Create sample orders error:', error);
+      if (__DEV__) console.error('Create sample orders error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to create sample orders');
     }
   }
@@ -484,7 +484,7 @@ class OrdersService {
         refunded: analytics.statusBreakdown?.refunded || 0
       };
     } catch (error) {
-      console.error('Failed to get order summary:', error);
+      if (__DEV__) console.error('Failed to get order summary:', error);
       // Return default values
       return {
         total: 0,

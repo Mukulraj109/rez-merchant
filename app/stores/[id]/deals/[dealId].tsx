@@ -117,7 +117,7 @@ export default function EditDealScreen() {
         router.back();
       }
     } catch (error: any) {
-      console.error('Error loading deal:', error);
+      if (__DEV__) console.error('Error loading deal:', error);
       showAlert('Error', error.message || 'Failed to load deal');
       router.back();
     } finally {
@@ -169,7 +169,7 @@ export default function EditDealScreen() {
             throw new Error('Failed to upload image: No URL returned');
           }
         } catch (error: any) {
-          console.error('Image upload error:', error);
+          if (__DEV__) console.error('Image upload error:', error);
           showAlert('Upload Error', error.message || 'Failed to upload image');
           setImageUri(imageUrl); // Revert to previous image
         } finally {
@@ -177,7 +177,7 @@ export default function EditDealScreen() {
         }
       }
     } catch (error: any) {
-      console.error('Image picker error:', error);
+      if (__DEV__) console.error('Image picker error:', error);
       showAlert('Error', error.message || 'Failed to pick image');
     }
   };
@@ -231,7 +231,7 @@ export default function EditDealScreen() {
         showAlert('Error', response.message || 'Failed to update deal');
       }
     } catch (error: any) {
-      console.error('Error updating deal:', error);
+      if (__DEV__) console.error('Error updating deal:', error);
       showAlert('Error', error.message || 'Failed to update deal');
     } finally {
       setSaving(false);

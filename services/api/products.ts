@@ -164,7 +164,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Get products error:', error);
+      if (__DEV__) console.error('Get products error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -205,7 +205,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Get product error:', error);
+      if (__DEV__) console.error('Get product error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -247,7 +247,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Create product error:', error);
+      if (__DEV__) console.error('Create product error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -289,7 +289,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Update product error:', error);
+      if (__DEV__) console.error('Update product error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -303,7 +303,7 @@ class ProductsService {
   async deleteProduct(productId: string): Promise<void> {
     try {
       const url = buildApiUrl(`merchant/products/${productId}`);
-      console.log('🗑️ Deleting product:', productId, 'URL:', url);
+      if (__DEV__) console.log('🗑️ Deleting product:', productId, 'URL:', url);
       
       const token = await this.getAuthToken();
       const response = await fetch(url, {
@@ -320,7 +320,7 @@ class ProductsService {
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('Failed to parse response:', responseText);
+        if (__DEV__) console.error('Failed to parse response:', responseText);
         throw new Error(`Server returned invalid JSON: ${response.status} ${response.statusText}`);
       }
 
@@ -332,9 +332,9 @@ class ProductsService {
         throw new Error(data.message || 'Failed to delete product');
       }
 
-      console.log('✅ Product deleted successfully:', productId);
+      if (__DEV__) console.log('✅ Product deleted successfully:', productId);
     } catch (error: any) {
-      console.error('❌ Delete product error:', error);
+      if (__DEV__) console.error('❌ Delete product error:', error);
       throw new Error(error.message || 'Failed to delete product');
     }
   }
@@ -370,7 +370,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Get categories error:', error);
+      if (__DEV__) console.error('Get categories error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -410,7 +410,7 @@ class ProductsService {
         return [];
       }
     } catch (error: any) {
-      console.error('Get subcategories error:', error);
+      if (__DEV__) console.error('Get subcategories error:', error);
       return []; // Return empty array on error, don't throw
     }
   }
@@ -447,7 +447,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Bulk product action error:', error);
+      if (__DEV__) console.error('Bulk product action error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -496,7 +496,7 @@ class ProductsService {
       return { url, filename };
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Export products error:', error);
+      if (__DEV__) console.error('Export products error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -566,7 +566,7 @@ class ProductsService {
 
       return result.products || [];
     } catch (error) {
-      console.error('Get products by category error:', error);
+      if (__DEV__) console.error('Get products by category error:', error);
       return [];
     }
   }
@@ -585,7 +585,7 @@ class ProductsService {
 
       return result.products || [];
     } catch (error) {
-      console.error('Get low stock products error:', error);
+      if (__DEV__) console.error('Get low stock products error:', error);
       return [];
     }
   }
@@ -636,7 +636,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Get product variants error:', error);
+      if (__DEV__) console.error('Get product variants error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -677,7 +677,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Get variant error:', error);
+      if (__DEV__) console.error('Get variant error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -722,7 +722,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Create variant error:', error);
+      if (__DEV__) console.error('Create variant error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -768,7 +768,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Update variant error:', error);
+      if (__DEV__) console.error('Update variant error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -807,7 +807,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Delete variant error:', error);
+      if (__DEV__) console.error('Delete variant error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -852,7 +852,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Generate variant combinations error:', error);
+      if (__DEV__) console.error('Generate variant combinations error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -919,7 +919,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Bulk import error:', error);
+      if (__DEV__) console.error('Bulk import error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -966,7 +966,7 @@ class ProductsService {
       };
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Export products advanced error:', error);
+      if (__DEV__) console.error('Export products advanced error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -1010,7 +1010,7 @@ class ProductsService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Bulk update products error:', error);
+      if (__DEV__) console.error('Bulk update products error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -1051,7 +1051,7 @@ class ProductsService {
       return { url, filename };
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('Download template error:', error);
+      if (__DEV__) console.error('Download template error:', error);
 
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
@@ -1131,7 +1131,7 @@ class ProductsService {
       }
 
       // If network error or endpoint not available, use fallback
-      console.warn('SKU validation error, using fallback:', error.message);
+      if (__DEV__) console.warn('SKU validation error, using fallback:', error.message);
       return await this.validateSkuFallback(sku, excludeProductId);
     }
   }
@@ -1176,7 +1176,7 @@ class ProductsService {
         message: 'SKU is available'
       };
     } catch (error) {
-      console.error('SKU fallback validation error:', error);
+      if (__DEV__) console.error('SKU fallback validation error:', error);
       // If we can't validate, assume it's available to avoid blocking
       return {
         isAvailable: true,

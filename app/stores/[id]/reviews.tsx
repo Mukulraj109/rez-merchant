@@ -136,7 +136,7 @@ export default function StoreReviewsScreen() {
         setError('Failed to load reviews');
       }
     } catch (err: any) {
-      console.error('Error loading reviews:', err);
+      if (__DEV__) console.error('Error loading reviews:', err);
       setError(err.message || 'Failed to load reviews');
     } finally {
       setLoading(false);

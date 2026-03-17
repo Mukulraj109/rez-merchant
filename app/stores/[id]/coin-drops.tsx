@@ -104,7 +104,7 @@ export default function CoinDropsScreen() {
         setError(response.message || 'Failed to load CoinDrops');
       }
     } catch (err: any) {
-      console.error('Error loading CoinDrops:', err);
+      if (__DEV__) console.error('Error loading CoinDrops:', err);
       setError(err.message || 'Failed to load CoinDrops');
     } finally {
       setLoading(false);

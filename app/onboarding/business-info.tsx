@@ -131,7 +131,7 @@ export default function BusinessInfoScreen() {
         setSelectedCategory(businessInfo.businessCategory);
       }
     } catch (error) {
-      console.error('Error loading business info:', error);
+      if (__DEV__) console.error('Error loading business info:', error);
     }
   };
 

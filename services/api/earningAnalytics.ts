@@ -26,7 +26,7 @@ export interface EarningAnalytics {
 class EarningAnalyticsService {
   async getStoreAnalytics(storeId: string): Promise<EarningAnalytics> {
     const response = await api.get(`/merchant/stores/${storeId}/earning-analytics`);
-    return response.data?.data || response.data;
+    return response.data;
   }
 }
 

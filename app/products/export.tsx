@@ -175,7 +175,7 @@ export default function ProductExportScreen() {
         ]
       );
     } catch (error: any) {
-      console.error('Export error:', error);
+      if (__DEV__) console.error('Export error:', error);
       showAlert('Error', error.message || 'Failed to export products');
     } finally {
       setLoading(false);

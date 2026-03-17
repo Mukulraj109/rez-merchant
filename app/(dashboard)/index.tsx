@@ -152,7 +152,7 @@ export default function DashboardScreen() {
       ]);
 
     } catch (error: any) {
-      console.error('❌ Error fetching dashboard data:', error);
+      if (__DEV__) console.error('❌ Error fetching dashboard data:', error);
       // Set fallback data... (omitted for brevity, same as before)
       setMetrics({
         totalRevenue: 0,
@@ -210,7 +210,7 @@ export default function DashboardScreen() {
     try {
       await fetchDashboardData(true);
     } catch (error) {
-      console.error('❌ Error generating sample data:', error);
+      if (__DEV__) console.error('❌ Error generating sample data:', error);
     }
   };
 

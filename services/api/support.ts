@@ -53,7 +53,7 @@ class MerchantSupportService {
       const response = await apiClient.get(url);
       return response.data || { tickets: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
     } catch (error) {
-      console.error('[Merchant Support] Error listing tickets:', error);
+      if (__DEV__) console.error('[Merchant Support] Error listing tickets:', error);
       return { tickets: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
     }
   }
@@ -63,7 +63,7 @@ class MerchantSupportService {
       const response = await apiClient.get(`/support/tickets/${id}`);
       return response.data?.ticket || null;
     } catch (error) {
-      console.error('[Merchant Support] Error fetching ticket:', error);
+      if (__DEV__) console.error('[Merchant Support] Error fetching ticket:', error);
       return null;
     }
   }
@@ -73,7 +73,7 @@ class MerchantSupportService {
       const response = await apiClient.post(`/support/tickets/${id}/messages`, { message, attachments });
       return response.data?.success !== false;
     } catch (error) {
-      console.error('[Merchant Support] Error replying to ticket:', error);
+      if (__DEV__) console.error('[Merchant Support] Error replying to ticket:', error);
       return false;
     }
   }
@@ -83,7 +83,7 @@ class MerchantSupportService {
       const response = await apiClient.get('/support/statistics');
       return response.data || null;
     } catch (error) {
-      console.error('[Merchant Support] Error fetching statistics:', error);
+      if (__DEV__) console.error('[Merchant Support] Error fetching statistics:', error);
       return null;
     }
   }

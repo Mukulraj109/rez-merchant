@@ -97,7 +97,7 @@ export default function StoreVouchersScreen() {
         setError(response.message || 'Failed to load vouchers');
       }
     } catch (err: any) {
-      console.error('Error loading vouchers:', err);
+      if (__DEV__) console.error('Error loading vouchers:', err);
       setError(err.message || 'Failed to load vouchers');
     } finally {
       setLoading(false);
@@ -111,7 +111,7 @@ export default function StoreVouchersScreen() {
         setStats(response.data);
       }
     } catch (err: any) {
-      console.error('Error loading stats:', err);
+      if (__DEV__) console.error('Error loading stats:', err);
     }
   };
 

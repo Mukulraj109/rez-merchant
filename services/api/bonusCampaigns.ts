@@ -79,7 +79,7 @@ class BonusCampaignService {
 
       return { campaigns: [], total: 0 };
     } catch (error: any) {
-      console.error('[BonusCampaigns] Failed to fetch active campaigns:', error.message);
+      if (__DEV__) console.error('[BonusCampaigns] Failed to fetch active campaigns:', error.message);
       return { campaigns: [], total: 0 };
     }
   }
@@ -93,7 +93,7 @@ class BonusCampaignService {
       const response = await apiClient.get<any>(`bonus-zone/campaigns/${slug}`);
       return response.data?.campaign || null;
     } catch (error: any) {
-      console.error('[BonusCampaigns] Failed to fetch campaign detail:', error.message);
+      if (__DEV__) console.error('[BonusCampaigns] Failed to fetch campaign detail:', error.message);
       return null;
     }
   }

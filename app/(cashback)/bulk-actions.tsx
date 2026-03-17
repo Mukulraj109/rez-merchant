@@ -37,7 +37,7 @@ export default function BulkActionsScreen() {
         setCashbackRequests(data.data.requests);
       }
     } catch (error) {
-      console.error('Error fetching cashback requests:', error);
+      if (__DEV__) console.error('Error fetching cashback requests:', error);
       showAlert('Error', 'Failed to load cashback requests');
     } finally {
       setIsLoading(false);

@@ -154,7 +154,7 @@ export default function OrderAnalyticsScreen() {
 
   const fetchAnalytics = useCallback(async () => {
     try {
-      console.log('🔄 Fetching order analytics...');
+      if (__DEV__) console.log('🔄 Fetching order analytics...');
       
       // Calculate date range
       const endDate = new Date();
@@ -180,10 +180,10 @@ export default function OrderAnalyticsScreen() {
         endDate.toISOString().split('T')[0]
       );
       
-      console.log('✅ Analytics received:', analyticsData);
+      if (__DEV__) console.log('✅ Analytics received:', analyticsData);
       setAnalytics(analyticsData);
     } catch (error) {
-      console.error('❌ Error fetching analytics:', error);
+      if (__DEV__) console.error('❌ Error fetching analytics:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

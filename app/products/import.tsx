@@ -85,7 +85,7 @@ export default function ProductImportScreen() {
         ]
       );
     } catch (error: any) {
-      console.error('Download template error:', error);
+      if (__DEV__) console.error('Download template error:', error);
       showAlert('Error', 'Failed to download template');
     }
   };
@@ -104,7 +104,7 @@ export default function ProductImportScreen() {
 
       showAlert('Success', 'Template download started');
     } catch (error: any) {
-      console.error('Download error:', error);
+      if (__DEV__) console.error('Download error:', error);
       showAlert('Error', error.message || 'Failed to download template');
     } finally {
       setLoading(false);
@@ -125,7 +125,7 @@ export default function ProductImportScreen() {
         showAlert('File Selected', `${file.name} is ready to import`);
       }
     } catch (error: any) {
-      console.error('File selection error:', error);
+      if (__DEV__) console.error('File selection error:', error);
       showAlert('Error', 'Failed to select file');
     }
   };
@@ -244,7 +244,7 @@ export default function ProductImportScreen() {
         );
       }
     } catch (error: any) {
-      console.error('Import error:', error);
+      if (__DEV__) console.error('Import error:', error);
       showAlert('Error', error.message || 'Failed to import products');
 
       setImportResult({

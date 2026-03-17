@@ -518,7 +518,7 @@ class EventService {
       const response = await apiClient.get<any>('events/categories');
       return response.data?.categories || [];
     } catch (error: any) {
-      console.error('Failed to fetch event categories:', error.message);
+      if (__DEV__) console.error('Failed to fetch event categories:', error.message);
       return [];
     }
   }

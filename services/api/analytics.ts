@@ -71,7 +71,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get analytics overview');
       }
     } catch (error: any) {
-      console.error('Get analytics overview error:', error);
+      if (__DEV__) console.error('Get analytics overview error:', error);
       throw new Error(error.message || 'Failed to get analytics overview');
     }
   }
@@ -123,7 +123,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get sales forecast');
       }
     } catch (error: any) {
-      console.error('Get sales forecast error:', error);
+      if (__DEV__) console.error('Get sales forecast error:', error);
       throw new Error(error.message || 'Failed to get sales forecast');
     }
   }
@@ -159,7 +159,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get stockout predictions');
       }
     } catch (error: any) {
-      console.error('Get stockout predictions error:', error);
+      if (__DEV__) console.error('Get stockout predictions error:', error);
       throw new Error(error.message || 'Failed to get stockout predictions');
     }
   }
@@ -195,7 +195,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get customer insights');
       }
     } catch (error: any) {
-      console.error('Get customer insights error:', error);
+      if (__DEV__) console.error('Get customer insights error:', error);
       throw new Error(error.message || 'Failed to get customer insights');
     }
   }
@@ -244,7 +244,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get seasonal trends');
       }
     } catch (error: any) {
-      console.error('Get seasonal trends error:', error);
+      if (__DEV__) console.error('Get seasonal trends error:', error);
       throw new Error(error.message || 'Failed to get seasonal trends');
     }
   }
@@ -279,7 +279,7 @@ class AnalyticsService {
         const products = Array.isArray(data.data) ? data.data : [];
 
         // Debug: Log the raw data from backend
-        console.log('[Analytics] Raw product data from backend:', products.slice(0, 2));
+        if (__DEV__) console.log('[Analytics] Raw product data from backend:', products.slice(0, 2));
 
         // Transform backend products to ProductPerformance type
         // Backend now returns: productId, productName, totalQuantity, totalRevenue, orderCount, averagePrice,
@@ -404,7 +404,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get product performance');
       }
     } catch (error: any) {
-      console.error('Get product performance error:', error);
+      if (__DEV__) console.error('Get product performance error:', error);
       throw new Error(error.message || 'Failed to get product performance');
     }
   }
@@ -440,7 +440,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get revenue breakdown');
       }
     } catch (error: any) {
-      console.error('Get revenue breakdown error:', error);
+      if (__DEV__) console.error('Get revenue breakdown error:', error);
       throw new Error(error.message || 'Failed to get revenue breakdown');
     }
   }
@@ -486,7 +486,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to compare periods');
       }
     } catch (error: any) {
-      console.error('Compare periods error:', error);
+      if (__DEV__) console.error('Compare periods error:', error);
       throw new Error(error.message || 'Failed to compare periods');
     }
   }
@@ -559,7 +559,7 @@ class AnalyticsService {
         throw new Error(result.message || 'Failed to get sales by day');
       }
     } catch (error: any) {
-      console.error('Get sales by day error:', error);
+      if (__DEV__) console.error('Get sales by day error:', error);
       throw new Error(error.message || 'Failed to get sales by day');
     }
   }
@@ -651,7 +651,7 @@ class AnalyticsService {
         throw new Error(result.message || 'Failed to get sales by time');
       }
     } catch (error: any) {
-      console.error('Get sales by time error:', error);
+      if (__DEV__) console.error('Get sales by time error:', error);
       throw new Error(error.message || 'Failed to get sales by time');
     }
   }
@@ -715,7 +715,7 @@ class AnalyticsService {
         throw new Error(result.message || 'Failed to get top selling products');
       }
     } catch (error: any) {
-      console.error('Get top selling products error:', error);
+      if (__DEV__) console.error('Get top selling products error:', error);
       throw new Error(error.message || 'Failed to get top selling products');
     }
   }
@@ -751,7 +751,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get customer segments');
       }
     } catch (error: any) {
-      console.error('Get customer segments error:', error);
+      if (__DEV__) console.error('Get customer segments error:', error);
       throw new Error(error.message || 'Failed to get customer segments');
     }
   }
@@ -789,7 +789,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get top offers');
       }
     } catch (error: any) {
-      console.error('Get top offers error:', error);
+      if (__DEV__) console.error('Get top offers error:', error);
       throw new Error(error.message || 'Failed to get top offers');
     }
   }
@@ -821,7 +821,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get real-time metrics');
       }
     } catch (error: any) {
-      console.error('Get real-time metrics error:', error);
+      if (__DEV__) console.error('Get real-time metrics error:', error);
       throw new Error(error.message || 'Failed to get real-time metrics');
     }
   }
@@ -860,7 +860,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to export analytics');
       }
     } catch (error: any) {
-      console.error('Export analytics error:', error);
+      if (__DEV__) console.error('Export analytics error:', error);
       throw new Error(error.message || 'Failed to export analytics');
     }
   }
@@ -892,7 +892,7 @@ class AnalyticsService {
         throw new Error(data.message || 'Failed to get export URL');
       }
     } catch (error: any) {
-      console.error('Get export URL error:', error);
+      if (__DEV__) console.error('Get export URL error:', error);
       throw new Error(error.message || 'Failed to get export URL');
     }
   }

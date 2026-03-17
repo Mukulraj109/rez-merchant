@@ -141,7 +141,7 @@ export default function StoreDetailsScreen() {
         setPickupEnabled(storeDetails.pickupAvailable || false);
       }
     } catch (error) {
-      console.error('Error loading store details:', error);
+      if (__DEV__) console.error('Error loading store details:', error);
     }
   };
 

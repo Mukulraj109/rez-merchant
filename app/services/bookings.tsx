@@ -115,7 +115,7 @@ export default function ServiceBookingsScreen() {
       const data = await serviceManagementService.getBookingStats();
       setStats(data);
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      if (__DEV__) console.error('Failed to load stats:', error);
     }
   };
 
@@ -133,7 +133,7 @@ export default function ServiceBookingsScreen() {
       }
       setPagination(result.pagination);
     } catch (error) {
-      console.error('Failed to load bookings:', error);
+      if (__DEV__) console.error('Failed to load bookings:', error);
     }
   };
 

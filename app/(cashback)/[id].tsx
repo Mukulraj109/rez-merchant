@@ -38,7 +38,7 @@ export default function CashbackDetailScreen() {
         router.back();
       }
     } catch (error) {
-      console.error('Error fetching cashback request:', error);
+      if (__DEV__) console.error('Error fetching cashback request:', error);
       showAlert('Error', 'Failed to load cashback request');
       router.back();
     } finally {
@@ -63,7 +63,7 @@ export default function CashbackDetailScreen() {
       setShowApprovalModal(false);
       showAlert('Success', 'Cashback request approved successfully');
     } catch (error: any) {
-      console.error('Error approving cashback request:', error);
+      if (__DEV__) console.error('Error approving cashback request:', error);
       showAlert('Error', error.message || 'Failed to approve request');
     }
   };
@@ -84,7 +84,7 @@ export default function CashbackDetailScreen() {
       setShowRejectionModal(false);
       showAlert('Success', 'Cashback request rejected');
     } catch (error: any) {
-      console.error('Error rejecting cashback request:', error);
+      if (__DEV__) console.error('Error rejecting cashback request:', error);
       showAlert('Error', error.message || 'Failed to reject request');
     }
   };
@@ -103,7 +103,7 @@ export default function CashbackDetailScreen() {
           setRequest(updatedRequest);
           showAlert('Success', 'Cashback marked as paid');
         } catch (error: any) {
-          console.error('Error marking cashback as paid:', error);
+          if (__DEV__) console.error('Error marking cashback as paid:', error);
           showAlert('Error', error.message || 'Failed to mark as paid');
         }
       }

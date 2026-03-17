@@ -169,7 +169,7 @@ class DiscountsService {
         message: response.message
       };
     } catch (error: any) {
-      console.error('[DISCOUNTS SERVICE] Error fetching discounts:', error);
+      if (__DEV__) console.error('[DISCOUNTS SERVICE] Error fetching discounts:', error);
       return {
         success: false,
         message: error.message || 'Failed to fetch discounts',
@@ -186,7 +186,7 @@ class DiscountsService {
       const response = await apiClient.get<MerchantDiscount>(`${this.baseUrl}/${id}`);
       return response;
     } catch (error: any) {
-      console.error(`[DISCOUNTS SERVICE] Error fetching discount ${id}:`, error);
+      if (__DEV__) console.error(`[DISCOUNTS SERVICE] Error fetching discount ${id}:`, error);
       return {
         success: false,
         message: error.message || 'Failed to fetch discount',
@@ -203,7 +203,7 @@ class DiscountsService {
       const response = await apiClient.post<MerchantDiscount>(this.baseUrl, discountData);
       return response;
     } catch (error: any) {
-      console.error('[DISCOUNTS SERVICE] Error creating discount:', error);
+      if (__DEV__) console.error('[DISCOUNTS SERVICE] Error creating discount:', error);
       return {
         success: false,
         message: error.message || 'Failed to create discount',
@@ -223,7 +223,7 @@ class DiscountsService {
       const response = await apiClient.put<MerchantDiscount>(`${this.baseUrl}/${id}`, discountData);
       return response;
     } catch (error: any) {
-      console.error(`[DISCOUNTS SERVICE] Error updating discount ${id}:`, error);
+      if (__DEV__) console.error(`[DISCOUNTS SERVICE] Error updating discount ${id}:`, error);
       return {
         success: false,
         message: error.message || 'Failed to update discount',
@@ -240,7 +240,7 @@ class DiscountsService {
       const response = await apiClient.delete<void>(`${this.baseUrl}/${id}`);
       return response;
     } catch (error: any) {
-      console.error(`[DISCOUNTS SERVICE] Error deleting discount ${id}:`, error);
+      if (__DEV__) console.error(`[DISCOUNTS SERVICE] Error deleting discount ${id}:`, error);
       return {
         success: false,
         message: error.message || 'Failed to delete discount',
@@ -257,7 +257,7 @@ class DiscountsService {
       const response = await apiClient.get<DiscountAnalytics>(`${this.baseUrl}/${id}/analytics`);
       return response;
     } catch (error: any) {
-      console.error(`[DISCOUNTS SERVICE] Error fetching discount analytics ${id}:`, error);
+      if (__DEV__) console.error(`[DISCOUNTS SERVICE] Error fetching discount analytics ${id}:`, error);
       return {
         success: false,
         message: error.message || 'Failed to fetch discount analytics',

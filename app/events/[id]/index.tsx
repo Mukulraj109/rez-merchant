@@ -86,7 +86,7 @@ export default function EventDetailsScreen() {
       setAnalytics(analyticsData);
     } catch (error) {
       // Analytics not critical, just log
-      console.log('Failed to load analytics:', error);
+      if (__DEV__) console.log('Failed to load analytics:', error);
     }
   };
 

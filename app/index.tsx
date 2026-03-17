@@ -10,14 +10,14 @@ export default function App() {
   const { state } = useAuth();
 
   useEffect(() => {
-    console.log('🧭 App navigation check - Loading:', state.isLoading, 'Authenticated:', state.isAuthenticated);
+    if (__DEV__) console.log('🧭 App navigation check - Loading:', state.isLoading, 'Authenticated:', state.isAuthenticated);
     
     if (!state.isLoading) {
       if (state.isAuthenticated) {
-        console.log('🏠 User authenticated - navigating to dashboard');
+        if (__DEV__) console.log('🏠 User authenticated - navigating to dashboard');
         router.replace('/(dashboard)');
       } else {
-        console.log('🔐 User not authenticated - navigating to login');
+        if (__DEV__) console.log('🔐 User not authenticated - navigating to login');
         router.replace('/(auth)/login');
       }
     }

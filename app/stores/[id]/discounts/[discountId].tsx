@@ -155,7 +155,7 @@ export default function EditDiscountScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error loading discount:', error);
+      if (__DEV__) console.error('Error loading discount:', error);
       setAlertModal({
         visible: true,
         title: 'Error',
@@ -273,7 +273,7 @@ export default function EditDiscountScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error updating discount:', error);
+      if (__DEV__) console.error('Error updating discount:', error);
       setAlertModal({
         visible: true,
         title: 'Error',

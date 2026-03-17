@@ -71,7 +71,7 @@ class StoreVisitsService {
       });
 
       const url = `${this.baseUrl}?${searchParams.toString()}`;
-      console.log('[VISITS] Fetching visits from:', url);
+      if (__DEV__) console.log('[VISITS] Fetching visits from:', url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -86,10 +86,10 @@ class StoreVisitsService {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-          console.error('[VISITS] API Error Response:', errorData);
+          if (__DEV__) console.error('[VISITS] API Error Response:', errorData);
         } catch (e) {
           const errorText = await response.text();
-          console.error('[VISITS] API Error Text:', errorText);
+          if (__DEV__) console.error('[VISITS] API Error Text:', errorText);
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -97,7 +97,7 @@ class StoreVisitsService {
 
       const data = await response.json();
 
-      console.log('[VISITS] Raw API response:', JSON.stringify(data, null, 2));
+      if (__DEV__) console.log('[VISITS] Raw API response:', JSON.stringify(data, null, 2));
 
       if (data.success && data.data) {
         return data.data;
@@ -105,7 +105,7 @@ class StoreVisitsService {
         throw new Error(data.message || 'Failed to get visits');
       }
     } catch (error: any) {
-      console.error('[VISITS] Get visits error:', error);
+      if (__DEV__) console.error('[VISITS] Get visits error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get visits');
     }
   }
@@ -114,7 +114,7 @@ class StoreVisitsService {
   async getVisitStats(storeId: string): Promise<StoreVisitStats> {
     try {
       const url = `${this.baseUrl}/stats?storeId=${storeId}`;
-      console.log('[VISITS] Fetching visit stats from:', url);
+      if (__DEV__) console.log('[VISITS] Fetching visit stats from:', url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -129,10 +129,10 @@ class StoreVisitsService {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-          console.error('[VISITS] Stats API Error Response:', errorData);
+          if (__DEV__) console.error('[VISITS] Stats API Error Response:', errorData);
         } catch (e) {
           const errorText = await response.text();
-          console.error('[VISITS] Stats API Error Text:', errorText);
+          if (__DEV__) console.error('[VISITS] Stats API Error Text:', errorText);
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -146,7 +146,7 @@ class StoreVisitsService {
         throw new Error(data.message || 'Failed to get visit stats');
       }
     } catch (error: any) {
-      console.error('[VISITS] Get visit stats error:', error);
+      if (__DEV__) console.error('[VISITS] Get visit stats error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get visit stats');
     }
   }
@@ -180,10 +180,10 @@ class StoreVisitsService {
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-          console.error('[VISITS] Update status API Error Response:', errorData);
+          if (__DEV__) console.error('[VISITS] Update status API Error Response:', errorData);
         } catch (e) {
           const errorText = await response.text();
-          console.error('[VISITS] Update status API Error Text:', errorText);
+          if (__DEV__) console.error('[VISITS] Update status API Error Text:', errorText);
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -197,7 +197,7 @@ class StoreVisitsService {
         throw new Error(data.message || 'Failed to update visit status');
       }
     } catch (error: any) {
-      console.error('[VISITS] Update visit status error:', error);
+      if (__DEV__) console.error('[VISITS] Update visit status error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to update visit status');
     }
   }

@@ -52,7 +52,7 @@ if (Platform.OS !== 'web') {
     DraggableFlatList = DragModule.default;
     RenderItemParams = DragModule.RenderItemParams;
   } catch (e) {
-    console.log('Draggable FlatList not available for this platform');
+    if (__DEV__) console.log('Draggable FlatList not available for this platform');
   }
 }
 
@@ -149,7 +149,7 @@ export default function ProductImagesScreen() {
       const data = await productsService.getProduct(productId);
       setProduct(data);
     } catch (error: any) {
-      console.error('Failed to load product:', error);
+      if (__DEV__) console.error('Failed to load product:', error);
       showError('Error', error.message || 'Failed to load product', setErrorMessage, setShowErrorModal);
     }
   };
@@ -169,7 +169,7 @@ export default function ProductImagesScreen() {
       const cats = await productGalleryService.getCategories(productId);
       setCategories(cats);
     } catch (error: any) {
-      console.error('Failed to load gallery:', error);
+      if (__DEV__) console.error('Failed to load gallery:', error);
       showError('Error', error.message || 'Failed to load images', setErrorMessage, setShowErrorModal);
     } finally {
       setLoading(false);
@@ -203,7 +203,7 @@ export default function ProductImagesScreen() {
         setShowUploadModal(true);
       }
     } catch (error: any) {
-      console.error('Image picker error:', error);
+      if (__DEV__) console.error('Image picker error:', error);
       showError('Error', 'Failed to pick images', setErrorMessage, setShowErrorModal);
     }
   };
@@ -266,7 +266,7 @@ export default function ProductImagesScreen() {
       });
       loadGallery();
     } catch (error: any) {
-      console.error('Upload error:', error);
+      if (__DEV__) console.error('Upload error:', error);
       showError('Upload Failed', error.message || 'Failed to upload images', setErrorMessage, setShowErrorModal);
     } finally {
       setUploading(false);

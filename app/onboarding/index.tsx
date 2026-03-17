@@ -27,40 +27,40 @@ export default function OnboardingIndex() {
 
       // If not authenticated, redirect to login
       if (!isAuthenticated || !merchant) {
-        console.log('🔐 Not authenticated, redirecting to login');
+        if (__DEV__) console.log('🔐 Not authenticated, redirecting to login');
         router.replace(NAVIGATION_ROUTES.LOGIN as any);
         return;
       }
 
-      console.log('🔍 Checking onboarding status for merchant:', merchant.id);
+      if (__DEV__) console.log('🔍 Checking onboarding status for merchant:', merchant.id);
 
       // Fetch current onboarding status
       const response = await onboardingService.getOnboardingStatus();
 
       if ((response as any).success !== false && response) {
         const status = (response as any).data || response;
-        console.log('✅ Onboarding status:', status.status, 'Step:', status.currentStep);
+        if (__DEV__) console.log('✅ Onboarding status:', status.status, 'Step:', status.currentStep);
 
         // Determine where to redirect based on status
         const redirectRoute = getRedirectRoute(status as any);
-        console.log('🚀 Redirecting to:', redirectRoute);
+        if (__DEV__) console.log('🚀 Redirecting to:', redirectRoute);
 
         router.replace(redirectRoute as any);
       } else {
         // No status found, start from welcome
-        console.log('📝 No onboarding status found, starting from welcome');
+        if (__DEV__) console.log('📝 No onboarding status found, starting from welcome');
         router.replace(NAVIGATION_ROUTES.WELCOME as any);
       }
     } catch (error: any) {
-      console.error('❌ Error checking onboarding status:', error);
+      if (__DEV__) console.error('❌ Error checking onboarding status:', error);
 
       // If error, check if it's a 404 (no onboarding started yet)
       if (error.message?.includes('404') || error.message?.includes('not found')) {
-        console.log('📝 Starting new onboarding');
+        if (__DEV__) console.log('📝 Starting new onboarding');
         router.replace(NAVIGATION_ROUTES.WELCOME as any);
       } else {
         // Other error - show error and allow retry
-        console.error('❌ Failed to check onboarding:', error.message);
+        if (__DEV__) console.error('❌ Failed to check onboarding:', error.message);
         // For now, redirect to welcome
         router.replace(NAVIGATION_ROUTES.WELCOME as any);
       }

@@ -69,26 +69,26 @@ export default function OrderDetailScreen() {
 
   const fetchOrderDetails = useCallback(async () => {
     if (!id) {
-      console.error('❌ [ORDER DETAIL] No order ID provided');
+      if (__DEV__) console.error('❌ [ORDER DETAIL] No order ID provided');
       setLoading(false);
       return;
     }
 
-    console.log('📦 [ORDER DETAIL] Fetching order with ID:', id);
+    if (__DEV__) console.log('📦 [ORDER DETAIL] Fetching order with ID:', id);
     
     try {
       const orderId = id;
-      console.log('📦 [ORDER DETAIL] Calling API with orderId:', orderId);
+      if (__DEV__) console.log('📦 [ORDER DETAIL] Calling API with orderId:', orderId);
       
       const orderData = await ordersService.getOrderById(orderId);
-      console.log('📦 [ORDER DETAIL] Order data received:', JSON.stringify(orderData, null, 2));
+      if (__DEV__) console.log('📦 [ORDER DETAIL] Order data received:', JSON.stringify(orderData, null, 2));
       
       if (orderData) {
         setOrder(orderData);
       }
     } catch (error: any) {
-      console.error('❌ [ORDER DETAIL] Error fetching order details:', error);
-      console.error('❌ [ORDER DETAIL] Error message:', error.message);
+      if (__DEV__) console.error('❌ [ORDER DETAIL] Error fetching order details:', error);
+      if (__DEV__) console.error('❌ [ORDER DETAIL] Error message:', error.message);
       const errorMessage = error.message || 'Failed to fetch order details';
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
@@ -114,7 +114,7 @@ export default function OrderDetailScreen() {
 
       await fetchOrderDetails();
     } catch (error) {
-      console.error('❌ Error updating order status:', error);
+      if (__DEV__) console.error('❌ Error updating order status:', error);
       showAlert('Error', 'Failed to update order status');
     } finally {
       setUpdating(false);
@@ -171,7 +171,7 @@ export default function OrderDetailScreen() {
         title: `Order #${order.orderNumber}`
       });
     } catch (error) {
-      console.error('Error sharing order:', error);
+      if (__DEV__) console.error('Error sharing order:', error);
     }
   }, [order]);
 

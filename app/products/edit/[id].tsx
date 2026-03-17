@@ -72,9 +72,9 @@ export default function EditProductScreen() {
   const { token } = useAuth();
   const { stores } = useStore();
   
-  console.log('✏️ [EDIT PAGE] EditProductScreen mounted');
-  console.log('✏️ [EDIT PAGE] Params:', params);
-  console.log('✏️ [EDIT PAGE] Product ID:', id);
+  if (__DEV__) console.log('✏️ [EDIT PAGE] EditProductScreen mounted');
+  if (__DEV__) console.log('✏️ [EDIT PAGE] Params:', params);
+  if (__DEV__) console.log('✏️ [EDIT PAGE] Product ID:', id);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -129,7 +129,7 @@ export default function EditProductScreen() {
         const fetchedCategories = await productsService.getCategories();
         setCategories(fetchedCategories);
       } catch (error: any) {
-        console.error('Failed to load categories:', error);
+        if (__DEV__) console.error('Failed to load categories:', error);
         // Fallback to empty array if API fails
         setCategories([]);
       } finally {
@@ -142,24 +142,24 @@ export default function EditProductScreen() {
 
   // Load product data
   useEffect(() => {
-    console.log('✏️ [EDIT PAGE] useEffect triggered, id:', id);
+    if (__DEV__) console.log('✏️ [EDIT PAGE] useEffect triggered, id:', id);
     if (id) {
-      console.log('✏️ [EDIT PAGE] ID exists, calling loadProduct');
+      if (__DEV__) console.log('✏️ [EDIT PAGE] ID exists, calling loadProduct');
       loadProduct();
     } else {
-      console.warn('✏️ [EDIT PAGE] No ID provided, cannot load product');
+      if (__DEV__) console.warn('✏️ [EDIT PAGE] No ID provided, cannot load product');
     }
   }, [id]);
 
   const loadProduct = async () => {
     try {
-      console.log('✏️ [EDIT PAGE] loadProduct called with id:', id);
+      if (__DEV__) console.log('✏️ [EDIT PAGE] loadProduct called with id:', id);
       setLoading(true);
-      console.log('✏️ [EDIT PAGE] Loading product from API...');
+      if (__DEV__) console.log('✏️ [EDIT PAGE] Loading product from API...');
       const product = await productsService.getProduct(id as string);
-      console.log('✏️ [EDIT PAGE] Product loaded:', product);
-      console.log('✏️ [EDIT PAGE] Product inventory:', (product as any).inventory);
-      console.log('✏️ [EDIT PAGE] Stock:', (product as any).inventory?.stock, 'Low threshold:', (product as any).inventory?.lowStockThreshold);
+      if (__DEV__) console.log('✏️ [EDIT PAGE] Product loaded:', product);
+      if (__DEV__) console.log('✏️ [EDIT PAGE] Product inventory:', (product as any).inventory);
+      if (__DEV__) console.log('✏️ [EDIT PAGE] Stock:', (product as any).inventory?.stock, 'Low threshold:', (product as any).inventory?.lowStockThreshold);
 
       if (product) {
 
@@ -207,7 +207,7 @@ export default function EditProductScreen() {
           cashbackActive: productData.cashback?.percentage !== undefined && productData.cashback?.percentage > 0,
         });
         
-        console.log('✏️ [EDIT PAGE] Form data populated:', {
+        if (__DEV__) console.log('✏️ [EDIT PAGE] Form data populated:', {
           pricing: productData.pricing,
           inventory: productData.inventory,
           isActive: productData.isActive,
@@ -265,10 +265,10 @@ export default function EditProductScreen() {
             setSelectedStoreId(storeId);
           }
         }
-        console.log('✏️ [EDIT PAGE] Product loaded successfully, setting loading to false');
+        if (__DEV__) console.log('✏️ [EDIT PAGE] Product loaded successfully, setting loading to false');
         setLoading(false);
       } else {
-        console.error('✏️ [EDIT PAGE] Product is null or undefined');
+        if (__DEV__) console.error('✏️ [EDIT PAGE] Product is null or undefined');
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert('Error: Failed to load product. Please try again.');
           router.back();
@@ -280,8 +280,8 @@ export default function EditProductScreen() {
         setLoading(false);
       }
     } catch (error) {
-      console.error('✏️ [EDIT PAGE] Error loading product:', error);
-      console.error('✏️ [EDIT PAGE] Error details:', JSON.stringify(error, null, 2));
+      if (__DEV__) console.error('✏️ [EDIT PAGE] Error loading product:', error);
+      if (__DEV__) console.error('✏️ [EDIT PAGE] Error details:', JSON.stringify(error, null, 2));
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Error: Failed to load product. Please try again.');
         router.back();
@@ -292,7 +292,7 @@ export default function EditProductScreen() {
       }
       setLoading(false);
     } finally {
-      console.log('✏️ [EDIT PAGE] Setting loading to false');
+      if (__DEV__) console.log('✏️ [EDIT PAGE] Setting loading to false');
       // Don't set loading to false here if we already set it above
     }
   };
@@ -541,12 +541,12 @@ export default function EditProductScreen() {
         },
       };
 
-      console.log('Updating product with payload:', JSON.stringify(productRequest, null, 2));
+      if (__DEV__) console.log('Updating product with payload:', JSON.stringify(productRequest, null, 2));
 
       // updateProduct returns the Product directly, not a response object
       const updatedProduct = await productsService.updateProduct(id as string, productRequest);
       
-      console.log('✏️ [EDIT PAGE] Product updated successfully:', updatedProduct);
+      if (__DEV__) console.log('✏️ [EDIT PAGE] Product updated successfully:', updatedProduct);
       
       // Success - show message and navigate
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -571,8 +571,8 @@ export default function EditProductScreen() {
         );
       }
     } catch (error: any) {
-      console.error('✏️ [EDIT PAGE] Product update error:', error);
-      console.error('✏️ [EDIT PAGE] Error details:', {
+      if (__DEV__) console.error('✏️ [EDIT PAGE] Product update error:', error);
+      if (__DEV__) console.error('✏️ [EDIT PAGE] Error details:', {
         message: error.message,
         stack: error.stack,
         response: error.response,
@@ -589,7 +589,7 @@ export default function EditProductScreen() {
         errorMessage = error;
       }
       
-      console.error('✏️ [EDIT PAGE] Showing error to user:', errorMessage);
+      if (__DEV__) console.error('✏️ [EDIT PAGE] Showing error to user:', errorMessage);
       
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
@@ -613,7 +613,7 @@ export default function EditProductScreen() {
   const seoErrors = getSectionErrors(['metaTitle', 'metaDescription', 'searchKeywords', 'tags']);
 
   if (loading) {
-    console.log('✏️ [EDIT PAGE] Rendering loading state');
+    if (__DEV__) console.log('✏️ [EDIT PAGE] Rendering loading state');
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
@@ -625,16 +625,16 @@ export default function EditProductScreen() {
     );
   }
   
-  console.log('✏️ [EDIT PAGE] Rendering edit form (not loading)');
+  if (__DEV__) console.log('✏️ [EDIT PAGE] Rendering edit form (not loading)');
 
-  console.log('✏️ [EDIT PAGE] About to render main edit form');
+  if (__DEV__) console.log('✏️ [EDIT PAGE] About to render main edit form');
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ThemedView style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
-            console.log('✏️ [EDIT PAGE] Back button pressed');
+            if (__DEV__) console.log('✏️ [EDIT PAGE] Back button pressed');
             router.back();
           }}
         >

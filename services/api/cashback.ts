@@ -74,7 +74,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to get cashback requests');
       }
     } catch (error: any) {
-      console.error('Get cashback requests error:', error);
+      if (__DEV__) console.error('Get cashback requests error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get cashback requests');
     }
   }
@@ -102,7 +102,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to get cashback request');
       }
     } catch (error: any) {
-      console.error('Get cashback request error:', error);
+      if (__DEV__) console.error('Get cashback request error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get cashback request');
     }
   }
@@ -131,7 +131,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to create cashback request');
       }
     } catch (error: any) {
-      console.error('Create cashback request error:', error);
+      if (__DEV__) console.error('Create cashback request error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to create cashback request');
     }
   }
@@ -160,7 +160,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to approve cashback request');
       }
     } catch (error: any) {
-      console.error('Approve cashback request error:', error);
+      if (__DEV__) console.error('Approve cashback request error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to approve cashback request');
     }
   }
@@ -189,7 +189,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to reject cashback request');
       }
     } catch (error: any) {
-      console.error('Reject cashback request error:', error);
+      if (__DEV__) console.error('Reject cashback request error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to reject cashback request');
     }
   }
@@ -218,7 +218,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to mark cashback as paid');
       }
     } catch (error: any) {
-      console.error('Mark cashback paid error:', error);
+      if (__DEV__) console.error('Mark cashback paid error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to mark cashback as paid');
     }
   }
@@ -247,7 +247,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to perform bulk cashback action');
       }
     } catch (error: any) {
-      console.error('Bulk cashback action error:', error);
+      if (__DEV__) console.error('Bulk cashback action error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to perform bulk cashback action');
     }
   }
@@ -276,7 +276,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to get cashback metrics');
       }
     } catch (error: any) {
-      console.error('Get cashback metrics error:', error);
+      if (__DEV__) console.error('Get cashback metrics error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get cashback metrics');
     }
   }
@@ -320,7 +320,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to generate sample cashback requests');
       }
     } catch (error: any) {
-      console.error('Generate sample cashback error:', error);
+      if (__DEV__) console.error('Generate sample cashback error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to generate sample cashback requests');
     }
   }
@@ -359,7 +359,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to export cashback requests');
       }
     } catch (error: any) {
-      console.error('Export cashback error:', error);
+      if (__DEV__) console.error('Export cashback error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to export cashback requests');
     }
   }
@@ -414,7 +414,7 @@ class CashbackService {
         throw new Error(data.message || 'Failed to get cashback analytics');
       }
     } catch (error: any) {
-      console.error('Get cashback analytics error:', error);
+      if (__DEV__) console.error('Get cashback analytics error:', error);
       
       // Return fallback analytics data instead of throwing error
       const fallbackAnalytics = {
@@ -434,7 +434,7 @@ class CashbackService {
         topCustomers: []
       };
       
-      console.warn('Using fallback cashback analytics due to API error');
+      if (__DEV__) console.warn('Using fallback cashback analytics due to API error');
       return fallbackAnalytics;
     }
   }

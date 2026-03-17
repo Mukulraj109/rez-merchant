@@ -56,7 +56,7 @@ export default function ShippingLabelScreen() {
         setTrackingNumber(orderData.orderNumber.replace('-', ''));
       }
     } catch (error) {
-      console.error('Error fetching order:', error);
+      if (__DEV__) console.error('Error fetching order:', error);
       showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
@@ -84,7 +84,7 @@ export default function ShippingLabelScreen() {
 
       showAlert('Success', 'Shipping label generated successfully!');
     } catch (error) {
-      console.error('Error generating label:', error);
+      if (__DEV__) console.error('Error generating label:', error);
       showAlert('Error', 'Failed to generate shipping label');
     } finally {
       setGenerating(false);
@@ -123,7 +123,7 @@ export default function ShippingLabelScreen() {
         }
       }
     } catch (error) {
-      console.error('Error downloading label:', error);
+      if (__DEV__) console.error('Error downloading label:', error);
       showAlert('Error', 'Failed to download label');
     } finally {
       setDownloading(false);
@@ -155,7 +155,7 @@ export default function ShippingLabelScreen() {
         title: 'Share Shipping Label'
       });
     } catch (error) {
-      console.error('Error sharing label:', error);
+      if (__DEV__) console.error('Error sharing label:', error);
     }
   };
 

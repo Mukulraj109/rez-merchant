@@ -122,7 +122,7 @@ export default function AddEventScreen() {
       const response = await socialImpactAdminService.getSponsors();
       setSponsors(response.sponsors.filter((s: Sponsor) => s.isActive));
     } catch (error) {
-      console.error('Failed to load sponsors:', error);
+      if (__DEV__) console.error('Failed to load sponsors:', error);
     } finally {
       setLoadingSponsors(false);
     }

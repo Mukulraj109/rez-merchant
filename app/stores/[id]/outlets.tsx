@@ -96,7 +96,7 @@ export default function StoreOutletsScreen() {
         setError(response.message || 'Failed to load outlets');
       }
     } catch (err: any) {
-      console.error('Error loading outlets:', err);
+      if (__DEV__) console.error('Error loading outlets:', err);
       setError(err.message || 'Failed to load outlets');
     } finally {
       setLoading(false);

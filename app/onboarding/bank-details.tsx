@@ -151,7 +151,7 @@ export default function BankDetailsScreen() {
         setGstRegistered(bankDetails.gstRegistered);
       }
     } catch (error) {
-      console.error('Error loading bank details:', error);
+      if (__DEV__) console.error('Error loading bank details:', error);
     }
   };
 
@@ -169,7 +169,7 @@ export default function BankDetailsScreen() {
         setIfscDetails(null);
       }
     } catch (error) {
-      console.error('IFSC validation error:', error);
+      if (__DEV__) console.error('IFSC validation error:', error);
     } finally {
       setValidatingIFSC(false);
     }

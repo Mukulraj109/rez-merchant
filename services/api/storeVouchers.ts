@@ -133,7 +133,7 @@ class StoreVouchersService {
         message: response.message
       };
     } catch (error: any) {
-      console.error('[STORE VOUCHERS SERVICE] Error fetching vouchers:', error);
+      if (__DEV__) console.error('[STORE VOUCHERS SERVICE] Error fetching vouchers:', error);
       return {
         success: false,
         message: error.message || 'Failed to fetch vouchers',
@@ -150,7 +150,7 @@ class StoreVouchersService {
       const response = await apiClient.get<StoreVoucherStats>(`${this.baseUrl}/stats/${storeId}`);
       return response;
     } catch (error: any) {
-      console.error('[STORE VOUCHERS SERVICE] Error fetching stats:', error);
+      if (__DEV__) console.error('[STORE VOUCHERS SERVICE] Error fetching stats:', error);
       return {
         success: false,
         message: error.message || 'Failed to fetch voucher statistics',
@@ -167,7 +167,7 @@ class StoreVouchersService {
       const response = await apiClient.get<MerchantStoreVoucher>(`${this.baseUrl}/${id}`);
       return response;
     } catch (error: any) {
-      console.error(`[STORE VOUCHERS SERVICE] Error fetching voucher ${id}:`, error);
+      if (__DEV__) console.error(`[STORE VOUCHERS SERVICE] Error fetching voucher ${id}:`, error);
       return {
         success: false,
         message: error.message || 'Failed to fetch voucher',
@@ -184,7 +184,7 @@ class StoreVouchersService {
       const response = await apiClient.post<MerchantStoreVoucher>(this.baseUrl, data);
       return response;
     } catch (error: any) {
-      console.error('[STORE VOUCHERS SERVICE] Error creating voucher:', error);
+      if (__DEV__) console.error('[STORE VOUCHERS SERVICE] Error creating voucher:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to create voucher',
@@ -201,7 +201,7 @@ class StoreVouchersService {
       const response = await apiClient.put<MerchantStoreVoucher>(`${this.baseUrl}/${id}`, data);
       return response;
     } catch (error: any) {
-      console.error(`[STORE VOUCHERS SERVICE] Error updating voucher ${id}:`, error);
+      if (__DEV__) console.error(`[STORE VOUCHERS SERVICE] Error updating voucher ${id}:`, error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to update voucher',
@@ -218,7 +218,7 @@ class StoreVouchersService {
       const response = await apiClient.delete<void>(`${this.baseUrl}/${id}`);
       return response;
     } catch (error: any) {
-      console.error(`[STORE VOUCHERS SERVICE] Error deleting voucher ${id}:`, error);
+      if (__DEV__) console.error(`[STORE VOUCHERS SERVICE] Error deleting voucher ${id}:`, error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to delete voucher',
@@ -238,7 +238,7 @@ class StoreVouchersService {
       );
       return response;
     } catch (error: any) {
-      console.error(`[STORE VOUCHERS SERVICE] Error toggling voucher ${id}:`, error);
+      if (__DEV__) console.error(`[STORE VOUCHERS SERVICE] Error toggling voucher ${id}:`, error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to toggle voucher status',

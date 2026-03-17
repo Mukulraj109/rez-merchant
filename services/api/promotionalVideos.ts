@@ -33,7 +33,7 @@ class PromotionalVideosService {
    */
   async createVideo(data: CreateVideoRequest): Promise<PromotionalVideo> {
     try {
-      console.log('🎥 [PROMO-VIDEO] Creating promotional video:', data.title);
+      if (__DEV__) console.log('🎥 [PROMO-VIDEO] Creating promotional video:', data.title);
 
       const response = await apiClient.post<{ video: PromotionalVideo }>(
         this.basePath,
@@ -44,10 +44,10 @@ class PromotionalVideosService {
         throw new Error(response.message || 'Failed to create video');
       }
 
-      console.log('✅ [PROMO-VIDEO] Video created successfully:', response.data?.video._id);
+      if (__DEV__) console.log('✅ [PROMO-VIDEO] Video created successfully:', response.data?.video._id);
       return response.data!.video;
     } catch (error: any) {
-      console.error('❌ [PROMO-VIDEO] Create video failed:', error);
+      if (__DEV__) console.error('❌ [PROMO-VIDEO] Create video failed:', error);
 
       let errorMessage = 'Failed to create promotional video';
       if (error.response?.data?.message) {
@@ -76,7 +76,7 @@ class PromotionalVideosService {
     }
   ): Promise<VideoListResponse> {
     try {
-      console.log('🎥 [PROMO-VIDEO] Fetching videos for store:', storeId);
+      if (__DEV__) console.log('🎥 [PROMO-VIDEO] Fetching videos for store:', storeId);
 
       const params = new URLSearchParams();
       if (options?.page) params.append('page', options.page.toString());
@@ -92,7 +92,7 @@ class PromotionalVideosService {
         throw new Error(response.message || 'Failed to fetch videos');
       }
 
-      console.log('✅ [PROMO-VIDEO] Fetched', response.data?.length || 0, 'videos');
+      if (__DEV__) console.log('✅ [PROMO-VIDEO] Fetched', response.data?.length || 0, 'videos');
 
       // Handle response format
       const videos = Array.isArray(response.data) ? response.data : (response.data as any)?.videos || [];
@@ -107,7 +107,7 @@ class PromotionalVideosService {
 
       return { videos, pagination };
     } catch (error: any) {
-      console.error('❌ [PROMO-VIDEO] Fetch videos failed:', error);
+      if (__DEV__) console.error('❌ [PROMO-VIDEO] Fetch videos failed:', error);
 
       let errorMessage = 'Failed to fetch promotional videos';
       if (error.response?.data?.message) {
@@ -128,7 +128,7 @@ class PromotionalVideosService {
    */
   async getVideo(videoId: string): Promise<PromotionalVideo> {
     try {
-      console.log('🎥 [PROMO-VIDEO] Fetching video:', videoId);
+      if (__DEV__) console.log('🎥 [PROMO-VIDEO] Fetching video:', videoId);
 
       const response = await apiClient.get<{ video: PromotionalVideo }>(
         `${this.basePath}/${videoId}`
@@ -138,10 +138,10 @@ class PromotionalVideosService {
         throw new Error(response.message || 'Video not found');
       }
 
-      console.log('✅ [PROMO-VIDEO] Video fetched successfully');
+      if (__DEV__) console.log('✅ [PROMO-VIDEO] Video fetched successfully');
       return response.data!.video;
     } catch (error: any) {
-      console.error('❌ [PROMO-VIDEO] Fetch video failed:', error);
+      if (__DEV__) console.error('❌ [PROMO-VIDEO] Fetch video failed:', error);
 
       let errorMessage = 'Failed to fetch video';
       if (error.response?.status === 404) {
@@ -167,7 +167,7 @@ class PromotionalVideosService {
    */
   async updateVideo(videoId: string, data: UpdateVideoRequest): Promise<PromotionalVideo> {
     try {
-      console.log('🎥 [PROMO-VIDEO] Updating video:', videoId);
+      if (__DEV__) console.log('🎥 [PROMO-VIDEO] Updating video:', videoId);
 
       const response = await apiClient.put<{ video: PromotionalVideo }>(
         `${this.basePath}/${videoId}`,
@@ -178,10 +178,10 @@ class PromotionalVideosService {
         throw new Error(response.message || 'Failed to update video');
       }
 
-      console.log('✅ [PROMO-VIDEO] Video updated successfully');
+      if (__DEV__) console.log('✅ [PROMO-VIDEO] Video updated successfully');
       return response.data!.video;
     } catch (error: any) {
-      console.error('❌ [PROMO-VIDEO] Update video failed:', error);
+      if (__DEV__) console.error('❌ [PROMO-VIDEO] Update video failed:', error);
 
       let errorMessage = 'Failed to update video';
       if (error.response?.data?.message) {
@@ -203,7 +203,7 @@ class PromotionalVideosService {
    */
   async deleteVideo(videoId: string): Promise<void> {
     try {
-      console.log('🎥 [PROMO-VIDEO] Deleting video:', videoId);
+      if (__DEV__) console.log('🎥 [PROMO-VIDEO] Deleting video:', videoId);
 
       const response = await apiClient.delete(`${this.basePath}/${videoId}`);
 
@@ -211,9 +211,9 @@ class PromotionalVideosService {
         throw new Error(response.message || 'Failed to delete video');
       }
 
-      console.log('✅ [PROMO-VIDEO] Video deleted successfully');
+      if (__DEV__) console.log('✅ [PROMO-VIDEO] Video deleted successfully');
     } catch (error: any) {
-      console.error('❌ [PROMO-VIDEO] Delete video failed:', error);
+      if (__DEV__) console.error('❌ [PROMO-VIDEO] Delete video failed:', error);
 
       let errorMessage = 'Failed to delete video';
       if (error.response?.data?.message) {
@@ -234,7 +234,7 @@ class PromotionalVideosService {
    */
   async getStoreAnalytics(storeId: string): Promise<StoreVideoAnalytics> {
     try {
-      console.log('📊 [PROMO-VIDEO] Fetching analytics for store:', storeId);
+      if (__DEV__) console.log('📊 [PROMO-VIDEO] Fetching analytics for store:', storeId);
 
       const response = await apiClient.get<StoreVideoAnalytics>(
         `${this.basePath}/analytics/${storeId}`
@@ -244,10 +244,10 @@ class PromotionalVideosService {
         throw new Error(response.message || 'Failed to fetch analytics');
       }
 
-      console.log('✅ [PROMO-VIDEO] Analytics fetched successfully');
+      if (__DEV__) console.log('✅ [PROMO-VIDEO] Analytics fetched successfully');
       return response.data!;
     } catch (error: any) {
-      console.error('❌ [PROMO-VIDEO] Fetch analytics failed:', error);
+      if (__DEV__) console.error('❌ [PROMO-VIDEO] Fetch analytics failed:', error);
 
       // Return default analytics on error
       return {

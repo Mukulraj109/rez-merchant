@@ -124,7 +124,7 @@ export default function OrderAnalyticsScreen() {
       const analyticsData = await ordersService.getAnalytics(dateStart, dateEnd);
       setAnalytics(analyticsData);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      if (__DEV__) console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }

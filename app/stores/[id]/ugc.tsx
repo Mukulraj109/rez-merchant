@@ -83,7 +83,7 @@ export default function StoreUGCScreen() {
         setError('Failed to load UGC content');
       }
     } catch (err: any) {
-      console.error('Error loading UGC:', err);
+      if (__DEV__) console.error('Error loading UGC:', err);
       setError(err.message || 'Failed to load UGC content');
     } finally {
       setLoading(false);

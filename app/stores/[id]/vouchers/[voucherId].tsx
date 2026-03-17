@@ -155,7 +155,7 @@ export default function EditVoucherScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error loading voucher:', error);
+      if (__DEV__) console.error('Error loading voucher:', error);
       setAlertModal({
         visible: true,
         title: 'Error',
@@ -247,7 +247,7 @@ export default function EditVoucherScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error updating voucher:', error);
+      if (__DEV__) console.error('Error updating voucher:', error);
       setAlertModal({
         visible: true,
         title: 'Error',

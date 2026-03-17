@@ -45,7 +45,7 @@ export default function SocialImpactEventsScreen() {
       setEvents(response.events);
       setTotalCount(response.events.length);
     } catch (error: any) {
-      console.error('Error fetching events:', error);
+      if (__DEV__) console.error('Error fetching events:', error);
       showAlert('Error', error.message || 'Failed to fetch events');
     } finally {
       setIsLoading(false);

@@ -28,7 +28,7 @@ export default function CashbackScreen() {
       if (showRefreshing) setRefreshing(true);
       else setIsLoading(true);
 
-      console.log('🔄 Fetching cashback data...');
+      if (__DEV__) console.log('🔄 Fetching cashback data...');
 
       // Fetch metrics and requests in parallel
       const [metricsData, requestsData] = await Promise.all([
@@ -42,12 +42,12 @@ export default function CashbackScreen() {
         })
       ]);
 
-      console.log('✅ Cashback data received:', { metricsData, requestsData });
+      if (__DEV__) console.log('✅ Cashback data received:', { metricsData, requestsData });
       
       setMetrics(metricsData);
       setCashbackRequests(requestsData.requests || []);
     } catch (error) {
-      console.error('❌ Error fetching cashback data:', error);
+      if (__DEV__) console.error('❌ Error fetching cashback data:', error);
       showAlert('Error', 'Failed to load cashback data. Please try again.');
     } finally {
       setIsLoading(false);
@@ -65,7 +65,7 @@ export default function CashbackScreen() {
 
   const handleQuickAction = useCallback(async (requestId: string, action: 'approve' | 'reject') => {
     try {
-      console.log(`🔄 ${action}ing cashback request ${requestId}...`);
+      if (__DEV__) console.log(`🔄 ${action}ing cashback request ${requestId}...`);
       
       if (action === 'approve') {
         const request = cashbackRequests.find(r => r.id === requestId);
@@ -83,23 +83,23 @@ export default function CashbackScreen() {
         });
       }
 
-      console.log(`✅ Cashback request ${action}d successfully`);
+      if (__DEV__) console.log(`✅ Cashback request ${action}d successfully`);
       await fetchData();
       showAlert('Success', `Cashback request ${action}d successfully`);
     } catch (error) {
-      console.error(`❌ Error ${action}ing request:`, error);
+      if (__DEV__) console.error(`❌ Error ${action}ing request:`, error);
       showAlert('Error', `Failed to ${action} request. Please try again.`);
     }
   }, [cashbackRequests, fetchData]);
 
   const generateSampleData = useCallback(async () => {
     try {
-      console.log('🎲 Generating sample cashback data...');
+      if (__DEV__) console.log('🎲 Generating sample cashback data...');
       await cashbackService.createSampleData();
       await fetchData();
       showAlert('Success', 'Sample cashback requests generated successfully');
     } catch (error) {
-      console.error('❌ Error generating sample data:', error);
+      if (__DEV__) console.error('❌ Error generating sample data:', error);
       showAlert('Error', 'Failed to generate sample data. Please try again.');
     }
   }, [fetchData]);

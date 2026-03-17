@@ -130,7 +130,7 @@ export default function AddOutletScreen() {
           setValue('address', fullAddress);
         }
       } catch (err) {
-        console.log('Could not get address from coordinates');
+        if (__DEV__) console.log('Could not get address from coordinates');
       }
 
     } catch (error: any) {
@@ -225,7 +225,7 @@ export default function AddOutletScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error creating outlet:', error);
+      if (__DEV__) console.error('Error creating outlet:', error);
       setAlertModal({
         visible: true,
         title: 'Error',

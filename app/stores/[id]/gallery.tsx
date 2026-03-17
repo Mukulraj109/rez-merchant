@@ -48,7 +48,7 @@ if (Platform.OS !== 'web') {
     DraggableFlatList = DragModule.default;
     RenderItemParams = DragModule.RenderItemParams;
   } catch (e) {
-    console.log('Draggable FlatList not available for this platform');
+    if (__DEV__) console.log('Draggable FlatList not available for this platform');
   }
 }
 
@@ -136,7 +136,7 @@ export default function StoreGalleryScreen() {
       });
       setGalleryItems(response.items);
     } catch (err: any) {
-      console.error('Error loading gallery:', err);
+      if (__DEV__) console.error('Error loading gallery:', err);
       setError(err.message || 'Failed to load gallery');
     } finally {
       setLoading(false);
@@ -148,7 +148,7 @@ export default function StoreGalleryScreen() {
       const cats = await storeGalleryService.getCategories(storeId);
       setCategories(cats);
     } catch (err: any) {
-      console.error('Error loading categories:', err);
+      if (__DEV__) console.error('Error loading categories:', err);
     }
   };
 
@@ -196,7 +196,7 @@ export default function StoreGalleryScreen() {
         }
       }
     } catch (error: any) {
-      console.error('Image picker error:', error);
+      if (__DEV__) console.error('Image picker error:', error);
       showError('Error', error.message || 'Failed to select images', setErrorMessage, setShowErrorModal);
       setUploading(false);
     }
@@ -228,7 +228,7 @@ export default function StoreGalleryScreen() {
 
       showSuccess('Success', 'Image uploaded successfully!', setSuccessMessage, setShowSuccessModal);
     } catch (error: any) {
-      console.error('Upload error:', error);
+      if (__DEV__) console.error('Upload error:', error);
       showError('Upload Error', error.message || 'Failed to upload image', setErrorMessage, setShowErrorModal);
     } finally {
       setUploading(false);
@@ -266,7 +266,7 @@ export default function StoreGalleryScreen() {
         setShowSuccessModal
       );
     } catch (error: any) {
-      console.error('Bulk upload error:', error);
+      if (__DEV__) console.error('Bulk upload error:', error);
       showError('Upload Error', error.message || 'Failed to upload images', setErrorMessage, setShowErrorModal);
     } finally {
       setUploading(false);
@@ -303,7 +303,7 @@ export default function StoreGalleryScreen() {
 
       showSuccess('Success', 'Gallery item updated successfully!', setSuccessMessage, setShowSuccessModal);
     } catch (error: any) {
-      console.error('Update error:', error);
+      if (__DEV__) console.error('Update error:', error);
       showError('Error', error.message || 'Failed to update gallery item', setErrorMessage, setShowErrorModal);
     } finally {
       setUploading(false);
@@ -329,7 +329,7 @@ export default function StoreGalleryScreen() {
 
       showSuccess('Success', 'Gallery item deleted successfully!', setSuccessMessage, setShowSuccessModal);
     } catch (error: any) {
-      console.error('Delete error:', error);
+      if (__DEV__) console.error('Delete error:', error);
       showError('Error', error.message || 'Failed to delete gallery item', setErrorMessage, setShowErrorModal);
     } finally {
       setDeleting(false);
@@ -344,7 +344,7 @@ export default function StoreGalleryScreen() {
       await loadCategories();
       showSuccess('Success', 'Cover image set successfully!', setSuccessMessage, setShowSuccessModal);
     } catch (error: any) {
-      console.error('Set cover error:', error);
+      if (__DEV__) console.error('Set cover error:', error);
       showError('Error', error.message || 'Failed to set cover image', setErrorMessage, setShowErrorModal);
     } finally {
       setUploading(false);
@@ -362,7 +362,7 @@ export default function StoreGalleryScreen() {
       }));
       await storeGalleryService.reorder(storeId, reorderItems);
     } catch (error: any) {
-      console.error('Reorder error:', error);
+      if (__DEV__) console.error('Reorder error:', error);
       showError('Error', 'Failed to reorder items. Reloading...', setErrorMessage, setShowErrorModal);
       await loadGallery();
     }
@@ -403,7 +403,7 @@ export default function StoreGalleryScreen() {
       await loadCategories();
       showSuccess('Success', `${itemIds.length} items deleted successfully!`, setSuccessMessage, setShowSuccessModal);
     } catch (error: any) {
-      console.error('Bulk delete error:', error);
+      if (__DEV__) console.error('Bulk delete error:', error);
       showError('Error', error.message || 'Failed to delete items', setErrorMessage, setShowErrorModal);
     } finally {
       setDeleting(false);
@@ -427,7 +427,7 @@ export default function StoreGalleryScreen() {
       await loadGallery();
       showSuccess('Success', `${selectedItems.size} items ${isVisible ? 'shown' : 'hidden'} successfully!`, setSuccessMessage, setShowSuccessModal);
     } catch (error: any) {
-      console.error('Bulk visibility toggle error:', error);
+      if (__DEV__) console.error('Bulk visibility toggle error:', error);
       showError('Error', error.message || 'Failed to update visibility', setErrorMessage, setShowErrorModal);
     } finally {
       setUploading(false);
@@ -442,7 +442,7 @@ export default function StoreGalleryScreen() {
       });
       await loadGallery();
     } catch (error: any) {
-      console.error('Visibility toggle error:', error);
+      if (__DEV__) console.error('Visibility toggle error:', error);
       showError('Error', error.message || 'Failed to toggle visibility', setErrorMessage, setShowErrorModal);
     }
   };

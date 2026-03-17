@@ -25,7 +25,7 @@ if (Platform.OS !== 'web') {
     DraggableFlatList = DragModule.default;
     RenderItemParams = DragModule.RenderItemParams;
   } catch (e) {
-    console.log('Draggable FlatList not available for this platform');
+    if (__DEV__) console.log('Draggable FlatList not available for this platform');
   }
 }
 
@@ -99,7 +99,7 @@ export default function OrganizeCategoriesScreen() {
       const data = await response.json();
       setCategories(data.data.categories);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      if (__DEV__) console.error('Error fetching categories:', error);
       showAlert('Error', 'Failed to load categories. Please try again.');
     } finally {
       setLoading(false);
@@ -257,7 +257,7 @@ export default function OrganizeCategoriesScreen() {
             ]
           );
         } catch (error) {
-          console.error('Error executing operations:', error);
+          if (__DEV__) console.error('Error executing operations:', error);
           showAlert('Error', 'Failed to execute operations. Please try again.');
         } finally {
           setSaving(false);

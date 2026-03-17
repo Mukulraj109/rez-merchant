@@ -94,7 +94,7 @@ class PaymentsService {
 
       return data;
     } catch (error: any) {
-      console.error('[PaymentsService] getPayments error:', error);
+      if (__DEV__) console.error('[PaymentsService] getPayments error:', error);
       throw error;
     }
   }
@@ -118,7 +118,7 @@ class PaymentsService {
 
       return data;
     } catch (error: any) {
-      console.error('[PaymentsService] getPaymentStats error:', error);
+      if (__DEV__) console.error('[PaymentsService] getPaymentStats error:', error);
       throw error;
     }
   }

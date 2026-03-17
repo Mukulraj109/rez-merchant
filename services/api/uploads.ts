@@ -72,7 +72,7 @@ class UploadsService {
           const finalMimeType = blob.type || mimeType;
           return new File([blob], filename, { type: finalMimeType });
         } catch (error) {
-          console.error('Error converting blob URL to File:', error);
+          if (__DEV__) console.error('Error converting blob URL to File:', error);
           throw new Error('Failed to process image file');
         }
       }
@@ -85,7 +85,7 @@ class UploadsService {
           const finalMimeType = blob.type || mimeType;
           return new File([blob], filename, { type: finalMimeType });
         } catch (error) {
-          console.error('Error converting data URI to File:', error);
+          if (__DEV__) console.error('Error converting data URI to File:', error);
           throw new Error('Failed to process image file');
         }
       }
@@ -104,7 +104,7 @@ class UploadsService {
    */
   async uploadImage(imageUri: string, filename?: string, imageType?: 'logo' | 'banner' | 'general', fileObject?: File): Promise<UploadedFile> {
     try {
-      console.log('📤 Starting image upload:', imageUri);
+      if (__DEV__) console.log('Starting image upload:', imageUri);
       
       // Create FormData
       const formData = new FormData();
@@ -168,10 +168,10 @@ class UploadsService {
         throw new Error(response.data.message || 'Upload failed');
       }
 
-      console.log('✅ Image uploaded successfully:', response.data.data);
+      if (__DEV__) console.log('Image uploaded successfully:', response.data.data);
       return response.data.data;
     } catch (error: any) {
-      console.error('❌ Image upload failed:', error);
+      if (__DEV__) console.error('Image upload failed:', error);
       
       let errorMessage = 'Failed to upload image';
       if (error.response?.data?.message) {
@@ -189,7 +189,7 @@ class UploadsService {
    */
   async uploadImages(imageUris: string[]): Promise<UploadedFile[]> {
     try {
-      console.log('📤 Starting multiple image upload:', imageUris.length, 'images');
+      if (__DEV__) console.log('Starting multiple image upload:', imageUris.length, 'images');
       
       // Create FormData
       const formData = new FormData();
@@ -226,10 +226,10 @@ class UploadsService {
       }
 
       const files = response.data.data.files || [];
-      console.log('✅ Images uploaded successfully:', files.length, 'files');
+      if (__DEV__) console.log('Images uploaded successfully:', files.length, 'files');
       return files;
     } catch (error: any) {
-      console.error('❌ Multiple image upload failed:', error);
+      if (__DEV__) console.error('Multiple image upload failed:', error);
       
       let errorMessage = 'Failed to upload images';
       if (error.response?.data?.message) {
@@ -247,7 +247,7 @@ class UploadsService {
    */
   async deleteFile(filename: string): Promise<void> {
     try {
-      console.log('🗑️ Deleting file:', filename);
+      if (__DEV__) console.log('Deleting file:', filename);
       
       const response = await apiClient.delete<{ success: boolean; message: string }>(
         `/merchant/uploads/${filename}` // Remove /api prefix since it's already in base URL
@@ -257,9 +257,9 @@ class UploadsService {
         throw new Error(response.message || 'Delete failed');
       }
 
-      console.log('✅ File deleted successfully');
+      if (__DEV__) console.log('File deleted successfully');
     } catch (error: any) {
-      console.error('❌ File deletion failed:', error);
+      if (__DEV__) console.error('File deletion failed:', error);
       
       let errorMessage = 'Failed to delete file';
       if (error.response?.data?.message) {
@@ -289,7 +289,7 @@ class UploadsService {
     onProgress?: (progress: number) => void
   ): Promise<UploadedFile> {
     try {
-      console.log('📤 Starting image upload with progress:', imageUri);
+      if (__DEV__) console.log('Starting image upload with progress:', imageUri);
       
       const formData = new FormData();
       const fileToUpload = {
@@ -326,10 +326,10 @@ class UploadsService {
         throw new Error(response.data.message || 'Upload failed');
       }
 
-      console.log('✅ Image uploaded successfully with progress');
+      if (__DEV__) console.log('Image uploaded successfully with progress');
       return response.data.data;
     } catch (error: any) {
-      console.error('❌ Image upload with progress failed:', error);
+      if (__DEV__) console.error('Image upload with progress failed:', error);
       throw new Error(error.response?.data?.message || error.message || 'Upload failed');
     }
   }
@@ -343,7 +343,7 @@ class UploadsService {
     onProgress?: (progress: number) => void
   ): Promise<UploadedFile[]> {
     try {
-      console.log('📤 Starting product images upload:', imageUris.length, 'images');
+      if (__DEV__) console.log('Starting product images upload:', imageUris.length, 'images');
       
       const formData = new FormData();
       
@@ -404,10 +404,10 @@ class UploadsService {
         throw new Error(response.data.message || 'Upload failed');
       }
 
-      console.log('✅ Product images uploaded successfully:', response.data.data.images?.length || 0);
+      if (__DEV__) console.log('Product images uploaded successfully:', response.data.data.images?.length || 0);
       return response.data.data.images || [];
     } catch (error: any) {
-      console.error('❌ Product images upload failed:', error);
+      if (__DEV__) console.error('Product images upload failed:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to upload product images');
     }
   }
@@ -423,7 +423,7 @@ class UploadsService {
     fileObject?: File
   ): Promise<UploadedVideo> {
     try {
-      console.log('📤 Starting video upload:', videoUri);
+      if (__DEV__) console.log('Starting video upload:', videoUri);
       
       const formData = new FormData();
       
@@ -495,10 +495,10 @@ class UploadsService {
         throw new Error(response.data.message || 'Upload failed');
       }
 
-      console.log('✅ Video uploaded successfully:', response.data.data);
+      if (__DEV__) console.log('Video uploaded successfully:', response.data.data);
       return response.data.data;
     } catch (error: any) {
-      console.error('❌ Video upload failed:', error);
+      if (__DEV__) console.error('Video upload failed:', error);
       
       let errorMessage = 'Failed to upload video';
       if (error.response?.data?.message) {
@@ -519,7 +519,7 @@ class UploadsService {
     onProgress?: (progress: number) => void
   ): Promise<UploadedVideo[]> {
     try {
-      console.log('📤 Uploading', videoUris.length, 'videos sequentially');
+      if (__DEV__) console.log('Uploading', videoUris.length, 'videos sequentially');
       
       const uploadedVideos: UploadedVideo[] = [];
       
@@ -533,10 +533,10 @@ class UploadsService {
         uploadedVideos.push(result);
       }
       
-      console.log('✅ All videos uploaded successfully');
+      if (__DEV__) console.log('All videos uploaded successfully');
       return uploadedVideos;
     } catch (error: any) {
-      console.error('❌ Multiple video upload failed:', error);
+      if (__DEV__) console.error('Multiple video upload failed:', error);
       throw new Error(error.message || 'Failed to upload videos');
     }
   }
@@ -551,14 +551,14 @@ class UploadsService {
     fileObject?: File
   ): Promise<UploadedVideo> {
     try {
-      console.log('📤 Starting product video upload');
+      if (__DEV__) console.log('Starting product video upload');
       
       // Use the regular video upload endpoint with product type
       const result = await this.uploadVideo(videoUri, undefined, 'product', onProgress, fileObject);
       
       return result;
     } catch (error: any) {
-      console.error('❌ Product video upload failed:', error);
+      if (__DEV__) console.error('Product video upload failed:', error);
       throw new Error(error.message || 'Failed to upload product video');
     }
   }

@@ -83,7 +83,7 @@ export default function PromotionalVideosScreen() {
       setVideos(videosResponse.videos);
       setAnalytics(analyticsResponse);
     } catch (err: any) {
-      console.error('Error loading promotional videos:', err);
+      if (__DEV__) console.error('Error loading promotional videos:', err);
       setError(err.message || 'Failed to load videos');
     } finally {
       setLoading(false);
@@ -127,7 +127,7 @@ export default function PromotionalVideosScreen() {
       setShowSuccessModal(true);
       loadData();
     } catch (err: any) {
-      console.error('Delete video error:', err);
+      if (__DEV__) console.error('Delete video error:', err);
       setErrorMessage({
         title: 'Delete Failed',
         message: err.message || 'Failed to delete video. Please try again.',
@@ -141,7 +141,7 @@ export default function PromotionalVideosScreen() {
   // Handle video press (could navigate to detail/edit screen)
   const handleVideoPress = useCallback((video: PromotionalVideo) => {
     // For now, just log - could navigate to edit screen
-    console.log('Video pressed:', video._id);
+    if (__DEV__) console.log('Video pressed:', video._id);
   }, []);
 
   // Handle edit

@@ -66,7 +66,7 @@ export default function InvoiceViewerScreen() {
       const orderData = await ordersService.getOrderById(orderId);
       setOrder(orderData);
     } catch (error) {
-      console.error('Error fetching order:', error);
+      if (__DEV__) console.error('Error fetching order:', error);
       showAlert('Error', 'Failed to fetch order details');
       router.back();
     } finally {
@@ -90,7 +90,7 @@ export default function InvoiceViewerScreen() {
 
       showAlert('Success', 'Invoice generated successfully!');
     } catch (error) {
-      console.error('Error generating invoice:', error);
+      if (__DEV__) console.error('Error generating invoice:', error);
       showAlert('Error', 'Failed to generate invoice');
     } finally {
       setGenerating(false);
@@ -131,7 +131,7 @@ export default function InvoiceViewerScreen() {
         }
       }
     } catch (error) {
-      console.error('Error downloading invoice:', error);
+      if (__DEV__) console.error('Error downloading invoice:', error);
       showAlert('Error', 'Failed to download invoice');
     } finally {
       setDownloading(false);
@@ -164,7 +164,7 @@ export default function InvoiceViewerScreen() {
 
       showAlert('Success', `Invoice sent to ${order.customer?.email || 'customer'}`);
     } catch (error) {
-      console.error('Error emailing invoice:', error);
+      if (__DEV__) console.error('Error emailing invoice:', error);
       showAlert('Error', 'Failed to send invoice via email');
     } finally {
       setEmailing(false);
@@ -197,7 +197,7 @@ export default function InvoiceViewerScreen() {
         title: 'Share Invoice'
       });
     } catch (error) {
-      console.error('Error sharing invoice:', error);
+      if (__DEV__) console.error('Error sharing invoice:', error);
     }
   };
 

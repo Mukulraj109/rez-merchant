@@ -1820,7 +1820,7 @@ export default function EditStoreScreen() {
               // Show validation errors
               const errorMessages = Object.values(validationErrors).map(err => err?.message).filter(Boolean);
               if (errorMessages.length > 0) {
-                console.error('❌ [EditStore] Validation error messages:', errorMessages);
+                if (__DEV__) console.error('❌ [EditStore] Validation error messages:', errorMessages);
                 showError('Validation Error', errorMessages.join('\n'));
               }
             })();

@@ -180,7 +180,7 @@ export default function AddVoucherScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error creating voucher:', error);
+      if (__DEV__) console.error('Error creating voucher:', error);
       setAlertModal({
         visible: true,
         title: 'Error',

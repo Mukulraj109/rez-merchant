@@ -114,7 +114,7 @@ class SocialMediaService {
         throw new Error(data.message || 'Failed to get social media posts');
       }
     } catch (error: any) {
-      console.error('Get social media posts error:', error);
+      if (__DEV__) console.error('Get social media posts error:', error);
       throw new Error(error.message || 'Failed to get social media posts');
     }
   }
@@ -144,7 +144,7 @@ class SocialMediaService {
         throw new Error(data.message || 'Failed to get social media post');
       }
     } catch (error: any) {
-      console.error('Get social media post error:', error);
+      if (__DEV__) console.error('Get social media post error:', error);
       throw new Error(error.message || 'Failed to get social media post');
     }
   }
@@ -175,7 +175,7 @@ class SocialMediaService {
         throw new Error(data.message || 'Failed to approve social media post');
       }
     } catch (error: any) {
-      console.error('Approve social media post error:', error);
+      if (__DEV__) console.error('Approve social media post error:', error);
       throw new Error(error.message || 'Failed to approve social media post');
     }
   }
@@ -206,7 +206,7 @@ class SocialMediaService {
         throw new Error(data.message || 'Failed to reject social media post');
       }
     } catch (error: any) {
-      console.error('Reject social media post error:', error);
+      if (__DEV__) console.error('Reject social media post error:', error);
       throw new Error(error.message || 'Failed to reject social media post');
     }
   }
@@ -236,7 +236,7 @@ class SocialMediaService {
         throw new Error(data.message || 'Failed to get social media stats');
       }
     } catch (error: any) {
-      console.error('Get social media stats error:', error);
+      if (__DEV__) console.error('Get social media stats error:', error);
       // Return default stats on error
       return {
         total: 0,

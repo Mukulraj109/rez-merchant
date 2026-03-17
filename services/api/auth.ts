@@ -42,7 +42,7 @@ class AuthService {
         throw new Error(response.message || 'Login failed');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
+      if (__DEV__) console.error('Login error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
   }
@@ -79,7 +79,7 @@ class AuthService {
         throw new Error(response.message || 'Registration failed');
       }
     } catch (error: any) {
-      console.error('Registration error:', error);
+      if (__DEV__) console.error('Registration error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Registration failed');
     }
   }
@@ -100,7 +100,7 @@ class AuthService {
         throw new Error(response.message || 'Token refresh failed');
       }
     } catch (error: any) {
-      console.error('Token refresh error:', error);
+      if (__DEV__) console.error('Token refresh error:', error);
       // If refresh fails, clear stored data
       await this.logout();
       throw new Error(error.response?.data?.message || error.message || 'Token refresh failed');
@@ -137,7 +137,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to get profile');
       }
     } catch (error: any) {
-      console.error('Get profile error:', error);
+      if (__DEV__) console.error('Get profile error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get profile');
     }
   }
@@ -156,7 +156,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to update profile');
       }
     } catch (error: any) {
-      console.error('Update profile error:', error);
+      if (__DEV__) console.error('Update profile error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to update profile');
     }
   }
@@ -173,7 +173,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to change password');
       }
     } catch (error: any) {
-      console.error('Change password error:', error);
+      if (__DEV__) console.error('Change password error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to change password');
     }
   }
@@ -188,7 +188,7 @@ class AuthService {
           await apiClient.post('merchant/auth/logout');
         } catch (error) {
           // Continue with logout even if API call fails
-          console.warn('Logout API call failed:', error);
+          if (__DEV__) console.warn('Logout API call failed:', error);
         }
       }
     } finally {
@@ -242,7 +242,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to send reset email');
       }
     } catch (error: any) {
-      console.error('Forgot password error:', error);
+      if (__DEV__) console.error('Forgot password error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to send reset email');
     }
   }
@@ -259,7 +259,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to reset password');
       }
     } catch (error: any) {
-      console.error('Reset password error:', error);
+      if (__DEV__) console.error('Reset password error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to reset password');
     }
   }
@@ -273,7 +273,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to verify email');
       }
     } catch (error: any) {
-      console.error('Verify email error:', error);
+      if (__DEV__) console.error('Verify email error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to verify email');
     }
   }
@@ -287,7 +287,7 @@ class AuthService {
         throw new Error(response.message || 'Failed to resend verification email');
       }
     } catch (error: any) {
-      console.error('Resend verification error:', error);
+      if (__DEV__) console.error('Resend verification error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to resend verification email');
     }
   }

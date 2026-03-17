@@ -40,7 +40,7 @@ class DocumentsService {
     options?: DocumentGenerationOptions
   ): Promise<DocumentGenerationResponse> {
     try {
-      console.log(`📄 Generating invoice for order: ${orderId}`);
+      if (__DEV__) console.log(`📄 Generating invoice for order: ${orderId}`);
 
       // Validate required data
       if (!orderId) {
@@ -71,13 +71,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Invoice generated successfully');
+        if (__DEV__) console.log('✅ Invoice generated successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to generate invoice');
       }
     } catch (error: any) {
-      console.error('❌ Generate invoice error:', error);
+      if (__DEV__) console.error('❌ Generate invoice error:', error);
       throw new Error(error.message || 'Failed to generate invoice');
     }
   }
@@ -91,7 +91,7 @@ class DocumentsService {
     options?: DocumentGenerationOptions
   ): Promise<DocumentGenerationResponse> {
     try {
-      console.log(`📦 Generating shipping label for order: ${orderId}`);
+      if (__DEV__) console.log(`📦 Generating shipping label for order: ${orderId}`);
 
       // Validate required data
       if (!orderId) {
@@ -125,13 +125,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Shipping label generated successfully');
+        if (__DEV__) console.log('✅ Shipping label generated successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to generate shipping label');
       }
     } catch (error: any) {
-      console.error('❌ Generate shipping label error:', error);
+      if (__DEV__) console.error('❌ Generate shipping label error:', error);
       throw new Error(error.message || 'Failed to generate shipping label');
     }
   }
@@ -144,7 +144,7 @@ class DocumentsService {
     options?: DocumentGenerationOptions
   ): Promise<DocumentGenerationResponse> {
     try {
-      console.log(`📋 Generating packing slip for order: ${orderId}`);
+      if (__DEV__) console.log(`📋 Generating packing slip for order: ${orderId}`);
 
       // Validate required data
       if (!orderId) {
@@ -174,13 +174,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Packing slip generated successfully');
+        if (__DEV__) console.log('✅ Packing slip generated successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to generate packing slip');
       }
     } catch (error: any) {
-      console.error('❌ Generate packing slip error:', error);
+      if (__DEV__) console.error('❌ Generate packing slip error:', error);
       throw new Error(error.message || 'Failed to generate packing slip');
     }
   }
@@ -190,7 +190,7 @@ class DocumentsService {
    */
   async getDocument(documentId: string): Promise<Document> {
     try {
-      console.log(`🔍 Fetching document: ${documentId}`);
+      if (__DEV__) console.log(`🔍 Fetching document: ${documentId}`);
 
       const response = await fetch(`${this.baseUrl}/${documentId}`, {
         method: 'GET',
@@ -208,13 +208,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Document fetched successfully');
+        if (__DEV__) console.log('✅ Document fetched successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get document');
       }
     } catch (error: any) {
-      console.error('❌ Get document error:', error);
+      if (__DEV__) console.error('❌ Get document error:', error);
       throw new Error(error.message || 'Failed to get document');
     }
   }
@@ -224,7 +224,7 @@ class DocumentsService {
    */
   async listDocuments(filters?: DocumentFilters): Promise<DocumentListResponse> {
     try {
-      console.log('📚 Fetching documents list');
+      if (__DEV__) console.log('📚 Fetching documents list');
 
       const searchParams = new URLSearchParams();
 
@@ -255,13 +255,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log(`✅ Found ${data.data.totalCount} documents`);
+        if (__DEV__) console.log(`✅ Found ${data.data.totalCount} documents`);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to list documents');
       }
     } catch (error: any) {
-      console.error('❌ List documents error:', error);
+      if (__DEV__) console.error('❌ List documents error:', error);
       throw new Error(error.message || 'Failed to list documents');
     }
   }
@@ -271,7 +271,7 @@ class DocumentsService {
    */
   async deleteDocument(documentId: string): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(`🗑️ Deleting document: ${documentId}`);
+      if (__DEV__) console.log(`🗑️ Deleting document: ${documentId}`);
 
       const response = await fetch(`${this.baseUrl}/${documentId}`, {
         method: 'DELETE',
@@ -289,13 +289,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Document deleted successfully');
+        if (__DEV__) console.log('✅ Document deleted successfully');
         return { success: true, message: data.message || 'Document deleted' };
       } else {
         throw new Error(data.message || 'Failed to delete document');
       }
     } catch (error: any) {
-      console.error('❌ Delete document error:', error);
+      if (__DEV__) console.error('❌ Delete document error:', error);
       throw new Error(error.message || 'Failed to delete document');
     }
   }
@@ -313,7 +313,7 @@ class DocumentsService {
     }
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(`📧 Emailing document: ${documentId}`);
+      if (__DEV__) console.log(`📧 Emailing document: ${documentId}`);
 
       // Validate recipients
       if (!recipients || recipients.length === 0) {
@@ -345,13 +345,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Document emailed successfully');
+        if (__DEV__) console.log('✅ Document emailed successfully');
         return { success: true, message: data.message || 'Document emailed' };
       } else {
         throw new Error(data.message || 'Failed to email document');
       }
     } catch (error: any) {
-      console.error('❌ Email document error:', error);
+      if (__DEV__) console.error('❌ Email document error:', error);
       throw new Error(error.message || 'Failed to email document');
     }
   }
@@ -361,7 +361,7 @@ class DocumentsService {
    */
   async downloadDocument(documentId: string): Promise<{ url: string; filename: string }> {
     try {
-      console.log(`⬇️ Getting download URL for document: ${documentId}`);
+      if (__DEV__) console.log(`⬇️ Getting download URL for document: ${documentId}`);
 
       const response = await fetch(`${this.baseUrl}/${documentId}/download`, {
         method: 'GET',
@@ -379,13 +379,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Download URL retrieved successfully');
+        if (__DEV__) console.log('✅ Download URL retrieved successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get download URL');
       }
     } catch (error: any) {
-      console.error('❌ Download document error:', error);
+      if (__DEV__) console.error('❌ Download document error:', error);
       throw new Error(error.message || 'Failed to download document');
     }
   }
@@ -397,7 +397,7 @@ class DocumentsService {
     request: BulkGenerateDocumentsRequest
   ): Promise<BulkGenerateDocumentsResponse> {
     try {
-      console.log(`📦 Bulk generating ${request.type} for ${request.orderIds.length} orders`);
+      if (__DEV__) console.log(`📦 Bulk generating ${request.type} for ${request.orderIds.length} orders`);
 
       // Validate request
       if (!request.orderIds || request.orderIds.length === 0) {
@@ -421,13 +421,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log(`✅ Bulk generation complete: ${data.data.summary.successful}/${data.data.summary.total} successful`);
+        if (__DEV__) console.log(`✅ Bulk generation complete: ${data.data.summary.successful}/${data.data.summary.total} successful`);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to bulk generate documents');
       }
     } catch (error: any) {
-      console.error('❌ Bulk generate documents error:', error);
+      if (__DEV__) console.error('❌ Bulk generate documents error:', error);
       throw new Error(error.message || 'Failed to bulk generate documents');
     }
   }
@@ -440,7 +440,7 @@ class DocumentsService {
     dateEnd?: string
   ): Promise<DocumentAnalytics> {
     try {
-      console.log('📊 Fetching document analytics');
+      if (__DEV__) console.log('📊 Fetching document analytics');
 
       const searchParams = new URLSearchParams();
       if (dateStart) searchParams.append('dateStart', dateStart);
@@ -465,13 +465,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Analytics fetched successfully');
+        if (__DEV__) console.log('✅ Analytics fetched successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get analytics');
       }
     } catch (error: any) {
-      console.error('❌ Get analytics error:', error);
+      if (__DEV__) console.error('❌ Get analytics error:', error);
       // Return default analytics on error
       return {
         totalDocuments: 0,
@@ -492,7 +492,7 @@ class DocumentsService {
    */
   async getSettings(): Promise<DocumentSettings> {
     try {
-      console.log('⚙️ Fetching document settings');
+      if (__DEV__) console.log('⚙️ Fetching document settings');
 
       const response = await fetch(`${this.baseUrl}/settings`, {
         method: 'GET',
@@ -510,13 +510,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Settings fetched successfully');
+        if (__DEV__) console.log('✅ Settings fetched successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get settings');
       }
     } catch (error: any) {
-      console.error('❌ Get settings error:', error);
+      if (__DEV__) console.error('❌ Get settings error:', error);
       throw new Error(error.message || 'Failed to get settings');
     }
   }
@@ -528,7 +528,7 @@ class DocumentsService {
     settings: Partial<DocumentSettings>
   ): Promise<DocumentSettings> {
     try {
-      console.log('⚙️ Updating document settings');
+      if (__DEV__) console.log('⚙️ Updating document settings');
 
       const response = await fetch(`${this.baseUrl}/settings`, {
         method: 'PUT',
@@ -547,13 +547,13 @@ class DocumentsService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log('✅ Settings updated successfully');
+        if (__DEV__) console.log('✅ Settings updated successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to update settings');
       }
     } catch (error: any) {
-      console.error('❌ Update settings error:', error);
+      if (__DEV__) console.error('❌ Update settings error:', error);
       throw new Error(error.message || 'Failed to update settings');
     }
   }
@@ -563,7 +563,7 @@ class DocumentsService {
    */
   async getDocumentsByOrder(orderId: string): Promise<Document[]> {
     try {
-      console.log(`📄 Fetching documents for order: ${orderId}`);
+      if (__DEV__) console.log(`📄 Fetching documents for order: ${orderId}`);
 
       const result = await this.listDocuments({
         orderId,
@@ -573,7 +573,7 @@ class DocumentsService {
 
       return result.documents;
     } catch (error: any) {
-      console.error('❌ Get documents by order error:', error);
+      if (__DEV__) console.error('❌ Get documents by order error:', error);
       return [];
     }
   }
@@ -587,7 +587,7 @@ class DocumentsService {
     limit: number = 20
   ): Promise<DocumentListResponse> {
     try {
-      console.log(`📄 Fetching ${type} documents`);
+      if (__DEV__) console.log(`📄 Fetching ${type} documents`);
 
       return await this.listDocuments({
         type,
@@ -597,7 +597,7 @@ class DocumentsService {
         sortOrder: 'desc'
       });
     } catch (error: any) {
-      console.error('❌ Get documents by type error:', error);
+      if (__DEV__) console.error('❌ Get documents by type error:', error);
       throw error;
     }
   }
@@ -611,7 +611,7 @@ class DocumentsService {
     message?: string;
   }> {
     try {
-      console.log(`🔍 Checking generation status: ${documentId}`);
+      if (__DEV__) console.log(`🔍 Checking generation status: ${documentId}`);
 
       const response = await fetch(`${this.baseUrl}/${documentId}/status`, {
         method: 'GET',
@@ -634,7 +634,7 @@ class DocumentsService {
         throw new Error(data.message || 'Failed to check status');
       }
     } catch (error: any) {
-      console.error('❌ Check generation status error:', error);
+      if (__DEV__) console.error('❌ Check generation status error:', error);
       throw new Error(error.message || 'Failed to check generation status');
     }
   }

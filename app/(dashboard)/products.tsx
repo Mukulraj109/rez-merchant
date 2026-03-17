@@ -88,7 +88,7 @@ export default function ProductsScreen() {
         setPage(prev => prev + 1);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      if (__DEV__) console.error('Error fetching products:', error);
       showAlert('Error', 'Failed to load products. Please try again.');
     } finally {
       setLoading(false);
@@ -111,12 +111,12 @@ export default function ProductsScreen() {
   };
 
   const handleDeleteProduct = async (productId: string) => {
-    console.log('🗑️ [DELETE LIST] handleDeleteProduct called with ID:', productId);
-    console.log('🗑️ [DELETE LIST] Token exists:', !!token);
-    console.log('🗑️ [DELETE LIST] Platform:', Platform.OS);
+    if (__DEV__) console.log('🗑️ [DELETE LIST] handleDeleteProduct called with ID:', productId);
+    if (__DEV__) console.log('🗑️ [DELETE LIST] Token exists:', !!token);
+    if (__DEV__) console.log('🗑️ [DELETE LIST] Platform:', Platform.OS);
     
     if (!token) {
-      console.error('❌ [DELETE LIST] No token available');
+      if (__DEV__) console.error('❌ [DELETE LIST] No token available');
       showAlert('Error', 'Authentication required. Please log in again.');
       return;
     }
@@ -127,43 +127,43 @@ export default function ProductsScreen() {
       'Delete Product',
       confirmMessage,
       () => {
-        console.log('🗑️ [DELETE LIST] User confirmed deletion');
+        if (__DEV__) console.log('🗑️ [DELETE LIST] User confirmed deletion');
         handleDeleteConfirmed(productId);
       },
       () => {
-        console.log('🗑️ [DELETE LIST] User cancelled deletion');
+        if (__DEV__) console.log('🗑️ [DELETE LIST] User cancelled deletion');
       }
     );
   };
 
   const handleDeleteConfirmed = async (productId: string) => {
-    console.log('🗑️ [DELETE LIST] handleDeleteConfirmed called with ID:', productId);
-    console.log('🗑️ [DELETE LIST] Starting deletion process...');
+    if (__DEV__) console.log('🗑️ [DELETE LIST] handleDeleteConfirmed called with ID:', productId);
+    if (__DEV__) console.log('🗑️ [DELETE LIST] Starting deletion process...');
     
     try {
-      console.log('🗑️ [DELETE LIST] Calling productsService.deleteProduct with ID:', productId);
+      if (__DEV__) console.log('🗑️ [DELETE LIST] Calling productsService.deleteProduct with ID:', productId);
       
       await productsService.deleteProduct(productId);
       
-      console.log('✅ [DELETE LIST] Product deleted successfully via productsService');
+      if (__DEV__) console.log('✅ [DELETE LIST] Product deleted successfully via productsService');
       
       // Remove from local state
       setProducts(prev => prev.filter(p => (p.id || (p as any)._id) !== productId));
       setTotalCount(prev => Math.max(0, prev - 1));
       
-      console.log('✅ [DELETE LIST] Product removed from local state');
+      if (__DEV__) console.log('✅ [DELETE LIST] Product removed from local state');
       
       // Show success message
       showAlert('Success', 'Product and all related data deleted successfully');
       
       // Refresh the list to ensure consistency
-      console.log('🗑️ [DELETE LIST] Refreshing product list...');
+      if (__DEV__) console.log('🗑️ [DELETE LIST] Refreshing product list...');
       await fetchProducts();
-      console.log('✅ [DELETE LIST] Product list refreshed');
+      if (__DEV__) console.log('✅ [DELETE LIST] Product list refreshed');
     } catch (error: any) {
-      console.error('❌ [DELETE LIST] Error caught:', error);
-      console.error('❌ [DELETE LIST] Error message:', error?.message);
-      console.error('❌ [DELETE LIST] Error stack:', error?.stack);
+      if (__DEV__) console.error('❌ [DELETE LIST] Error caught:', error);
+      if (__DEV__) console.error('❌ [DELETE LIST] Error message:', error?.message);
+      if (__DEV__) console.error('❌ [DELETE LIST] Error stack:', error?.stack);
       
       const errorMessage = error?.message || 'Failed to delete product. Please try again.';
       
@@ -271,16 +271,16 @@ export default function ProductsScreen() {
             <TouchableOpacity 
                 style={[styles.iconButton, { backgroundColor: Colors.error[50] }]}
                 onPress={(e) => {
-                  console.log('🗑️ [DELETE LIST] Delete button pressed');
+                  if (__DEV__) console.log('🗑️ [DELETE LIST] Delete button pressed');
                   e.stopPropagation();
                   const productId = item.id || (item as any)._id;
-                  console.log('🗑️ [DELETE LIST] Product ID:', productId);
-                  console.log('🗑️ [DELETE LIST] Product name:', item.name);
+                  if (__DEV__) console.log('🗑️ [DELETE LIST] Product ID:', productId);
+                  if (__DEV__) console.log('🗑️ [DELETE LIST] Product name:', item.name);
                   
                   if (productId) {
                     handleDeleteProduct(productId);
                   } else {
-                    console.error('❌ [DELETE LIST] Product ID not found');
+                    if (__DEV__) console.error('❌ [DELETE LIST] Product ID not found');
                     const errorMsg = 'Product ID not found';
                     showAlert('Error', errorMsg);
                   }

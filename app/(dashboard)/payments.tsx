@@ -77,7 +77,7 @@ export default function PaymentsScreen() {
       setStats(response.data);
     } catch (err) {
       // Stats are non-critical
-      console.error('[Payments] Stats fetch failed:', err);
+      if (__DEV__) console.error('[Payments] Stats fetch failed:', err);
     }
   }, [storeId]);
 

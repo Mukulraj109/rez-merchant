@@ -111,7 +111,7 @@ export default function DocumentsScreen() {
       const result = await onboardingService.getDocuments();
       setDocuments(result.documents || []);
     } catch (error: any) {
-      console.error('Failed to load documents:', error);
+      if (__DEV__) console.error('Failed to load documents:', error);
     } finally {
       setLoading(false);
     }
@@ -132,7 +132,7 @@ export default function DocumentsScreen() {
         await uploadDocument(documentType, result.assets[0].uri);
       }
     } catch (error: any) {
-      console.error('Failed to pick document:', error);
+      if (__DEV__) console.error('Failed to pick document:', error);
       showAlert('Error', 'Failed to select document. Please try again.');
     }
   };
@@ -175,7 +175,7 @@ export default function DocumentsScreen() {
 
       showAlert('Success', `${type.replace('_', ' ')} uploaded successfully!`);
     } catch (error: any) {
-      console.error('Failed to upload document:', error);
+      if (__DEV__) console.error('Failed to upload document:', error);
       showAlert('Upload Failed', error.message || 'Failed to upload document');
     } finally {
       setUploadingTypes(prev => {
@@ -204,7 +204,7 @@ export default function DocumentsScreen() {
             showAlert('Success', 'Document deleted successfully');
           }
         } catch (error: any) {
-          console.error('Failed to delete document:', error);
+          if (__DEV__) console.error('Failed to delete document:', error);
           showAlert('Error', 'Failed to delete document');
         }
       }
@@ -241,7 +241,7 @@ export default function DocumentsScreen() {
       // Navigate to review screen
       router.push('/onboarding/review-submit');
     } catch (error: any) {
-      console.error('Failed to save documents:', error);
+      if (__DEV__) console.error('Failed to save documents:', error);
       showAlert('Error', error.message || 'Failed to save documents');
     } finally {
       setLoading(false);

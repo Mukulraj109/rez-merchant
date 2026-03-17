@@ -217,7 +217,7 @@ export default function AddDiscountScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error creating discount:', error);
+      if (__DEV__) console.error('Error creating discount:', error);
       setAlertModal({
         visible: true,
         title: 'Error',

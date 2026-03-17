@@ -81,7 +81,7 @@ class ProductGalleryService {
     file: File | Blob | any,
     data: UploadProductGalleryItemData
   ): Promise<ProductGalleryItem> {
-    console.log('📤 [Upload] Received file:', {
+    if (__DEV__) console.log('📤 [Upload] Received file:', {
       isFile: file instanceof File,
       isBlob: file instanceof Blob,
       hasUri: !!file.uri,
@@ -96,13 +96,13 @@ class ProductGalleryService {
 
     // Append file
     if (file instanceof File || file instanceof Blob) {
-      console.log('📤 [Upload] Direct File/Blob append');
+      if (__DEV__) console.log('📤 [Upload] Direct File/Blob append');
       formData.append('file', file);
     } else if (file.uri) {
       // For web: Convert URI to Blob/File
       if (typeof window !== 'undefined') {
         if (file.uri.startsWith('blob:')) {
-          console.log('📤 [Upload] Converting blob URI to File...');
+          if (__DEV__) console.log('📤 [Upload] Converting blob URI to File...');
           try {
             const response = await fetch(file.uri);
             const blob = await response.blob();
@@ -110,7 +110,7 @@ class ProductGalleryService {
             const mimeType = blob.type || file.mimeType || file.type || 'image/jpeg';
             const fileObj = new File([blob], fileName, { type: mimeType });
 
-            console.log('📤 [Upload] Converted to File:', {
+            if (__DEV__) console.log('📤 [Upload] Converted to File:', {
               name: fileObj.name,
               type: fileObj.type,
               size: fileObj.size,
@@ -118,11 +118,11 @@ class ProductGalleryService {
 
             formData.append('file', fileObj);
           } catch (error) {
-            console.error('❌ Failed to convert blob URI to File:', error);
+            if (__DEV__) console.error('❌ Failed to convert blob URI to File:', error);
             throw new Error('Failed to process image file');
           }
         } else if (file.uri.startsWith('data:')) {
-          console.log('📤 [Upload] Converting data URI to File...');
+          if (__DEV__) console.log('📤 [Upload] Converting data URI to File...');
           try {
             // Convert data URI to blob
             const response = await fetch(file.uri);
@@ -131,7 +131,7 @@ class ProductGalleryService {
             const mimeType = blob.type || file.mimeType || file.type || 'image/jpeg';
             const fileObj = new File([blob], fileName, { type: mimeType });
 
-            console.log('📤 [Upload] Converted data URI to File:', {
+            if (__DEV__) console.log('📤 [Upload] Converted data URI to File:', {
               name: fileObj.name,
               type: fileObj.type,
               size: fileObj.size,
@@ -139,16 +139,16 @@ class ProductGalleryService {
 
             formData.append('file', fileObj);
           } catch (error) {
-            console.error('❌ Failed to convert data URI to File:', error);
+            if (__DEV__) console.error('❌ Failed to convert data URI to File:', error);
             throw new Error('Failed to process image file');
           }
         } else {
-          console.error('❌ Unknown URI format on web:', file.uri);
+          if (__DEV__) console.error('❌ Unknown URI format on web:', file.uri);
           throw new Error('Unsupported file URI format');
         }
       } else {
         // React Native format (non-web)
-        console.log('📤 [Upload] React Native file format');
+        if (__DEV__) console.log('📤 [Upload] React Native file format');
         const fileData = {
           uri: file.uri,
           type: file.mimeType || file.type || 'image/jpeg',
@@ -157,7 +157,7 @@ class ProductGalleryService {
         formData.append('file', fileData as any);
       }
     } else {
-      console.error('❌ Invalid file format:', file);
+      if (__DEV__) console.error('❌ Invalid file format:', file);
       throw new Error('Invalid file format');
     }
 
@@ -177,7 +177,7 @@ class ProductGalleryService {
     if (data.isVisible !== undefined) formData.append('isVisible', data.isVisible.toString());
     if (data.isCover !== undefined) formData.append('isCover', data.isCover.toString());
 
-    console.log('📤 [Upload] Sending FormData with metadata:', {
+    if (__DEV__) console.log('📤 [Upload] Sending FormData with metadata:', {
       category: data.category,
       title: data.title,
       description: data.description,
@@ -203,7 +203,7 @@ class ProductGalleryService {
     files: (File | Blob | any)[],
     data: BulkUploadProductData
   ): Promise<{ uploaded: any[]; failed: any[]; totalUploaded: number; totalFailed: number }> {
-    console.log('📤 [Bulk Upload] Processing', files.length, 'files');
+    if (__DEV__) console.log('📤 [Bulk Upload] Processing', files.length, 'files');
 
     const formData = new FormData();
 
@@ -224,17 +224,17 @@ class ProductGalleryService {
               const mimeType = blob.type || file.mimeType || file.type || 'image/jpeg';
               const fileObj = new File([blob], fileName, { type: mimeType });
               formData.append('files', fileObj);
-              console.log(`📤 [Bulk Upload] Converted file ${index + 1}:`, {
+              if (__DEV__) console.log(`📤 [Bulk Upload] Converted file ${index + 1}:`, {
                 name: fileObj.name,
                 type: fileObj.type,
                 size: fileObj.size,
               });
             } catch (error) {
-              console.error(`❌ Failed to convert file ${index + 1}:`, error);
+              if (__DEV__) console.error(`❌ Failed to convert file ${index + 1}:`, error);
               throw new Error(`Failed to process image file ${index + 1}`);
             }
           } else {
-            console.error('❌ Unknown URI format:', file.uri);
+            if (__DEV__) console.error('❌ Unknown URI format:', file.uri);
             throw new Error('Unsupported file URI format');
           }
         } else {
@@ -246,7 +246,7 @@ class ProductGalleryService {
           } as any);
         }
       } else {
-        console.error('❌ Invalid file format at index', index);
+        if (__DEV__) console.error('❌ Invalid file format at index', index);
         throw new Error(`Invalid file format at index ${index}`);
       }
     }
@@ -281,7 +281,7 @@ class ProductGalleryService {
       formData.append('isCover', data.isCover.toString());
     }
 
-    console.log('📤 [Bulk Upload] Sending FormData with', files.length, 'files and metadata:', {
+    if (__DEV__) console.log('📤 [Bulk Upload] Sending FormData with', files.length, 'files and metadata:', {
       category: data.category,
       title: data.title,
       description: data.description,

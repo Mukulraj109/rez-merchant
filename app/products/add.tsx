@@ -199,14 +199,14 @@ export default function AddProductScreen() {
     const loadCategories = async () => {
       try {
         setLoadingCategories(true);
-        console.log('📋 [ADD PRODUCT] Loading categories from API...');
+        if (__DEV__) console.log('📋 [ADD PRODUCT] Loading categories from API...');
         const fetchedCategories = await productsService.getCategories();
-        console.log('📋 [ADD PRODUCT] Categories loaded:', fetchedCategories.length, 'categories');
-        console.log('📋 [ADD PRODUCT] Categories data:', fetchedCategories);
+        if (__DEV__) console.log('📋 [ADD PRODUCT] Categories loaded:', fetchedCategories.length, 'categories');
+        if (__DEV__) console.log('📋 [ADD PRODUCT] Categories data:', fetchedCategories);
         setCategories(fetchedCategories);
       } catch (error: any) {
-        console.error('❌ [ADD PRODUCT] Failed to load categories:', error);
-        console.error('❌ [ADD PRODUCT] Error details:', error.message, error.stack);
+        if (__DEV__) console.error('❌ [ADD PRODUCT] Failed to load categories:', error);
+        if (__DEV__) console.error('❌ [ADD PRODUCT] Error details:', error.message, error.stack);
         // Fallback to empty array if API fails
         setCategories([]);
       } finally {
@@ -231,9 +231,9 @@ export default function AddProductScreen() {
         const selectedCategory = categories.find(c => c.value === formData.category);
         const categoryId = selectedCategory?.id || formData.category;
 
-        console.log('📋 [ADD PRODUCT] Loading subcategories for category:', categoryId);
+        if (__DEV__) console.log('📋 [ADD PRODUCT] Loading subcategories for category:', categoryId);
         const fetchedSubcategories = await productsService.getSubcategories(categoryId);
-        console.log('📋 [ADD PRODUCT] Subcategories loaded:', fetchedSubcategories.length, 'subcategories');
+        if (__DEV__) console.log('📋 [ADD PRODUCT] Subcategories loaded:', fetchedSubcategories.length, 'subcategories');
         setSubcategories(fetchedSubcategories);
 
         // Reset subcategory if current selection is not in the new list
@@ -241,7 +241,7 @@ export default function AddProductScreen() {
           updateFormData('subcategory', '');
         }
       } catch (error: any) {
-        console.error('❌ [ADD PRODUCT] Failed to load subcategories:', error);
+        if (__DEV__) console.error('❌ [ADD PRODUCT] Failed to load subcategories:', error);
         setSubcategories([]);
       } finally {
         setLoadingSubcategories(false);
@@ -312,7 +312,7 @@ export default function AddProductScreen() {
         }
       }
     } catch (error: any) {
-      console.error('SKU validation error:', error);
+      if (__DEV__) console.error('SKU validation error:', error);
       setSkuIsValid(null);
       setSkuValidationMessage('Could not validate SKU');
     } finally {
@@ -579,7 +579,7 @@ export default function AddProductScreen() {
         },
       };
 
-      console.log('Creating product with payload:', JSON.stringify(productRequest, null, 2));
+      if (__DEV__) console.log('Creating product with payload:', JSON.stringify(productRequest, null, 2));
 
       const response = await productsService.createProduct(productRequest);
 
@@ -648,7 +648,7 @@ export default function AddProductScreen() {
         }, 2000);
       }
     } catch (error: any) {
-      console.error('Product creation error:', error);
+      if (__DEV__) console.error('Product creation error:', error);
       showAlert('Error', error.message || 'Failed to create product');
     } finally {
       setLoading(false);

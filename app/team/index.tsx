@@ -59,7 +59,7 @@ export default function TeamMembersScreen() {
       setCurrentUserRole(permissions.role);
       setCanInvite(permissions.permissions.includes('team:invite'));
     } catch (error) {
-      console.error('Failed to check permissions:', error);
+      if (__DEV__) console.error('Failed to check permissions:', error);
     }
   };
 

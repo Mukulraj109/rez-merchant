@@ -19,7 +19,7 @@ function TeamAccessGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only redirect if we're not loading and user shouldn't have access
     if (shouldRedirect && !isLoading) {
-      console.warn('⚠️ User does not have team access, redirecting to dashboard');
+      if (__DEV__) console.warn('⚠️ User does not have team access, redirecting to dashboard');
       router.replace('/(dashboard)');
     }
   }, [shouldRedirect, isLoading]);

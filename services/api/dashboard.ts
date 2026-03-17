@@ -187,7 +187,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get dashboard data');
       }
     } catch (error: any) {
-      console.error('Get dashboard data error:', error);
+      if (__DEV__) console.error('Get dashboard data error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get dashboard data');
     }
   }
@@ -218,7 +218,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get metrics');
       }
     } catch (error: any) {
-      console.error('Get metrics error:', error);
+      if (__DEV__) console.error('Get metrics error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get metrics');
     }
   }
@@ -246,7 +246,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get recent activity');
       }
     } catch (error: any) {
-      console.error('Get recent activity error:', error);
+      if (__DEV__) console.error('Get recent activity error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get recent activity');
     }
   }
@@ -274,7 +274,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get top products');
       }
     } catch (error: any) {
-      console.error('Get top products error:', error);
+      if (__DEV__) console.error('Get top products error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get top products');
     }
   }
@@ -302,7 +302,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get sales data');
       }
     } catch (error: any) {
-      console.error('Get sales data error:', error);
+      if (__DEV__) console.error('Get sales data error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get sales data');
     }
   }
@@ -330,7 +330,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get low stock alerts');
       }
     } catch (error: any) {
-      console.error('Get low stock alerts error:', error);
+      if (__DEV__) console.error('Get low stock alerts error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to get low stock alerts');
     }
   }
@@ -456,7 +456,7 @@ class DashboardService {
         overview,
       };
     } catch (error: any) {
-      console.error('Get all dashboard data error:', error);
+      if (__DEV__) console.error('Get all dashboard data error:', error);
       // Return empty data structure on error
       return {
         metrics: {
@@ -520,7 +520,7 @@ class DashboardService {
         throw new Error(data.message || 'Failed to get customer payments');
       }
     } catch (error: any) {
-      console.error('Get customer payments error:', error);
+      if (__DEV__) console.error('Get customer payments error:', error);
       return { payments: [], pagination: { currentPage: 1, totalPages: 0, totalItems: 0, hasNextPage: false, hasPrevPage: false } };
     }
   }
@@ -547,7 +547,7 @@ class DashboardService {
       }
       throw new Error(data.message || 'Failed to get store performance');
     } catch (error: any) {
-      console.error('Get store performance error:', error);
+      if (__DEV__) console.error('Get store performance error:', error);
       return { stores: [], summary: { totalStores: 0, activeStores: 0, totalMonthlyRevenue: 0, totalMonthlyOrders: 0, totalPendingOrders: 0 } };
     }
   }
@@ -577,7 +577,7 @@ class DashboardService {
       }
       throw new Error(data.message || 'Failed to get action items');
     } catch (error: any) {
-      console.error('Get action items error:', error);
+      if (__DEV__) console.error('Get action items error:', error);
       return { actionItems: [], summary: { total: 0, urgent: 0, high: 0, medium: 0 } };
     }
   }

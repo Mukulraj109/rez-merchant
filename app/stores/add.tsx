@@ -256,7 +256,7 @@ export default function AddStoreScreen() {
         );
       }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      if (__DEV__) console.error('Failed to load categories:', error);
     }
   };
 

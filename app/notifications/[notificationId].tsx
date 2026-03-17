@@ -110,7 +110,7 @@ export default function NotificationDetailScreen() {
         default:
           if (notification.actionUrl) {
             // Handle custom action URL
-            console.log('Navigate to:', notification.actionUrl);
+            if (__DEV__) console.log('Navigate to:', notification.actionUrl);
           }
       }
     }

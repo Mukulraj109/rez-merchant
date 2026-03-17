@@ -51,7 +51,7 @@ export default function CashbackAnalyticsScreen() {
       const analyticsData = await cashbackService.getAnalytics(startDate.toISOString(), endDate.toISOString());
       setAnalytics(analyticsData);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      if (__DEV__) console.error('Error fetching analytics:', error);
     } finally {
       setIsLoading(false);
     }

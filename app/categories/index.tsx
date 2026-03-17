@@ -114,7 +114,7 @@ export default function CategoriesScreen() {
       });
 
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      if (__DEV__) console.error('Error fetching categories:', error);
       showAlert('Error', 'Failed to load categories. Please try again.');
     } finally {
       setLoading(false);

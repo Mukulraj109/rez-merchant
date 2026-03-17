@@ -112,7 +112,7 @@ class OutletsService {
         message: response.message
       };
     } catch (error: any) {
-      console.error('[OUTLETS SERVICE] Error fetching outlets:', error);
+      if (__DEV__) console.error('[OUTLETS SERVICE] Error fetching outlets:', error);
       return {
         success: false,
         message: error.message || 'Failed to fetch outlets',
@@ -129,7 +129,7 @@ class OutletsService {
       const response = await apiClient.get<MerchantOutlet>(`${this.baseUrl}/${id}`);
       return response;
     } catch (error: any) {
-      console.error(`[OUTLETS SERVICE] Error fetching outlet ${id}:`, error);
+      if (__DEV__) console.error(`[OUTLETS SERVICE] Error fetching outlet ${id}:`, error);
       return {
         success: false,
         message: error.message || 'Failed to fetch outlet',
@@ -146,7 +146,7 @@ class OutletsService {
       const response = await apiClient.post<MerchantOutlet>(this.baseUrl, data);
       return response;
     } catch (error: any) {
-      console.error('[OUTLETS SERVICE] Error creating outlet:', error);
+      if (__DEV__) console.error('[OUTLETS SERVICE] Error creating outlet:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to create outlet',
@@ -163,7 +163,7 @@ class OutletsService {
       const response = await apiClient.put<MerchantOutlet>(`${this.baseUrl}/${id}`, data);
       return response;
     } catch (error: any) {
-      console.error(`[OUTLETS SERVICE] Error updating outlet ${id}:`, error);
+      if (__DEV__) console.error(`[OUTLETS SERVICE] Error updating outlet ${id}:`, error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to update outlet',
@@ -180,7 +180,7 @@ class OutletsService {
       const response = await apiClient.delete<void>(`${this.baseUrl}/${id}`);
       return response;
     } catch (error: any) {
-      console.error(`[OUTLETS SERVICE] Error deleting outlet ${id}:`, error);
+      if (__DEV__) console.error(`[OUTLETS SERVICE] Error deleting outlet ${id}:`, error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to delete outlet',
@@ -200,7 +200,7 @@ class OutletsService {
       );
       return response;
     } catch (error: any) {
-      console.error(`[OUTLETS SERVICE] Error toggling outlet ${id}:`, error);
+      if (__DEV__) console.error(`[OUTLETS SERVICE] Error toggling outlet ${id}:`, error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to toggle outlet status',

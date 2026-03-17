@@ -49,7 +49,7 @@ export default function EventsScreen() {
       setEvents(response.events);
       setTotalCount(response.pagination.totalCount);
     } catch (error: any) {
-      console.error('Error fetching events:', error);
+      if (__DEV__) console.error('Error fetching events:', error);
       showAlert('Error', error.message || 'Failed to fetch events');
     } finally {
       setIsLoading(false);

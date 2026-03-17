@@ -165,7 +165,7 @@ const VisitCard = ({ visit, onCheckIn, onComplete, onCancel, index }: VisitCardP
     if (customerPhone && customerPhone !== 'No phone') {
       const phoneUrl = `tel:${customerPhone}`;
       Linking.openURL(phoneUrl).catch((err) => {
-        console.error('Failed to open phone dialer:', err);
+        if (__DEV__) console.error('Failed to open phone dialer:', err);
       });
     }
   };
@@ -406,7 +406,7 @@ export default function VisitsScreen() {
 
       setVisits(mappedVisits);
     } catch (error: any) {
-      console.error('Error fetching visits:', error);
+      if (__DEV__) console.error('Error fetching visits:', error);
       const errorMessage = error.message || 'Failed to fetch visits. Please try again.';
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`Error: ${errorMessage}`);
@@ -425,7 +425,7 @@ export default function VisitsScreen() {
       const result = await storeVisitsService.getVisitStats(storeId);
       setStats(result);
     } catch (error: any) {
-      console.error('Error fetching visit stats:', error);
+      if (__DEV__) console.error('Error fetching visit stats:', error);
       // Use fallback stats from the local data
       setStats({
         totalToday: visits.length,
@@ -449,7 +449,7 @@ export default function VisitsScreen() {
         await fetchVisits();
         await fetchStats();
       } catch (error: any) {
-        console.error('Error checking in visit:', error);
+        if (__DEV__) console.error('Error checking in visit:', error);
         const msg = error.message || 'Failed to check in visit.';
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert(`Error: ${msg}`);
@@ -473,7 +473,7 @@ export default function VisitsScreen() {
         await fetchVisits();
         await fetchStats();
       } catch (error: any) {
-        console.error('Error completing visit:', error);
+        if (__DEV__) console.error('Error completing visit:', error);
         const msg = error.message || 'Failed to complete visit.';
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.alert(`Error: ${msg}`);
@@ -498,7 +498,7 @@ export default function VisitsScreen() {
           await fetchVisits();
           await fetchStats();
         } catch (error: any) {
-          console.error('Error cancelling visit:', error);
+          if (__DEV__) console.error('Error cancelling visit:', error);
           const msg = error.message || 'Failed to cancel visit.';
           if (Platform.OS === 'web' && typeof window !== 'undefined') {
             window.alert(`Error: ${msg}`);

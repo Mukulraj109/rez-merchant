@@ -132,7 +132,7 @@ class OffersService {
         }
       };
     } catch (error: any) {
-      console.error('[OFFERS SERVICE] Error fetching store offers:', error);
+      if (__DEV__) console.error('[OFFERS SERVICE] Error fetching store offers:', error);
       return {
         success: false,
         message: error.message || 'Failed to fetch store offers',
@@ -166,7 +166,7 @@ class OffersService {
         data: data.data || data
       };
     } catch (error: any) {
-      console.error('[OFFERS SERVICE] Error creating offer:', error);
+      if (__DEV__) console.error('[OFFERS SERVICE] Error creating offer:', error);
       return {
         success: false,
         message: error.message || 'Failed to create offer',
@@ -201,7 +201,7 @@ class OffersService {
         data: data.data || data
       };
     } catch (error: any) {
-      console.error('[OFFERS SERVICE] Error updating offer:', error);
+      if (__DEV__) console.error('[OFFERS SERVICE] Error updating offer:', error);
       return {
         success: false,
         message: error.message || 'Failed to update offer',
@@ -235,7 +235,7 @@ class OffersService {
         message: data.message || 'Offer deleted successfully'
       };
     } catch (error: any) {
-      console.error('[OFFERS SERVICE] Error deleting offer:', error);
+      if (__DEV__) console.error('[OFFERS SERVICE] Error deleting offer:', error);
       return {
         success: false,
         message: error.message || 'Failed to delete offer',
@@ -269,7 +269,7 @@ class OffersService {
         data: data.data || data
       };
     } catch (error: any) {
-      console.error('[OFFERS SERVICE] Error fetching offer:', error);
+      if (__DEV__) console.error('[OFFERS SERVICE] Error fetching offer:', error);
       return {
         success: false,
         message: error.message || 'Failed to fetch offer',

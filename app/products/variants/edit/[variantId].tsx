@@ -128,7 +128,7 @@ export default function EditVariantScreen() {
         status: variantData.isActive === false ? 'inactive' : (variantData.status || 'active'),
       });
     } catch (error: any) {
-      console.error('Error loading variant:', error);
+      if (__DEV__) console.error('Error loading variant:', error);
       showAlert('Error', error.message || 'Failed to load variant');
     } finally {
       setLoading(false);
@@ -164,7 +164,7 @@ export default function EditVariantScreen() {
         await uploadVariantImage(imageUri);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      if (__DEV__) console.error('Error picking image:', error);
       showAlert('Error', 'Failed to pick image');
     }
   };
@@ -173,12 +173,12 @@ export default function EditVariantScreen() {
     try {
       setUploadingImage(true);
 
-      console.log('📤 Uploading variant image:', imageUri);
+      if (__DEV__) console.log('📤 Uploading variant image:', imageUri);
 
       // Upload image using uploadsService
       const result = await uploadsService.uploadImage(imageUri, `variant_${Date.now()}.jpg`);
 
-      console.log('✅ Variant image uploaded successfully:', result.url);
+      if (__DEV__) console.log('✅ Variant image uploaded successfully:', result.url);
 
       // Update variant image with the uploaded URL
       setVariantImage(result.url);
@@ -186,7 +186,7 @@ export default function EditVariantScreen() {
       // Show success feedback
       showAlert('Success', 'Image uploaded successfully');
     } catch (error: any) {
-      console.error('❌ Failed to upload variant image:', error);
+      if (__DEV__) console.error('❌ Failed to upload variant image:', error);
       showAlert('Upload Failed', error.message || 'Failed to upload image. Please try again.');
       // Reset image on upload failure
       setVariantImage(null);
@@ -287,7 +287,7 @@ export default function EditVariantScreen() {
         },
       ]);
     } catch (error: any) {
-      console.error('Error updating variant:', error);
+      if (__DEV__) console.error('Error updating variant:', error);
       showAlert('Error', error.message || 'Failed to update variant');
     } finally {
       setSaving(false);

@@ -132,7 +132,7 @@ export default function DocumentsOverviewScreen() {
           packingSlips: fallbackDocs.filter(d => d.type === 'packing_slip').length
         });
       } catch (innerError) {
-        console.error('Error fetching documents:', innerError);
+        if (__DEV__) console.error('Error fetching documents:', innerError);
         showAlert('Error', 'Failed to fetch documents');
       }
     } finally {

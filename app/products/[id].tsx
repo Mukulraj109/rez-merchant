@@ -59,7 +59,7 @@ export default function ProductDetailScreen() {
           ...data.data,
           images: processProductImages(data.data.images),
         };
-        console.log('📦 [PRODUCT] Product loaded:', {
+        if (__DEV__) console.log('📦 [PRODUCT] Product loaded:', {
           id: productData.id,
           name: productData.name,
           pricing: (productData as any).pricing,
@@ -74,7 +74,7 @@ export default function ProductDetailScreen() {
         throw new Error(data.message || 'Invalid response structure');
       }
     } catch (error: any) {
-      console.error('❌ [PRODUCT] Failed to load product:', error);
+      if (__DEV__) console.error('❌ [PRODUCT] Failed to load product:', error);
       showAlert('Error', `Failed to load product details: ${error?.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -82,43 +82,43 @@ export default function ProductDetailScreen() {
   };
 
   const handleDeleteProduct = async () => {
-    console.log('🗑️ [DELETE] handleDeleteProduct called');
-    console.log('🗑️ [DELETE] Token exists:', !!token);
-    console.log('🗑️ [DELETE] Product exists:', !!product);
-    console.log('🗑️ [DELETE] Product data:', product ? {
+    if (__DEV__) console.log('🗑️ [DELETE] handleDeleteProduct called');
+    if (__DEV__) console.log('🗑️ [DELETE] Token exists:', !!token);
+    if (__DEV__) console.log('🗑️ [DELETE] Product exists:', !!product);
+    if (__DEV__) console.log('🗑️ [DELETE] Product data:', product ? {
       id: product.id,
       _id: (product as any)._id,
       name: product.name
     } : null);
     
     if (!token) {
-      console.error('❌ [DELETE] No token available');
+      if (__DEV__) console.error('❌ [DELETE] No token available');
       showAlert('Error', 'Authentication required. Please log in again.');
       return;
     }
     
     if (!product) {
-      console.error('❌ [DELETE] No product available');
+      if (__DEV__) console.error('❌ [DELETE] No product available');
       showAlert('Error', 'Product not found.');
       return;
     }
 
     const productId = product.id || (product as any)._id;
-    console.log('🗑️ [DELETE] Product ID to delete:', productId);
-    console.log('🗑️ [DELETE] Platform:', Platform.OS);
+    if (__DEV__) console.log('🗑️ [DELETE] Product ID to delete:', productId);
+    if (__DEV__) console.log('🗑️ [DELETE] Platform:', Platform.OS);
     
     // Use window.confirm for web, Alert.alert for native
     if (Platform.OS === 'web' && typeof window !== 'undefined' && window.confirm) {
-      console.log('🗑️ [DELETE] Using window.confirm for web');
+      if (__DEV__) console.log('🗑️ [DELETE] Using window.confirm for web');
       const confirmed = window.confirm('Are you sure you want to delete this product? This action cannot be undone.');
       if (confirmed) {
-        console.log('🗑️ [DELETE] User confirmed deletion via window.confirm');
+        if (__DEV__) console.log('🗑️ [DELETE] User confirmed deletion via window.confirm');
         handleDeleteConfirmed(productId);
       } else {
-        console.log('🗑️ [DELETE] User cancelled deletion via window.confirm');
+        if (__DEV__) console.log('🗑️ [DELETE] User cancelled deletion via window.confirm');
       }
     } else {
-      console.log('🗑️ [DELETE] Using Alert.alert for native');
+      if (__DEV__) console.log('🗑️ [DELETE] Using Alert.alert for native');
       showAlert(
         'Delete Product',
         'Are you sure you want to delete this product? This action cannot be undone.',
@@ -127,14 +127,14 @@ export default function ProductDetailScreen() {
             text: 'Cancel', 
             style: 'cancel',
             onPress: () => {
-              console.log('🗑️ [DELETE] User cancelled deletion');
+              if (__DEV__) console.log('🗑️ [DELETE] User cancelled deletion');
             }
           },
           {
             text: 'Delete',
             style: 'destructive',
             onPress: () => {
-              console.log('🗑️ [DELETE] User confirmed deletion via Alert');
+              if (__DEV__) console.log('🗑️ [DELETE] User confirmed deletion via Alert');
               handleDeleteConfirmed(productId);
             },
           },
@@ -144,37 +144,37 @@ export default function ProductDetailScreen() {
   };
 
   const handleDeleteConfirmed = async (productId: string) => {
-    console.log('🗑️ [DELETE] handleDeleteConfirmed called with ID:', productId);
-    console.log('🗑️ [DELETE] Starting deletion process...');
+    if (__DEV__) console.log('🗑️ [DELETE] handleDeleteConfirmed called with ID:', productId);
+    if (__DEV__) console.log('🗑️ [DELETE] Starting deletion process...');
     
     try {
-      console.log('🗑️ [DELETE] Calling productsService.deleteProduct with ID:', productId);
+      if (__DEV__) console.log('🗑️ [DELETE] Calling productsService.deleteProduct with ID:', productId);
       
       await productsService.deleteProduct(productId);
       
-      console.log('✅ [DELETE] Product deleted successfully via productsService');
+      if (__DEV__) console.log('✅ [DELETE] Product deleted successfully via productsService');
       
       // Show success message and redirect to products list
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert('Product and all related data deleted successfully');
-        console.log('🗑️ [DELETE] Redirecting to products list page');
+        if (__DEV__) console.log('🗑️ [DELETE] Redirecting to products list page');
         router.replace('/products');
       } else {
         showAlert('Success', 'Product and all related data deleted successfully', [
           { 
             text: 'OK', 
             onPress: () => {
-              console.log('🗑️ [DELETE] Redirecting to products list page');
+              if (__DEV__) console.log('🗑️ [DELETE] Redirecting to products list page');
               router.replace('/products');
             }
           }
         ]);
       }
     } catch (error: any) {
-      console.error('❌ [DELETE] Error caught:', error);
-      console.error('❌ [DELETE] Error message:', error?.message);
-      console.error('❌ [DELETE] Error stack:', error?.stack);
-      console.error('❌ [DELETE] Full error object:', JSON.stringify(error, null, 2));
+      if (__DEV__) console.error('❌ [DELETE] Error caught:', error);
+      if (__DEV__) console.error('❌ [DELETE] Error message:', error?.message);
+      if (__DEV__) console.error('❌ [DELETE] Error stack:', error?.stack);
+      if (__DEV__) console.error('❌ [DELETE] Full error object:', JSON.stringify(error, null, 2));
       
       const errorMessage = error?.message || 'Failed to delete product. Please try again.';
       
@@ -404,20 +404,20 @@ export default function ProductDetailScreen() {
             <TouchableOpacity
               onPress={() => {
                 const productId = product.id || (product as any)._id;
-                console.log('✏️ [EDIT] Header edit button pressed');
-                console.log('✏️ [EDIT] Product ID:', productId);
-                console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
+                if (__DEV__) console.log('✏️ [EDIT] Header edit button pressed');
+                if (__DEV__) console.log('✏️ [EDIT] Product ID:', productId);
+                if (__DEV__) console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
                 if (!productId) {
-                  console.error('❌ [EDIT] No product ID available');
+                  if (__DEV__) console.error('❌ [EDIT] No product ID available');
                   showAlert('Error', 'Product ID not found. Cannot edit product.');
                   return;
                 }
                 const editRoute = `/products/edit/${productId}`;
-                console.log('✏️ [EDIT] Navigating to:', editRoute);
-                console.log('✏️ [EDIT] Router state before navigation');
+                if (__DEV__) console.log('✏️ [EDIT] Navigating to:', editRoute);
+                if (__DEV__) console.log('✏️ [EDIT] Router state before navigation');
                 // Use simple string format like other routes
                 router.push(editRoute as any);
-                console.log('✏️ [EDIT] Router push called');
+                if (__DEV__) console.log('✏️ [EDIT] Router push called');
               }}
               style={styles.editButton}
             >
@@ -695,20 +695,20 @@ export default function ProductDetailScreen() {
               style={styles.editActionButton}
               onPress={() => {
                 const productId = product.id || (product as any)._id;
-                console.log('✏️ [EDIT] Bottom edit button pressed');
-                console.log('✏️ [EDIT] Product ID:', productId);
-                console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
+                if (__DEV__) console.log('✏️ [EDIT] Bottom edit button pressed');
+                if (__DEV__) console.log('✏️ [EDIT] Product ID:', productId);
+                if (__DEV__) console.log('✏️ [EDIT] Product object:', { id: product.id, _id: (product as any)._id });
                 if (!productId) {
-                  console.error('❌ [EDIT] No product ID available');
+                  if (__DEV__) console.error('❌ [EDIT] No product ID available');
                   showAlert('Error', 'Product ID not found. Cannot edit product.');
                   return;
                 }
                 const editRoute = `/products/edit/${productId}`;
-                console.log('✏️ [EDIT] Navigating to:', editRoute);
-                console.log('✏️ [EDIT] Router state before navigation');
+                if (__DEV__) console.log('✏️ [EDIT] Navigating to:', editRoute);
+                if (__DEV__) console.log('✏️ [EDIT] Router state before navigation');
                 // Use simple string format like other routes
                 router.push(editRoute as any);
-                console.log('✏️ [EDIT] Router push called');
+                if (__DEV__) console.log('✏️ [EDIT] Router push called');
               }}
             >
               <Ionicons name="pencil" size={20} color={Colors.light.background} />
@@ -731,8 +731,8 @@ export default function ProductDetailScreen() {
             <TouchableOpacity
               style={styles.deleteActionButton}
               onPress={(e) => {
-                console.log('🗑️ [DELETE] Delete button pressed');
-                console.log('🗑️ [DELETE] Event:', e);
+                if (__DEV__) console.log('🗑️ [DELETE] Delete button pressed');
+                if (__DEV__) console.log('🗑️ [DELETE] Event:', e);
                 e?.stopPropagation?.();
                 handleDeleteProduct();
               }}

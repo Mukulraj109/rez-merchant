@@ -83,7 +83,7 @@ export default function MerchantTicketsScreen() {
       setPage(pageNum);
       setHasMore(pageNum < result.pagination.pages);
     } catch (error) {
-      console.error('Error loading tickets:', error);
+      if (__DEV__) console.error('Error loading tickets:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

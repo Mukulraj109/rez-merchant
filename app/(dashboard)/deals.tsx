@@ -60,7 +60,7 @@ export default function DealsScreen() {
         setStats(statsData);
       }
     } catch (error) {
-      console.error('Error fetching deal data:', error);
+      if (__DEV__) console.error('Error fetching deal data:', error);
       showAlert('Error', 'Failed to load data. Please try again.');
     } finally {
       setIsLoading(false);

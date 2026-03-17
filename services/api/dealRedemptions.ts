@@ -125,7 +125,7 @@ class DealRedemptionsService {
         throw new Error(data.message || 'Failed to verify code');
       }
     } catch (error: any) {
-      console.error('Verify code error:', error);
+      if (__DEV__) console.error('Verify code error:', error);
       throw new Error(error.message || 'Failed to verify code');
     }
   }
@@ -157,7 +157,7 @@ class DealRedemptionsService {
         throw new Error(data.message || 'Failed to use code');
       }
     } catch (error: any) {
-      console.error('Use code error:', error);
+      if (__DEV__) console.error('Use code error:', error);
       throw new Error(error.message || 'Failed to use code');
     }
   }
@@ -198,7 +198,7 @@ class DealRedemptionsService {
         throw new Error(data.message || 'Failed to get redemptions');
       }
     } catch (error: any) {
-      console.error('Get redemptions error:', error);
+      if (__DEV__) console.error('Get redemptions error:', error);
       throw new Error(error.message || 'Failed to get redemptions');
     }
   }
@@ -228,7 +228,7 @@ class DealRedemptionsService {
         throw new Error(data.message || 'Failed to get stats');
       }
     } catch (error: any) {
-      console.error('Get stats error:', error);
+      if (__DEV__) console.error('Get stats error:', error);
       // Return fallback stats
       return {
         today: { total: 0, used: 0, pending: 0 },

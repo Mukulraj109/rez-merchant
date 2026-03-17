@@ -62,7 +62,7 @@ export default function ServicesListScreen() {
       const cats = await serviceManagementService.getCategories();
       setCategories(cats);
     } catch (error: any) {
-      console.error('Error fetching categories:', error.message);
+      if (__DEV__) console.error('Error fetching categories:', error.message);
     }
   }, []);
 

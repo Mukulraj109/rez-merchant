@@ -96,7 +96,7 @@ export default function SettlementHistoryScreen() {
       setPage(pageNum);
       setHasMore(result.pagination.hasNextPage);
     } catch (error) {
-      console.error('Failed to load settlements:', error);
+      if (__DEV__) console.error('Failed to load settlements:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -140,7 +140,7 @@ export default function SettlementHistoryScreen() {
         await Linking.openURL(url);
       }
     } catch (error) {
-      console.error('Download failed:', error);
+      if (__DEV__) console.error('Download failed:', error);
     }
   };
 

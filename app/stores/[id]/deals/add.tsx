@@ -138,7 +138,7 @@ export default function AddDealScreen() {
             throw new Error('Failed to upload image: No URL returned');
           }
         } catch (error: any) {
-          console.error('Image upload error:', error);
+          if (__DEV__) console.error('Image upload error:', error);
           showAlert('Upload Error', error.message || 'Failed to upload image');
           setImageUri(null);
         } finally {
@@ -146,7 +146,7 @@ export default function AddDealScreen() {
         }
       }
     } catch (error: any) {
-      console.error('Image picker error:', error);
+      if (__DEV__) console.error('Image picker error:', error);
       showAlert('Error', error.message || 'Failed to pick image');
     }
   };
@@ -202,7 +202,7 @@ export default function AddDealScreen() {
         showAlert('Error', response.message || 'Failed to create deal');
       }
     } catch (error: any) {
-      console.error('Error creating deal:', error);
+      if (__DEV__) console.error('Error creating deal:', error);
       showAlert('Error', error.message || 'Failed to create deal');
     } finally {
       setLoading(false);

@@ -72,13 +72,13 @@ class SyncService {
             const response = await apiClient.post<SyncResult>('/merchant/sync/trigger', options || {});
 
             if (response.success && response.data) {
-                console.log('✅ Sync completed successfully');
+                if (__DEV__) console.log('✅ Sync completed successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Sync failed');
             }
         } catch (error: any) {
-            console.error('Trigger sync error:', error);
+            if (__DEV__) console.error('Trigger sync error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to trigger sync');
         }
     }
@@ -96,7 +96,7 @@ class SyncService {
                 throw new Error(response.message || 'Failed to get sync status');
             }
         } catch (error: any) {
-            console.error('Get sync status error:', error);
+            if (__DEV__) console.error('Get sync status error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get sync status');
         }
     }
@@ -115,7 +115,7 @@ class SyncService {
                 throw new Error(response.message || 'Failed to get sync history');
             }
         } catch (error: any) {
-            console.error('Get sync history error:', error);
+            if (__DEV__) console.error('Get sync history error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get sync history');
         }
     }
@@ -136,13 +136,13 @@ class SyncService {
             );
 
             if (response.success && response.data) {
-                console.log(`✅ Auto-sync scheduled every ${intervalMinutes} minutes`);
+                if (__DEV__) console.log(`✅ Auto-sync scheduled every ${intervalMinutes} minutes`);
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to schedule auto-sync');
             }
         } catch (error: any) {
-            console.error('Schedule auto-sync error:', error);
+            if (__DEV__) console.error('Schedule auto-sync error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to schedule auto-sync');
         }
     }
@@ -155,12 +155,12 @@ class SyncService {
             const response = await apiClient.delete('/merchant/sync/schedule');
 
             if (response.success) {
-                console.log('✅ Auto-sync cleared');
+                if (__DEV__) console.log('✅ Auto-sync cleared');
             } else {
                 throw new Error(response.message || 'Failed to clear auto-sync');
             }
         } catch (error: any) {
-            console.error('Clear auto-sync error:', error);
+            if (__DEV__) console.error('Clear auto-sync error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to clear auto-sync');
         }
     }
@@ -174,13 +174,13 @@ class SyncService {
             const response = await apiClient.post<SyncResult>('/merchant/sync/products', { batchSize });
 
             if (response.success && response.data) {
-                console.log('✅ Products synced successfully');
+                if (__DEV__) console.log('✅ Products synced successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to sync products');
             }
         } catch (error: any) {
-            console.error('Sync products error:', error);
+            if (__DEV__) console.error('Sync products error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to sync products');
         }
     }
@@ -194,13 +194,13 @@ class SyncService {
             const response = await apiClient.post<SyncResult>('/merchant/sync/orders', { batchSize });
 
             if (response.success && response.data) {
-                console.log('✅ Orders synced successfully');
+                if (__DEV__) console.log('✅ Orders synced successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to sync orders');
             }
         } catch (error: any) {
-            console.error('Sync orders error:', error);
+            if (__DEV__) console.error('Sync orders error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to sync orders');
         }
     }
@@ -214,13 +214,13 @@ class SyncService {
             const response = await apiClient.post<SyncResult>('/merchant/sync/cashback', { batchSize });
 
             if (response.success && response.data) {
-                console.log('✅ Cashback data synced successfully');
+                if (__DEV__) console.log('✅ Cashback data synced successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to sync cashback');
             }
         } catch (error: any) {
-            console.error('Sync cashback error:', error);
+            if (__DEV__) console.error('Sync cashback error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to sync cashback');
         }
     }
@@ -233,13 +233,13 @@ class SyncService {
             const response = await apiClient.post<SyncResult>('/merchant/sync/merchant', { batchSize: 1 });
 
             if (response.success && response.data) {
-                console.log('✅ Merchant profile synced successfully');
+                if (__DEV__) console.log('✅ Merchant profile synced successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to sync merchant profile');
             }
         } catch (error: any) {
-            console.error('Sync merchant profile error:', error);
+            if (__DEV__) console.error('Sync merchant profile error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to sync merchant profile');
         }
     }
@@ -257,7 +257,7 @@ class SyncService {
                 throw new Error(response.message || 'Failed to get sync health');
             }
         } catch (error: any) {
-            console.error('Get sync health error:', error);
+            if (__DEV__) console.error('Get sync health error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get sync health');
         }
     }
@@ -277,7 +277,7 @@ class SyncService {
                 throw new Error(response.message || 'Failed to get sync statistics');
             }
         } catch (error: any) {
-            console.error('Get sync statistics error:', error);
+            if (__DEV__) console.error('Get sync statistics error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get sync statistics');
         }
     }

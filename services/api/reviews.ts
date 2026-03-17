@@ -121,7 +121,7 @@ class ReviewsService {
                 throw new Error(response.message || 'Failed to get store reviews');
             }
         } catch (error: any) {
-            console.error('Get store reviews error:', error);
+            if (__DEV__) console.error('Get store reviews error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get store reviews');
         }
     }
@@ -162,7 +162,7 @@ class ReviewsService {
                 throw new Error(response.message || 'Failed to get product reviews');
             }
         } catch (error: any) {
-            console.error('Get product reviews error:', error);
+            if (__DEV__) console.error('Get product reviews error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get product reviews');
         }
     }
@@ -189,13 +189,13 @@ class ReviewsService {
             );
 
             if (apiResponse.success && apiResponse.data) {
-                console.log('✅ Review response posted successfully');
+                if (__DEV__) console.log('✅ Review response posted successfully');
                 return apiResponse.data;
             } else {
                 throw new Error(apiResponse.message || 'Failed to respond to review');
             }
         } catch (error: any) {
-            console.error('Respond to review error:', error);
+            if (__DEV__) console.error('Respond to review error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to respond to review');
         }
     }
@@ -218,12 +218,12 @@ class ReviewsService {
             );
 
             if (response.success) {
-                console.log('✅ Review flagged successfully');
+                if (__DEV__) console.log('✅ Review flagged successfully');
             } else {
                 throw new Error(response.message || 'Failed to flag review');
             }
         } catch (error: any) {
-            console.error('Flag review error:', error);
+            if (__DEV__) console.error('Flag review error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to flag review');
         }
     }
@@ -244,7 +244,7 @@ class ReviewsService {
                 throw new Error(response.message || 'Failed to get review stats');
             }
         } catch (error: any) {
-            console.error('Get review stats error:', error);
+            if (__DEV__) console.error('Get review stats error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get review stats');
         }
     }
@@ -392,7 +392,7 @@ class ReviewsService {
             );
             return { success: true, message: response.message || 'Review approved successfully' };
         } catch (error: any) {
-            console.error('Error approving review:', error);
+            if (__DEV__) console.error('Error approving review:', error);
             throw new Error(error.message || 'Failed to approve review');
         }
     }
@@ -411,7 +411,7 @@ class ReviewsService {
             );
             return { success: true, message: response.message || 'Review rejected successfully' };
         } catch (error: any) {
-            console.error('Error rejecting review:', error);
+            if (__DEV__) console.error('Error rejecting review:', error);
             throw new Error(error.message || 'Failed to reject review');
         }
     }

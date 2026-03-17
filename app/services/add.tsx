@@ -340,7 +340,7 @@ export default function AddEditServiceScreen() {
       const response = await uploadsService.uploadImage(uri, filename, 'general', fileObject);
       setImageUrls(prev => [...prev, response.url]);
     } catch (e: any) {
-      console.error('Error uploading image:', e);
+      if (__DEV__) console.error('Error uploading image:', e);
       setErrorModal({ visible: true, title: 'Error', message: e.message || 'Failed to upload image' });
       setImages(prev => prev.filter(img => img !== uri));
     } finally { setUploadingImage(false); }
@@ -429,7 +429,7 @@ export default function AddEditServiceScreen() {
         setSuccessModal({ visible: true, title: 'Service Created', message: 'Your service has been created successfully.' });
       }
     } catch (e: any) {
-      console.error('Error saving service:', e);
+      if (__DEV__) console.error('Error saving service:', e);
       setErrorModal({ visible: true, title: 'Error', message: e.message || 'Failed to save service' });
     } finally { setLoading(false); }
   };

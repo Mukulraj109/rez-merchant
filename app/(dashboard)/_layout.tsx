@@ -43,7 +43,7 @@ export default function DashboardLayout() {
       const total = (response?.data as any)?.total ?? (response as any)?.total ?? 0;
       setTeamCount(total);
     } catch (error) {
-      console.error('Failed to load team count:', error);
+      if (__DEV__) console.error('Failed to load team count:', error);
       setTeamCount(0); // Set to 0 on error
     }
   };

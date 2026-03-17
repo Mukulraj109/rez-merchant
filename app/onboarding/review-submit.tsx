@@ -46,7 +46,7 @@ export default function ReviewSubmitScreen() {
       const data = await onboardingService.getOnboardingStatus();
       setOnboardingData(data);
     } catch (error: any) {
-      console.error('Failed to load onboarding data:', error);
+      if (__DEV__) console.error('Failed to load onboarding data:', error);
       showAlert('Error', 'Failed to load your information. Please try again.');
     } finally {
       setLoading(false);
@@ -202,7 +202,7 @@ export default function ReviewSubmitScreen() {
       // Navigate to pending approval screen
       router.replace('/onboarding/pending-approval');
     } catch (error: any) {
-      console.error('Failed to submit onboarding:', error);
+      if (__DEV__) console.error('Failed to submit onboarding:', error);
       showAlert(
         'Submission Failed',
         error.message || 'Failed to submit your application. Please try again.'

@@ -119,7 +119,7 @@ export default function AddEventScreen() {
         }
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      if (__DEV__) console.error('Error picking image:', error);
       setErrorModal({ visible: true, title: 'Error', message: 'Failed to pick image' });
     }
   };
@@ -132,7 +132,7 @@ export default function AddEventScreen() {
       const response = await uploadsService.uploadImage(uri, filename, 'general', fileObject);
       setImageUrl(response.url);
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      if (__DEV__) console.error('Error uploading image:', error);
       setErrorModal({ visible: true, title: 'Error', message: error.message || 'Failed to upload image' });
       setImageUri(null);
     } finally {
@@ -217,7 +217,7 @@ export default function AddEventScreen() {
         message: `Event ${submitStatus === 'published' ? 'published' : 'saved as draft'} successfully!`,
       });
     } catch (error: any) {
-      console.error('Error creating event:', error);
+      if (__DEV__) console.error('Error creating event:', error);
       setErrorModal({ visible: true, title: 'Error', message: error.message || 'Failed to create event' });
     } finally {
       setLoading(false);

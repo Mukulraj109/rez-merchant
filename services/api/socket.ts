@@ -56,7 +56,7 @@ class SocketService {
 
       // Only log in development mode
       if (__DEV__) {
-        console.log(`📡 [Socket] Attempting to connect to: ${socketUrl}`);
+        if (__DEV__) console.log(`📡 [Socket] Attempting to connect to: ${socketUrl}`);
       }
 
       this.connectionState = 'connecting';
@@ -80,7 +80,7 @@ class SocketService {
     } catch (error) {
       // Silently handle connection errors - WebSocket is optional
       if (__DEV__) {
-        console.warn('⚠️ [Socket] Connection failed (non-critical):', error);
+        if (__DEV__) console.warn('⚠️ [Socket] Connection failed (non-critical):', error);
       }
       this.connectionState = 'error';
       // Don't throw - allow app to continue without WebSocket
@@ -111,7 +111,7 @@ class SocketService {
     // Connection events
     this.socket.on('connect', () => {
       if (__DEV__) {
-        console.log('🟢 [Socket] Connected successfully');
+        if (__DEV__) console.log('🟢 [Socket] Connected successfully');
       }
       this.connectionState = 'connected';
       this.startPingInterval();
@@ -121,7 +121,7 @@ class SocketService {
     this.socket.on('disconnect', (reason) => {
       // Only log in development
       if (__DEV__) {
-        console.log('🔴 [Socket] Disconnected:', reason);
+        if (__DEV__) console.log('🔴 [Socket] Disconnected:', reason);
       }
       this.connectionState = 'disconnected';
       this.stopPingInterval();
@@ -131,7 +131,7 @@ class SocketService {
     this.socket.on('connect_error', (error) => {
       // Only log in development to reduce console noise
       if (__DEV__) {
-        console.warn('⚠️ [Socket] Connection error (non-critical):', error.message || error);
+        if (__DEV__) console.warn('⚠️ [Socket] Connection error (non-critical):', error.message || error);
       }
       this.connectionState = 'error';
       this.emitToListeners('connection-error', error);
@@ -139,7 +139,7 @@ class SocketService {
 
     (this.socket as any).on('reconnect', (attemptNumber: number) => {
       if (__DEV__) {
-        console.log('🟡 [Socket] Reconnected after', attemptNumber, 'attempts');
+        if (__DEV__) console.log('🟡 [Socket] Reconnected after', attemptNumber, 'attempts');
       }
       this.stats.reconnectionCount++;
       this.stats.lastReconnectionAt = new Date().toISOString();
@@ -149,7 +149,7 @@ class SocketService {
     (this.socket as any).on('reconnect_attempt', (attemptNumber: number) => {
       // Only log first attempt to reduce spam
       if (__DEV__ && attemptNumber === 1) {
-        console.log('🟡 [Socket] Attempting reconnection...');
+        if (__DEV__) console.log('🟡 [Socket] Attempting reconnection...');
       }
       this.connectionState = 'reconnecting';
       this.emitToListeners('reconnecting', attemptNumber);
@@ -157,58 +157,58 @@ class SocketService {
 
     // Dashboard data events
     this.socket.on('initial-dashboard-data', (data) => {
-      console.log('📊 Received initial dashboard data');
+      if (__DEV__) console.log('📊 Received initial dashboard data');
       this.stats.messagesReceived++;
       this.emitToListeners('initial-dashboard-data', data);
     });
 
     this.socket.on('metrics-updated', (data) => {
-      console.log('📈 Metrics updated');
+      if (__DEV__) console.log('📈 Metrics updated');
       this.stats.messagesReceived++;
       this.emitToListeners('metrics-updated', data);
     });
 
     this.socket.on('overview-updated', (data) => {
-      console.log('📋 Overview updated');
+      if (__DEV__) console.log('📋 Overview updated');
       this.stats.messagesReceived++;
       this.emitToListeners('overview-updated', data);
     });
 
     // Real-time events
     this.socket.on('order-event', (event) => {
-      console.log('🛒 Order event:', event.type);
+      if (__DEV__) console.log('🛒 Order event:', event.type);
       this.stats.messagesReceived++;
       this.emitToListeners('order-event', event);
     });
 
     this.socket.on('cashback-event', (event) => {
-      console.log('💰 Cashback event:', event.type);
+      if (__DEV__) console.log('💰 Cashback event:', event.type);
       this.stats.messagesReceived++;
       this.emitToListeners('cashback-event', event);
     });
 
     this.socket.on('product-event', (event) => {
-      console.log('📦 Product event:', event.type);
+      if (__DEV__) console.log('📦 Product event:', event.type);
       this.stats.messagesReceived++;
       this.emitToListeners('product-event', event);
     });
 
     // System notifications
     this.socket.on('system-notification', (notification) => {
-      console.log('🔔 System notification:', notification.type);
+      if (__DEV__) console.log('🔔 System notification:', notification.type);
       this.stats.messagesReceived++;
       this.emitToListeners('system-notification', notification);
     });
 
     // Bulk operation events
     this.socket.on('bulk-operation-progress', (data) => {
-      console.log('⚙️ Bulk operation progress:', data.progress.percentage + '%');
+      if (__DEV__) console.log('⚙️ Bulk operation progress:', data.progress.percentage + '%');
       this.stats.messagesReceived++;
       this.emitToListeners('bulk-operation-progress', data);
     });
 
     this.socket.on('bulk-operation-completed', (data) => {
-      console.log('✅ Bulk operation completed:', data.type);
+      if (__DEV__) console.log('✅ Bulk operation completed:', data.type);
       this.stats.messagesReceived++;
       this.emitToListeners('bulk-operation-completed', data);
     });
@@ -231,7 +231,7 @@ class SocketService {
     this.socket.on('error', (error) => {
       // Only log in development to reduce console noise
       if (__DEV__) {
-        console.warn('⚠️ [Socket] Error (non-critical):', error);
+        if (__DEV__) console.warn('⚠️ [Socket] Error (non-critical):', error);
       }
       this.emitToListeners('socket-error', error);
     });
@@ -245,7 +245,7 @@ class SocketService {
     const merchantId = (merchantData as any).id || merchantData;
     this.socket.emit('join-merchant-dashboard', merchantId);
     this.stats.messagesSent++;
-    console.log('📊 Joined merchant dashboard for real-time updates');
+    if (__DEV__) console.log('📊 Joined merchant dashboard for real-time updates');
   }
 
   // Leave merchant dashboard
@@ -256,7 +256,7 @@ class SocketService {
     const merchantId = (merchantData as any).id || merchantData;
     this.socket.emit('leave-merchant-dashboard', merchantId);
     this.stats.messagesSent++;
-    console.log('📊 Left merchant dashboard');
+    if (__DEV__) console.log('📊 Left merchant dashboard');
   }
 
   // Subscribe to specific data types
@@ -345,7 +345,7 @@ class SocketService {
         try {
           callback(data);
         } catch (error) {
-          console.error(`Error in socket listener for ${event}:`, error);
+          if (__DEV__) console.error(`Error in socket listener for ${event}:`, error);
         }
       });
     }

@@ -68,7 +68,7 @@ export default function StoreDealsScreen() {
         setError(response.message || 'Failed to load deals');
       }
     } catch (err: any) {
-      console.error('Error loading deals:', err);
+      if (__DEV__) console.error('Error loading deals:', err);
       setError(err.message || 'Failed to load deals');
     } finally {
       setLoading(false);

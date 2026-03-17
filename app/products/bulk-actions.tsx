@@ -103,7 +103,7 @@ export default function BulkActionsScreen() {
 
       setProducts(result.products);
     } catch (error: any) {
-      console.error('Load products error:', error);
+      if (__DEV__) console.error('Load products error:', error);
       showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
@@ -260,7 +260,7 @@ export default function BulkActionsScreen() {
         }}]
       );
     } catch (error: any) {
-      console.error('Bulk action error:', error);
+      if (__DEV__) console.error('Bulk action error:', error);
       showAlert('Error', error.message || 'Failed to perform bulk action');
     } finally {
       setIsProcessing(false);

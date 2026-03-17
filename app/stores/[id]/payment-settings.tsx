@@ -97,7 +97,7 @@ export default function PaymentSettingsScreen() {
         setRewardRules(response.data.data.rewardRules);
       }
     } catch (error: any) {
-      console.error('Error fetching settings:', error);
+      if (__DEV__) console.error('Error fetching settings:', error);
       setErrorMessage({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to fetch payment settings',
@@ -134,7 +134,7 @@ export default function PaymentSettingsScreen() {
         setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error saving settings:', error);
+      if (__DEV__) console.error('Error saving settings:', error);
       setErrorMessage({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to save payment settings',

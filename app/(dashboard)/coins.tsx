@@ -53,7 +53,7 @@ export default function CoinsScreen() {
       setRecentCustomers(recentData);
       setIsLoadingRecent(false);
     } catch (error: any) {
-      console.error('Error fetching coin data:', error);
+      if (__DEV__) console.error('Error fetching coin data:', error);
       // Don't show error on initial load if no data exists yet
       if (!isLoading) {
         showAlert('Error', error.message || 'Failed to load coin data');
@@ -89,7 +89,7 @@ export default function CoinsScreen() {
         const results = await coinsService.searchCustomer(text.trim());
         setSearchResults(results);
       } catch (error: any) {
-        console.error('Search error:', error);
+        if (__DEV__) console.error('Search error:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);

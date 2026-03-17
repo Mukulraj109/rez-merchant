@@ -75,7 +75,7 @@ export default function ProductVariantsScreen() {
       setProduct(productData);
       setVariants((variantsData as any)?.variants || variantsData as any);
     } catch (error: any) {
-      console.error('Error loading data:', error);
+      if (__DEV__) console.error('Error loading data:', error);
       showAlert('Error', error.message || 'Failed to load variants');
     } finally {
       setLoading(false);

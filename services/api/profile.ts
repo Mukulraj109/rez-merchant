@@ -170,7 +170,7 @@ class ProfileService {
                 throw new Error(response.message || 'Failed to get customer view profile');
             }
         } catch (error: any) {
-            console.error('Get customer view profile error:', error);
+            if (__DEV__) console.error('Get customer view profile error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get customer view profile');
         }
     }
@@ -184,13 +184,13 @@ class ProfileService {
             const response = await apiClient.put<CustomerViewProfile>('/merchant/profile/customer-settings', settings);
 
             if (response.success && response.data) {
-                console.log('✅ Customer settings updated successfully');
+                if (__DEV__) console.log('✅ Customer settings updated successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to update customer settings');
             }
         } catch (error: any) {
-            console.error('Update customer settings error:', error);
+            if (__DEV__) console.error('Update customer settings error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to update customer settings');
         }
     }
@@ -208,7 +208,7 @@ class ProfileService {
                 throw new Error(response.message || 'Failed to get visibility settings');
             }
         } catch (error: any) {
-            console.error('Get visibility settings error:', error);
+            if (__DEV__) console.error('Get visibility settings error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get visibility settings');
         }
     }
@@ -222,13 +222,13 @@ class ProfileService {
             const response = await apiClient.put<VisibilitySettings>('/merchant/profile/visibility', settings);
 
             if (response.success && response.data) {
-                console.log('✅ Visibility settings updated successfully');
+                if (__DEV__) console.log('✅ Visibility settings updated successfully');
                 return response.data;
             } else {
                 throw new Error(response.message || 'Failed to update visibility settings');
             }
         } catch (error: any) {
-            console.error('Update visibility settings error:', error);
+            if (__DEV__) console.error('Update visibility settings error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to update visibility settings');
         }
     }
@@ -241,12 +241,12 @@ class ProfileService {
             const response = await apiClient.post('/merchant/profile/sync-to-customer-app', {});
 
             if (response.success) {
-                console.log('✅ Merchant profile sync triggered successfully');
+                if (__DEV__) console.log('✅ Merchant profile sync triggered successfully');
             } else {
                 throw new Error(response.message || 'Failed to sync merchant profile');
             }
         } catch (error: any) {
-            console.error('Sync to customer app error:', error);
+            if (__DEV__) console.error('Sync to customer app error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to sync merchant profile');
         }
     }
@@ -281,7 +281,7 @@ class ProfileService {
                 throw new Error(response.message || 'Failed to get customer reviews');
             }
         } catch (error: any) {
-            console.error('Get customer reviews error:', error);
+            if (__DEV__) console.error('Get customer reviews error:', error);
             throw new Error(error.response?.data?.message || error.message || 'Failed to get customer reviews');
         }
     }

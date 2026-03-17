@@ -318,7 +318,7 @@ export default function EditOutletScreen() {
         });
       }
     } catch (error: any) {
-      console.error('Error updating outlet:', error);
+      if (__DEV__) console.error('Error updating outlet:', error);
       setAlertModal({
         visible: true,
         title: 'Error',

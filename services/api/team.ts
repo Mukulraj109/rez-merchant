@@ -133,7 +133,7 @@ class TeamService {
         throw new Error(response.message || 'Failed to fetch team members');
       }
     } catch (error: any) {
-      console.error('Get team members error:', error);
+      if (__DEV__) console.error('Get team members error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to fetch team members');
     }
   }
@@ -152,7 +152,7 @@ class TeamService {
         throw new Error(response.message || 'Failed to fetch team member');
       }
     } catch (error: any) {
-      console.error('Get team member error:', error);
+      if (__DEV__) console.error('Get team member error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to fetch team member');
     }
   }
@@ -171,7 +171,7 @@ class TeamService {
         throw new Error(response.message || 'Failed to fetch permissions');
       }
     } catch (error: any) {
-      console.error('Get current user permissions error:', error);
+      if (__DEV__) console.error('Get current user permissions error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to fetch permissions');
     }
   }
@@ -203,7 +203,7 @@ class TeamService {
       }
       return { activities: [], total: 0, page: 1, totalPages: 0 };
     } catch (error: any) {
-      console.error('Get team activity error:', error);
+      if (__DEV__) console.error('Get team activity error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to fetch team activity');
     }
   }
@@ -230,13 +230,13 @@ class TeamService {
       const response = await apiClient.post<InvitationResponse>('merchant/team/invite', inviteData);
 
       if (response.success && response.data) {
-        console.log(`✅ Invitation sent to ${inviteData.email}`);
+        if (__DEV__) console.log(`✅ Invitation sent to ${inviteData.email}`);
         return response.data;
       } else {
         throw new Error(response.message || 'Failed to invite team member');
       }
     } catch (error: any) {
-      console.error('Invite team member error:', error);
+      if (__DEV__) console.error('Invite team member error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to invite team member');
     }
   }
@@ -253,13 +253,13 @@ class TeamService {
       );
 
       if (response.success && response.data) {
-        console.log(`✅ Invitation resent to user ${userId}`);
+        if (__DEV__) console.log(`✅ Invitation resent to user ${userId}`);
         return response.data;
       } else {
         throw new Error(response.message || 'Failed to resend invitation');
       }
     } catch (error: any) {
-      console.error('Resend invitation error:', error);
+      if (__DEV__) console.error('Resend invitation error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to resend invitation');
     }
   }
@@ -279,7 +279,7 @@ class TeamService {
         throw new Error(response.message || 'Invalid invitation token');
       }
     } catch (error: any) {
-      console.error('Validate invitation error:', error);
+      if (__DEV__) console.error('Validate invitation error:', error);
       return {
         valid: false,
         message: error.response?.data?.message || error.message || 'Invalid invitation token'
@@ -314,13 +314,13 @@ class TeamService {
       );
 
       if (response.success && response.data) {
-        console.log(`✅ Invitation accepted for ${response.data.email}`);
+        if (__DEV__) console.log(`✅ Invitation accepted for ${response.data.email}`);
         return response.data;
       } else {
         throw new Error(response.message || 'Failed to accept invitation');
       }
     } catch (error: any) {
-      console.error('Accept invitation error:', error);
+      if (__DEV__) console.error('Accept invitation error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to accept invitation');
     }
   }
@@ -349,13 +349,13 @@ class TeamService {
       );
 
       if (response.success && response.data) {
-        console.log(`✅ Role updated for user ${userId} to ${roleData.role}`);
+        if (__DEV__) console.log(`✅ Role updated for user ${userId} to ${roleData.role}`);
         return response.data;
       } else {
         throw new Error(response.message || 'Failed to update role');
       }
     } catch (error: any) {
-      console.error('Update team member role error:', error);
+      if (__DEV__) console.error('Update team member role error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to update role');
     }
   }
@@ -380,13 +380,13 @@ class TeamService {
       );
 
       if (response.success && response.data) {
-        console.log(`✅ Status updated for user ${userId} to ${statusData.status}`);
+        if (__DEV__) console.log(`✅ Status updated for user ${userId} to ${statusData.status}`);
         return response.data;
       } else {
         throw new Error(response.message || 'Failed to update status');
       }
     } catch (error: any) {
-      console.error('Update team member status error:', error);
+      if (__DEV__) console.error('Update team member status error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to update status');
     }
   }
@@ -406,13 +406,13 @@ class TeamService {
       );
 
       if (response.success && response.data) {
-        console.log(`✅ Team member removed: ${userId}`);
+        if (__DEV__) console.log(`✅ Team member removed: ${userId}`);
         return response.data;
       } else {
         throw new Error(response.message || 'Failed to remove team member');
       }
     } catch (error: any) {
-      console.error('Remove team member error:', error);
+      if (__DEV__) console.error('Remove team member error:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to remove team member');
     }
   }
@@ -436,7 +436,7 @@ class TeamService {
         role: userTeam.role
       };
     } catch (error) {
-      console.error('Check permission error:', error);
+      if (__DEV__) console.error('Check permission error:', error);
       // Default to false if check fails
       return {
         hasPermission: false,
@@ -471,7 +471,7 @@ class TeamService {
         hasAny
       };
     } catch (error) {
-      console.error('Check multiple permissions error:', error);
+      if (__DEV__) console.error('Check multiple permissions error:', error);
       // Default to no permissions
       const permissionsMap: Record<Permission, boolean> = {} as Record<Permission, boolean>;
       permissions.forEach(p => {

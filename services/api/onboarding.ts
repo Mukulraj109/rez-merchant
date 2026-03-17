@@ -49,7 +49,7 @@ class OnboardingService {
    */
   async getOnboardingStatus(): Promise<OnboardingStatus> {
     try {
-      console.log('📋 Fetching onboarding status...');
+      if (__DEV__) console.log('📋 Fetching onboarding status...');
 
       const response = await fetch(getApiUrl('merchant/onboarding/status'), {
         method: 'GET',
@@ -66,13 +66,13 @@ class OnboardingService {
       const data = await response.json() as GetOnboardingStatusResponse;
 
       if (data.success && data.data) {
-        console.log('✅ Onboarding status fetched:', data.data.currentStep);
+        if (__DEV__) console.log('✅ Onboarding status fetched:', data.data.currentStep);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get onboarding status');
       }
     } catch (error: any) {
-      console.error('❌ Get onboarding status error:', error);
+      if (__DEV__) console.error('❌ Get onboarding status error:', error);
       throw new Error(error.message || 'Failed to get onboarding status');
     }
   }
@@ -86,7 +86,7 @@ class OnboardingService {
     validateOnly: boolean = false
   ): Promise<SubmitStepResponse['data']> {
     try {
-      console.log(`📝 Submitting step ${stepNumber}...`);
+      if (__DEV__) console.log(`📝 Submitting step ${stepNumber}...`);
 
       const response = await fetch(getApiUrl(`merchant/onboarding/step/${stepNumber}`), {
         method: 'POST',
@@ -108,13 +108,13 @@ class OnboardingService {
       const data = await response.json() as SubmitStepResponse;
 
       if (data.success && data.data) {
-        console.log(`✅ Step ${stepNumber} submitted successfully`);
+        if (__DEV__) console.log(`✅ Step ${stepNumber} submitted successfully`);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to submit step');
       }
     } catch (error: any) {
-      console.error(`❌ Submit step ${stepNumber} error:`, error);
+      if (__DEV__) console.error(`❌ Submit step ${stepNumber} error:`, error);
       throw new Error(error.message || `Failed to submit step ${stepNumber}`);
     }
   }
@@ -127,7 +127,7 @@ class OnboardingService {
     stepData: BusinessInfoStep | StoreDetailsStep | BankDetailsStep | DocumentsStep | ReviewSubmitStep
   ): Promise<CompleteStepResponse['data']> {
     try {
-      console.log(`✔️ Marking step ${stepNumber} as complete...`);
+      if (__DEV__) console.log(`✔️ Marking step ${stepNumber} as complete...`);
 
       const response = await fetch(getApiUrl(`merchant/onboarding/step/${stepNumber}/complete`), {
         method: 'POST',
@@ -148,13 +148,13 @@ class OnboardingService {
       const data = await response.json() as CompleteStepResponse;
 
       if (data.success && data.data) {
-        console.log(`✅ Step ${stepNumber} marked as complete`);
+        if (__DEV__) console.log(`✅ Step ${stepNumber} marked as complete`);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to complete step');
       }
     } catch (error: any) {
-      console.error(`❌ Complete step ${stepNumber} error:`, error);
+      if (__DEV__) console.error(`❌ Complete step ${stepNumber} error:`, error);
       throw new Error(error.message || `Failed to complete step ${stepNumber}`);
     }
   }
@@ -164,7 +164,7 @@ class OnboardingService {
    */
   async goToPreviousStep(stepNumber: number): Promise<PreviousStepResponse['data']> {
     try {
-      console.log(`⬅️ Going to previous step from ${stepNumber}...`);
+      if (__DEV__) console.log(`⬅️ Going to previous step from ${stepNumber}...`);
 
       const response = await fetch(getApiUrl(`merchant/onboarding/step/${stepNumber}/previous`), {
         method: 'POST',
@@ -182,13 +182,13 @@ class OnboardingService {
       const data = await response.json() as PreviousStepResponse;
 
       if (data.success && data.data) {
-        console.log(`✅ Moved to previous step`);
+        if (__DEV__) console.log(`✅ Moved to previous step`);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to go to previous step');
       }
     } catch (error: any) {
-      console.error(`❌ Go to previous step error:`, error);
+      if (__DEV__) console.error(`❌ Go to previous step error:`, error);
       throw new Error(error.message || 'Failed to go to previous step');
     }
   }
@@ -204,7 +204,7 @@ class OnboardingService {
     reviewSubmit: ReviewSubmitStep
   ): Promise<SubmitOnboardingResponse['data']> {
     try {
-      console.log('🚀 Submitting complete onboarding...');
+      if (__DEV__) console.log('🚀 Submitting complete onboarding...');
 
       const response = await fetch(getApiUrl('merchant/onboarding/submit'), {
         method: 'POST',
@@ -230,7 +230,7 @@ class OnboardingService {
       const data = await response.json() as SubmitOnboardingResponse;
 
       if (data.success && data.data) {
-        console.log('✅ Onboarding submitted successfully');
+        if (__DEV__) console.log('✅ Onboarding submitted successfully');
         // Clear auto-save after successful submission
         this.stopAutoSave();
         return data.data;
@@ -238,7 +238,7 @@ class OnboardingService {
         throw new Error(data.message || 'Failed to submit onboarding');
       }
     } catch (error: any) {
-      console.error('❌ Submit onboarding error:', error);
+      if (__DEV__) console.error('❌ Submit onboarding error:', error);
       throw new Error(error.message || 'Failed to submit onboarding');
     }
   }
@@ -253,7 +253,7 @@ class OnboardingService {
     onProgress?: (progress: number) => void
   ): Promise<DocumentUploadResponse['data']> {
     try {
-      console.log(`📤 Uploading ${type} document...`);
+      if (__DEV__) console.log(`📤 Uploading ${type} document...`);
 
       // Create FormData for file upload
       const formData = new FormData();
@@ -290,7 +290,7 @@ class OnboardingService {
             if (xhr.status >= 200 && xhr.status < 300) {
               const data = JSON.parse(xhr.responseText) as DocumentUploadResponse;
               if (data.success && data.data) {
-                console.log(`✅ ${type} document uploaded successfully`);
+                if (__DEV__) console.log(`✅ ${type} document uploaded successfully`);
                 resolve(data.data);
               } else {
                 reject(new Error(data.message || 'Failed to upload document'));
@@ -317,7 +317,7 @@ class OnboardingService {
         xhr.send(formData);
       });
     } catch (error: any) {
-      console.error(`❌ Upload ${type} document error:`, error);
+      if (__DEV__) console.error(`❌ Upload ${type} document error:`, error);
       throw new Error(error.message || `Failed to upload ${type} document`);
     }
   }
@@ -327,7 +327,7 @@ class OnboardingService {
    */
   async getDocuments(): Promise<GetDocumentsResponse['data']> {
     try {
-      console.log('📄 Fetching documents...');
+      if (__DEV__) console.log('📄 Fetching documents...');
 
       const response = await fetch(getApiUrl('merchant/onboarding/documents'), {
         method: 'GET',
@@ -344,13 +344,13 @@ class OnboardingService {
       const data = await response.json() as GetDocumentsResponse;
 
       if (data.success && data.data) {
-        console.log('✅ Documents fetched:', data.data.documents.length);
+        if (__DEV__) console.log('✅ Documents fetched:', data.data.documents.length);
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to get documents');
       }
     } catch (error: any) {
-      console.error('❌ Get documents error:', error);
+      if (__DEV__) console.error('❌ Get documents error:', error);
       throw new Error(error.message || 'Failed to get documents');
     }
   }
@@ -360,7 +360,7 @@ class OnboardingService {
    */
   async deleteDocument(documentIndex: number): Promise<DeleteDocumentResponse['data']> {
     try {
-      console.log(`🗑️ Deleting document at index ${documentIndex}...`);
+      if (__DEV__) console.log(`🗑️ Deleting document at index ${documentIndex}...`);
 
       const response = await fetch(getApiUrl(`merchant/onboarding/documents/${documentIndex}`), {
         method: 'DELETE',
@@ -378,13 +378,13 @@ class OnboardingService {
       const data = await response.json() as DeleteDocumentResponse;
 
       if (data.success && data.data) {
-        console.log('✅ Document deleted successfully');
+        if (__DEV__) console.log('✅ Document deleted successfully');
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to delete document');
       }
     } catch (error: any) {
-      console.error('❌ Delete document error:', error);
+      if (__DEV__) console.error('❌ Delete document error:', error);
       throw new Error(error.message || 'Failed to delete document');
     }
   }
@@ -393,7 +393,7 @@ class OnboardingService {
    * Validate GST Number
    */
   validateGSTNumber(gstNumber: string): ValidationResult {
-    console.log('🔍 Validating GST number...');
+    if (__DEV__) console.log('🔍 Validating GST number...');
 
     // GST number format: 2-digit state code + 10-digit PAN + 1-digit entity number + 1-digit checksum
     const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -415,7 +415,7 @@ class OnboardingService {
       };
     }
 
-    console.log('✅ GST number is valid');
+    if (__DEV__) console.log('✅ GST number is valid');
     return {
       isValid: true,
       errors: {},
@@ -426,7 +426,7 @@ class OnboardingService {
    * Validate PAN Number
    */
   validatePANNumber(panNumber: string): ValidationResult {
-    console.log('🔍 Validating PAN number...');
+    if (__DEV__) console.log('🔍 Validating PAN number...');
 
     // PAN format: 5 letters + 4 digits + 1 letter
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
@@ -448,7 +448,7 @@ class OnboardingService {
       };
     }
 
-    console.log('✅ PAN number is valid');
+    if (__DEV__) console.log('✅ PAN number is valid');
     return {
       isValid: true,
       errors: {},
@@ -459,7 +459,7 @@ class OnboardingService {
    * Validate IFSC Code
    */
   validateIFSCCode(ifscCode: string): ValidationResult {
-    console.log('🔍 Validating IFSC code...');
+    if (__DEV__) console.log('🔍 Validating IFSC code...');
 
     // IFSC format: 4 letters (bank code) + 0 + 6 characters (branch code)
     const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
@@ -481,7 +481,7 @@ class OnboardingService {
       };
     }
 
-    console.log('✅ IFSC code is valid');
+    if (__DEV__) console.log('✅ IFSC code is valid');
     return {
       isValid: true,
       errors: {},
@@ -492,7 +492,7 @@ class OnboardingService {
    * Validate Account Number
    */
   validateAccountNumber(accountNumber: string, confirmAccountNumber: string): ValidationResult {
-    console.log('🔍 Validating account number...');
+    if (__DEV__) console.log('🔍 Validating account number...');
 
     const errors: Record<string, string> = {};
 
@@ -511,14 +511,14 @@ class OnboardingService {
     }
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Account number validation failed:', errors);
+      if (__DEV__) console.log('❌ Account number validation failed:', errors);
       return {
         isValid: false,
         errors,
       };
     }
 
-    console.log('✅ Account number is valid');
+    if (__DEV__) console.log('✅ Account number is valid');
     return {
       isValid: true,
       errors: {},
@@ -534,7 +534,7 @@ class OnboardingService {
     panNumber: string,
     gstNumber?: string
   ): Promise<BankValidationResult> {
-    console.log('🏦 Validating bank details...');
+    if (__DEV__) console.log('🏦 Validating bank details...');
 
     const result: BankValidationResult = {
       ifscValid: this.validateIFSCCode(ifscCode).isValid,
@@ -543,7 +543,7 @@ class OnboardingService {
       gstValid: gstNumber ? this.validateGSTNumber(gstNumber).isValid : true,
     };
 
-    console.log('✅ Bank details validation result:', result);
+    if (__DEV__) console.log('✅ Bank details validation result:', result);
     return result;
   }
 
@@ -555,7 +555,7 @@ class OnboardingService {
     stepData: BusinessInfoStep | StoreDetailsStep | BankDetailsStep | DocumentsStep | ReviewSubmitStep,
     interval?: number
   ): void {
-    console.log(`⏱️ Starting auto-save for step ${stepNumber}...`);
+    if (__DEV__) console.log(`⏱️ Starting auto-save for step ${stepNumber}...`);
 
     if (this.autoSaveInterval) {
       this.stopAutoSave();
@@ -568,9 +568,9 @@ class OnboardingService {
     this.autoSaveInterval = setInterval(async () => {
       try {
         await this.completeStep(stepNumber, stepData);
-        console.log(`✅ Auto-saved step ${stepNumber}`);
+        if (__DEV__) console.log(`✅ Auto-saved step ${stepNumber}`);
       } catch (error) {
-        console.warn(`⚠️ Auto-save failed for step ${stepNumber}:`, error);
+        if (__DEV__) console.warn(`⚠️ Auto-save failed for step ${stepNumber}:`, error);
       }
     }, this.autoSaveDelay);
   }
@@ -582,7 +582,7 @@ class OnboardingService {
     if (this.autoSaveInterval) {
       clearInterval(this.autoSaveInterval);
       this.autoSaveInterval = null;
-      console.log('⏹️ Auto-save stopped');
+      if (__DEV__) console.log('⏹️ Auto-save stopped');
     }
   }
 
@@ -590,7 +590,7 @@ class OnboardingService {
    * Validate Business Info Step
    */
   validateBusinessInfo(data: BusinessInfoStep): ValidationResult {
-    console.log('🔍 Validating business info...');
+    if (__DEV__) console.log('🔍 Validating business info...');
     const errors: Record<string, string> = {};
 
     if (!data.businessName || data.businessName.trim().length === 0) {
@@ -626,11 +626,11 @@ class OnboardingService {
     }
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Business info validation failed:', errors);
+      if (__DEV__) console.log('❌ Business info validation failed:', errors);
       return { isValid: false, errors };
     }
 
-    console.log('✅ Business info is valid');
+    if (__DEV__) console.log('✅ Business info is valid');
     return { isValid: true, errors: {} };
   }
 
@@ -638,7 +638,7 @@ class OnboardingService {
    * Validate Store Details Step
    */
   validateStoreDetails(data: StoreDetailsStep): ValidationResult {
-    console.log('🔍 Validating store details...');
+    if (__DEV__) console.log('🔍 Validating store details...');
     const errors: Record<string, string> = {};
 
     if (!data.storeName || data.storeName.trim().length === 0) {
@@ -674,11 +674,11 @@ class OnboardingService {
     }
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Store details validation failed:', errors);
+      if (__DEV__) console.log('❌ Store details validation failed:', errors);
       return { isValid: false, errors };
     }
 
-    console.log('✅ Store details are valid');
+    if (__DEV__) console.log('✅ Store details are valid');
     return { isValid: true, errors: {} };
   }
 
@@ -686,7 +686,7 @@ class OnboardingService {
    * Validate Bank Details Step
    */
   validateBankDetailsStep(data: BankDetailsStep): ValidationResult {
-    console.log('🔍 Validating bank details...');
+    if (__DEV__) console.log('🔍 Validating bank details...');
     const errors: Record<string, string> = {};
 
     if (!data.accountHolderName || data.accountHolderName.trim().length === 0) {
@@ -727,11 +727,11 @@ class OnboardingService {
     }
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Bank details validation failed:', errors);
+      if (__DEV__) console.log('❌ Bank details validation failed:', errors);
       return { isValid: false, errors };
     }
 
-    console.log('✅ Bank details are valid');
+    if (__DEV__) console.log('✅ Bank details are valid');
     return { isValid: true, errors: {} };
   }
 
@@ -739,7 +739,7 @@ class OnboardingService {
    * Validate Documents Step
    */
   validateDocuments(data: DocumentsStep): ValidationResult {
-    console.log('🔍 Validating documents...');
+    if (__DEV__) console.log('🔍 Validating documents...');
     const errors: Record<string, string> = {};
 
     if (!data.documents || data.documents.length === 0) {
@@ -757,11 +757,11 @@ class OnboardingService {
     }
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Documents validation failed:', errors);
+      if (__DEV__) console.log('❌ Documents validation failed:', errors);
       return { isValid: false, errors };
     }
 
-    console.log('✅ Documents are valid');
+    if (__DEV__) console.log('✅ Documents are valid');
     return { isValid: true, errors: {} };
   }
 
@@ -769,7 +769,7 @@ class OnboardingService {
    * Validate Review & Submit Step
    */
   validateReviewSubmit(data: ReviewSubmitStep): ValidationResult {
-    console.log('🔍 Validating review & submit...');
+    if (__DEV__) console.log('🔍 Validating review & submit...');
     const errors: Record<string, string> = {};
 
     if (!data.agreedToTerms) {
@@ -785,11 +785,11 @@ class OnboardingService {
     }
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Review & submit validation failed:', errors);
+      if (__DEV__) console.log('❌ Review & submit validation failed:', errors);
       return { isValid: false, errors };
     }
 
-    console.log('✅ Review & submit is valid');
+    if (__DEV__) console.log('✅ Review & submit is valid');
     return { isValid: true, errors: {} };
   }
 

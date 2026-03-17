@@ -63,7 +63,7 @@ export default function RootLayout() {
     if (__DEV__ && Platform.OS === 'ios') {
       import('@/utils/debugAuth').then(({ debugAuth }) => {
         debugAuth.clearAllAuth().then(() => {
-          console.log('🧹 iOS storage cleared - corrupted tokens removed');
+          if (__DEV__) console.log('🧹 iOS storage cleared - corrupted tokens removed');
         }).catch(console.error);
       });
     }

@@ -120,7 +120,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get audit logs');
       }
     } catch (error: any) {
-      console.error('❌ Get audit logs error:', error);
+      if (__DEV__) console.error(' Get audit logs error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -165,7 +165,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get resource history');
       }
     } catch (error: any) {
-      console.error('❌ Get resource history error:', error);
+      if (__DEV__) console.error(' Get resource history error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -216,7 +216,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get timeline');
       }
     } catch (error: any) {
-      console.error('❌ Get timeline error:', error);
+      if (__DEV__) console.error(' Get timeline error:', error);
       throw new Error(
         error.response?.data?.message || error.message || 'Failed to get timeline'
       );
@@ -251,7 +251,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get today activities');
       }
     } catch (error: any) {
-      console.error('❌ Get today activities error:', error);
+      if (__DEV__) console.error(' Get today activities error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -295,7 +295,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get recent activities');
       }
     } catch (error: any) {
-      console.error('❌ Get recent activities error:', error);
+      if (__DEV__) console.error(' Get recent activities error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -344,7 +344,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get activity summary');
       }
     } catch (error: any) {
-      console.error('❌ Get activity summary error:', error);
+      if (__DEV__) console.error(' Get activity summary error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -388,7 +388,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get critical activities');
       }
     } catch (error: any) {
-      console.error('❌ Get critical activities error:', error);
+      if (__DEV__) console.error(' Get critical activities error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -437,7 +437,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get activity heatmap');
       }
     } catch (error: any) {
-      console.error('❌ Get activity heatmap error:', error);
+      if (__DEV__) console.error(' Get activity heatmap error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -488,7 +488,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to search audit logs');
       }
     } catch (error: any) {
-      console.error('❌ Search audit logs error:', error);
+      if (__DEV__) console.error(' Search audit logs error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -534,7 +534,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get audit statistics');
       }
     } catch (error: any) {
-      console.error('❌ Get audit statistics error:', error);
+      if (__DEV__) console.error(' Get audit statistics error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -584,7 +584,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get user activity');
       }
     } catch (error: any) {
-      console.error('❌ Get user activity error:', error);
+      if (__DEV__) console.error(' Get user activity error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -668,7 +668,7 @@ class AuditService {
 
       throw new Error('Failed to export audit logs');
     } catch (error: any) {
-      console.error('❌ Export audit logs error:', error);
+      if (__DEV__) console.error(' Export audit logs error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -712,7 +712,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get compliance report');
       }
     } catch (error: any) {
-      console.error('❌ Get compliance report error:', error);
+      if (__DEV__) console.error(' Get compliance report error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -749,7 +749,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get retention statistics');
       }
     } catch (error: any) {
-      console.error('❌ Get retention statistics error:', error);
+      if (__DEV__) console.error(' Get retention statistics error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -798,7 +798,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to cleanup audit logs');
       }
     } catch (error: any) {
-      console.error('❌ Cleanup audit logs error:', error);
+      if (__DEV__) console.error(' Cleanup audit logs error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -845,7 +845,7 @@ class AuditService {
         throw new Error(data.message || 'Failed to get archived logs');
       }
     } catch (error: any) {
-      console.error('❌ Get archived logs error:', error);
+      if (__DEV__) console.error(' Get archived logs error:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||

@@ -61,7 +61,7 @@ export default function ParticipantsScreen() {
       setEvent(eventData);
       setParticipants(participantsData.participants);
     } catch (error: any) {
-      console.error('Error fetching data:', error);
+      if (__DEV__) console.error('Error fetching data:', error);
       showAlert('Error', error.message || 'Failed to load data');
     } finally {
       setIsLoading(false);

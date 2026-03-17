@@ -49,7 +49,7 @@ export default function TeamMemberDetailScreen() {
       const permissions = await teamService.getCurrentUserPermissions();
       setCurrentUserRole(permissions.role);
     } catch (error) {
-      console.error('Failed to check permissions:', error);
+      if (__DEV__) console.error('Failed to check permissions:', error);
     }
   };
 

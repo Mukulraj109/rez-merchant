@@ -69,7 +69,7 @@ export default function StoreQRCodeScreen() {
         setQrData(response.data);
       }
     } catch (error: any) {
-      console.error('Error fetching QR data:', error);
+      if (__DEV__) console.error('Error fetching QR data:', error);
       setErrorMessage({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to fetch QR code data',
@@ -111,7 +111,7 @@ export default function StoreQRCodeScreen() {
         setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error generating QR:', error);
+      if (__DEV__) console.error('Error generating QR:', error);
       setErrorMessage({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to generate QR code',
@@ -144,7 +144,7 @@ export default function StoreQRCodeScreen() {
         setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error regenerating QR:', error);
+      if (__DEV__) console.error('Error regenerating QR:', error);
       setErrorMessage({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to regenerate QR code',
@@ -173,7 +173,7 @@ export default function StoreQRCodeScreen() {
         setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error toggling QR status:', error);
+      if (__DEV__) console.error('Error toggling QR status:', error);
       setErrorMessage({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to toggle QR code status',
@@ -230,7 +230,7 @@ export default function StoreQRCodeScreen() {
         setShowSuccessModal(true);
       }
     } catch (error: any) {
-      console.error('Error downloading QR:', error);
+      if (__DEV__) console.error('Error downloading QR:', error);
       setErrorMessage({
         title: 'Error',
         message: 'Failed to download QR code',
@@ -285,7 +285,7 @@ export default function StoreQRCodeScreen() {
         }
       }
     } catch (error: any) {
-      console.error('Error sharing QR:', error);
+      if (__DEV__) console.error('Error sharing QR:', error);
       if (error.name !== 'AbortError') {
         setErrorMessage({
           title: 'Error',

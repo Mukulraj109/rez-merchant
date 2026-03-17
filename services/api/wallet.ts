@@ -86,7 +86,7 @@ class WalletService {
         throw new Error(data.message || 'Failed to get wallet summary');
       }
     } catch (error: any) {
-      console.error('Get wallet summary error:', error);
+      if (__DEV__) console.error('Get wallet summary error:', error);
       throw new Error(error.message || 'Failed to get wallet summary');
     }
   }
@@ -126,7 +126,7 @@ class WalletService {
         throw new Error(data.message || 'Failed to get transactions');
       }
     } catch (error: any) {
-      console.error('Get transactions error:', error);
+      if (__DEV__) console.error('Get transactions error:', error);
       throw new Error(error.message || 'Failed to get transactions');
     }
   }
@@ -156,7 +156,7 @@ class WalletService {
         transactionId: data.data?.transactionId
       };
     } catch (error: any) {
-      console.error('Request withdrawal error:', error);
+      if (__DEV__) console.error('Request withdrawal error:', error);
       throw new Error(error.message || 'Failed to request withdrawal');
     }
   }
@@ -185,7 +185,7 @@ class WalletService {
         message: data.message || 'Bank details updated successfully'
       };
     } catch (error: any) {
-      console.error('Update bank details error:', error);
+      if (__DEV__) console.error('Update bank details error:', error);
       throw new Error(error.message || 'Failed to update bank details');
     }
   }
@@ -213,7 +213,7 @@ class WalletService {
         throw new Error(data.message || 'Failed to get wallet stats');
       }
     } catch (error: any) {
-      console.error('Get wallet stats error:', error);
+      if (__DEV__) console.error('Get wallet stats error:', error);
       throw new Error(error.message || 'Failed to get wallet stats');
     }
   }
