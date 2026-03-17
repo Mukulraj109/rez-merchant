@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { apiClient } from './client';
 
 export interface StoreLocation {
   address: string;

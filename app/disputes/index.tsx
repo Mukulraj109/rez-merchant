@@ -10,7 +10,7 @@ import {
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { apiClient } from '@/services/api/apiClient';
+import { apiClient } from '@/services/api';
 import { showAlert } from '@/utils/alert';
 
 interface DisputeItem {

@@ -1,4 +1,4 @@
-import { apiClient, ApiResponse } from './index';
+import { apiClient, ApiResponse } from './client';
 import { getApiUrl } from '../../config/api';
 
 // Types for Store Vouchers

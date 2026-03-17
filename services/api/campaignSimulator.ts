@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { apiClient } from './client';
 
 export type CampaignType = 'cashback_percentage' | 'flat_bonus' | 'multiplier';
 

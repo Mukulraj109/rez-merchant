@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { apiClient } from './client';
 
 export interface MerchantIntegrationItem {
   _id: string;

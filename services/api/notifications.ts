@@ -20,7 +20,7 @@
  * - PUT    /api/merchant/notifications/preferences
  */
 
-import { apiClient, ApiResponse, PaginatedResponse } from './index';
+import { apiClient, ApiResponse, PaginatedResponse } from './client';
 import { storageService } from '../storage';
 import { getApiUrl, buildApiUrl } from '../../config/api';
 import {

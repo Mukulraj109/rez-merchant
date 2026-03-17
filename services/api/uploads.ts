@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { apiClient } from './client';
 import { Platform } from 'react-native';
 import { storageService } from '../storage';
 

@@ -17,7 +17,7 @@ import { showAlert } from '@/utils/alert';
 import GoalSelector, { OfferGoal, OFFER_GOALS } from '@/components/offers/GoalSelector';
 import OfferConfigForm, { OfferConfig } from '@/components/offers/OfferConfigForm';
 import OfferReviewCard from '@/components/offers/OfferReviewCard';
-import { apiClient } from '@/services/api/apiClient';
+import { apiClient } from '@/services/api';
 
 type Step = 1 | 2 | 3;
 

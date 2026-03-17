@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 export interface StorageKeys {
   AUTH_TOKEN: 'auth_token';
@@ -25,11 +26,19 @@ class StorageService {
   }
 
   private async secureSetItem(key: string, value: string): Promise<void> {
-    await SecureStore.setItemAsync(key, value);
-    await AsyncStorage.removeItem(key);
+    if (Platform.OS !== 'web') {
+      await SecureStore.setItemAsync(key, value);
+      await AsyncStorage.removeItem(key);
+    } else {
+      await AsyncStorage.setItem(key, value);
+    }
   }
 
   private async secureGetItem(key: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      return AsyncStorage.getItem(key);
+    }
+
     const secureValue = await SecureStore.getItemAsync(key);
     if (secureValue !== null) {
       return secureValue;
@@ -45,7 +54,9 @@ class StorageService {
   }
 
   private async secureRemoveItem(key: string): Promise<void> {
-    await SecureStore.deleteItemAsync(key);
+    if (Platform.OS !== 'web') {
+      await SecureStore.deleteItemAsync(key);
+    }
     await AsyncStorage.removeItem(key);
   }
 

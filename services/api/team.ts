@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { apiClient } from './client';
 import { storageService } from '../storage';
 import { getApiUrl } from '../../config/api';
 import {

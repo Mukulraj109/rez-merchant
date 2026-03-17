@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { apiClient } from './client';
 import { buildApiUrl } from '../../config/api';
 
 // ==================== TYPES ====================
