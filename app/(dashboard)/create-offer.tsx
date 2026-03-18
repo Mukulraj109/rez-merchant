@@ -38,6 +38,7 @@ export default function CreateOfferScreen() {
     title: '',
     description: '',
   });
+  const [targetAudience, setTargetAudience] = useState<'everyone' | 'student' | 'corporate' | 'both'>('everyone');
 
   const handleGoalSelect = useCallback((goal: OfferGoal) => {
     setSelectedGoal(goal);
@@ -116,6 +117,10 @@ export default function CreateOfferScreen() {
         startDate: now.toISOString(),
         endDate: endDate.toISOString(),
         isActive: true,
+        ...(targetAudience !== 'everyone' && {
+          exclusiveZone: targetAudience === 'both' ? undefined : targetAudience,
+          targetAudience: targetAudience,
+        }),
       });
 
       if (res.success) {
@@ -170,11 +175,52 @@ export default function CreateOfferScreen() {
             <GoalSelector selectedGoalId={selectedGoal?.id || null} onSelectGoal={handleGoalSelect} />
           )}
           {step === 2 && (
-            <OfferConfigForm
-              config={config}
-              goalTitle={selectedGoal?.title || ''}
-              onChange={handleConfigChange}
-            />
+            <>
+              <OfferConfigForm
+                config={config}
+                goalTitle={selectedGoal?.title || ''}
+                onChange={handleConfigChange}
+              />
+              {/* Target Audience — Zone Targeting */}
+              <View style={styles.zoneTargetSection}>
+                <Text style={styles.zoneTargetLabel}>
+                  Target Audience
+                </Text>
+                <View style={styles.zoneTargetChips}>
+                  {([
+                    { id: 'everyone', label: 'Everyone' },
+                    { id: 'student', label: 'Students Only' },
+                    { id: 'corporate', label: 'Employees Only' },
+                    { id: 'both', label: 'Both Verified' },
+                  ] as const).map((opt) => (
+                    <Pressable
+                      key={opt.id}
+                      style={[
+                        styles.zoneTargetChip,
+                        targetAudience === opt.id && { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },
+                      ]}
+                      onPress={() => setTargetAudience(opt.id)}
+                    >
+                      <Text style={[
+                        styles.zoneTargetChipText,
+                        targetAudience === opt.id && { color: '#fff' },
+                      ]}>
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+                  {targetAudience === 'everyone'
+                    ? 'Visible to all customers'
+                    : targetAudience === 'student'
+                    ? 'Only visible to verified students'
+                    : targetAudience === 'corporate'
+                    ? 'Only visible to verified employees'
+                    : 'Visible to verified students and employees'}
+                </Text>
+              </View>
+            </>
           )}
           {step === 3 && (
             <OfferReviewCard
@@ -261,4 +307,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14, borderRadius: 14,
   },
   nextText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  zoneTargetSection: { marginTop: 20, paddingHorizontal: 16 },
+  zoneTargetLabel: { fontSize: 15, fontWeight: '600', marginBottom: 10 },
+  zoneTargetChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  zoneTargetChip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    borderWidth: 1,
+  },
+  zoneTargetChipText: { fontSize: 13, fontWeight: '500' },
 });

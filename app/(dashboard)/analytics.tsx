@@ -268,6 +268,20 @@ export default function AnalyticsTab() {
         icon: 'repeat' as const,
         color: '#EC4899',
         gradientColors: ['#EC4899', '#DB2777'] as [string, string],
+      },
+      {
+        title: 'Student Redemptions',
+        value: formatNumber((overview as any)?.segmentBreakdown?.student || 0),
+        icon: 'school' as const,
+        color: '#7C3AED',
+        gradientColors: ['#7C3AED', '#6366F1'] as [string, string],
+      },
+      {
+        title: 'Employee Redemptions',
+        value: formatNumber((overview as any)?.segmentBreakdown?.corporate || 0),
+        icon: 'briefcase' as const,
+        color: '#1a3a52',
+        gradientColors: ['#1a3a52', '#2A5577'] as [string, string],
       }
     );
 
