@@ -10,6 +10,7 @@ import {
   Switch,
   TextInput,
   Platform,
+  Pressable,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,11 +38,19 @@ interface PaymentSettings {
   upiName: string;
 }
 
+interface VisitMilestone {
+  visits: number;
+  coinsReward: number;
+}
+
 interface RewardRules {
   baseCashbackPercent: number;
   reviewBonusCoins: number;
+  reviewBonusCoinType?: 'rez' | 'branded';
   socialShareBonusCoins: number;
   minimumAmountForReward: number;
+  firstVisitBonus?: number;
+  visitMilestoneRewards?: VisitMilestone[];
   extraRewardThreshold?: number;
   extraRewardCoins?: number;
 }
@@ -390,6 +399,89 @@ export default function PaymentSettingsScreen() {
               keyboardType="numeric"
               placeholder="100"
             />
+          </View>
+
+          {/* First Visit Bonus */}
+          <View style={styles.inputSection}>
+            <Text style={styles.inputLabel}>First Visit Bonus (coins)</Text>
+            <Text style={styles.inputDescription}>Extra coins awarded on user's very first payment at your store</Text>
+            <TextInput
+              style={styles.numberInput}
+              value={rewardRules.firstVisitBonus?.toString() || '0'}
+              onChangeText={(text) => updateRewardRule('firstVisitBonus', parseInt(text) || 0)}
+              keyboardType="numeric"
+              placeholder="0"
+            />
+          </View>
+
+          {/* Review Coin Type */}
+          <View style={styles.inputSection}>
+            <Text style={styles.inputLabel}>Review Bonus Coin Type</Text>
+            <Text style={styles.inputDescription}>Type of coins awarded for reviews (branded = only usable at your store)</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+              {(['branded', 'rez'] as const).map(type => (
+                <Pressable
+                  key={type}
+                  onPress={() => updateRewardRule('reviewBonusCoinType', type)}
+                  style={{
+                    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8,
+                    backgroundColor: rewardRules.reviewBonusCoinType === type ? '#7C3AED' : '#F3F4F6',
+                  }}
+                >
+                  <Text style={{ color: rewardRules.reviewBonusCoinType === type ? '#FFF' : '#333', fontWeight: '600', fontSize: 13 }}>
+                    {type === 'branded' ? 'Branded Coins' : 'REZ Coins'}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Visit Milestone Rewards */}
+          <View style={styles.inputSection}>
+            <Text style={styles.inputLabel}>Visit Milestone Rewards</Text>
+            <Text style={styles.inputDescription}>Bonus coins at specific visit counts (e.g. 5th visit = 50 coins)</Text>
+            {(rewardRules.visitMilestoneRewards || []).map((m, idx) => (
+              <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <TextInput
+                  style={[styles.numberInput, { flex: 1 }]}
+                  value={String(m.visits)}
+                  onChangeText={v => {
+                    const updated = [...(rewardRules.visitMilestoneRewards || [])];
+                    updated[idx] = { ...updated[idx], visits: parseInt(v, 10) || 1 };
+                    updateRewardRule('visitMilestoneRewards', updated);
+                  }}
+                  keyboardType="numeric"
+                  placeholder="Visit #"
+                />
+                <TextInput
+                  style={[styles.numberInput, { flex: 1 }]}
+                  value={String(m.coinsReward)}
+                  onChangeText={v => {
+                    const updated = [...(rewardRules.visitMilestoneRewards || [])];
+                    updated[idx] = { ...updated[idx], coinsReward: parseInt(v, 10) || 0 };
+                    updateRewardRule('visitMilestoneRewards', updated);
+                  }}
+                  keyboardType="numeric"
+                  placeholder="Coins"
+                />
+                <Pressable onPress={() => {
+                  const updated = (rewardRules.visitMilestoneRewards || []).filter((_: any, i: number) => i !== idx);
+                  updateRewardRule('visitMilestoneRewards', updated);
+                }}>
+                  <Ionicons name="trash" size={18} color="#ef4444" />
+                </Pressable>
+              </View>
+            ))}
+            <Pressable
+              onPress={() => {
+                const current = rewardRules.visitMilestoneRewards || [];
+                updateRewardRule('visitMilestoneRewards', [...current, { visits: 5, coinsReward: 50 }]);
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}
+            >
+              <Ionicons name="add-circle" size={16} color="#22c55e" />
+              <Text style={{ color: '#22c55e', fontSize: 13 }}>Add Milestone</Text>
+            </Pressable>
           </View>
         </View>
 
