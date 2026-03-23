@@ -93,6 +93,8 @@ export default function AnalyticsTab() {
   const {
     data: overview,
     isLoading: overviewLoading,
+    isError: overviewError,
+    error: overviewErrorObj,
     refetch: refetchOverview,
   } = useQuery({
     queryKey: ['analytics-overview', dateRange, activeStore?._id],
@@ -345,6 +347,25 @@ export default function AnalyticsTab() {
             onPress={() => router.push('/stores')}
           >
             <ThemedText style={styles.selectStoreButtonText}>Select Store</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  if (overviewError && !overview) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <View style={{ alignItems: 'center', padding: 40 }}>
+          <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+          <ThemedText style={{ fontSize: 16, fontWeight: '600', marginTop: 12, color: '#111' }}>
+            {(overviewErrorObj as any)?.message || 'Failed to load analytics'}
+          </ThemedText>
+          <TouchableOpacity
+            onPress={() => handleRefresh()}
+            style={{ marginTop: 16, backgroundColor: '#7C3AED', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}
+          >
+            <ThemedText style={{ color: 'white', fontWeight: '600' }}>Retry</ThemedText>
           </TouchableOpacity>
         </View>
       </ThemedView>

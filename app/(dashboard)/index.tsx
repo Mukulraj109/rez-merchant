@@ -86,11 +86,12 @@ export default function DashboardScreen() {
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   const fetchDashboardData = useCallback(async (showRefreshing = false) => {
+    const storeId = activeStore?._id;
+    if (!storeId) return;
+
     try {
       if (showRefreshing) setRefreshing(true);
       else setIsLoading(true);
-
-      const storeId = activeStore?._id;
       const dashboardData = await dashboardService.getAllDashboardData(storeId);
 
       if (dashboardData.metrics) {

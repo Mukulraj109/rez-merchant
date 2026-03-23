@@ -157,6 +157,7 @@ export default function AddEditServiceScreen() {
   const { stores } = useStore();
 
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingService, setLoadingService] = useState(false);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [images, setImages] = useState<string[]>([]);
@@ -397,10 +398,13 @@ export default function AddEditServiceScreen() {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+
     const err = validateForm();
     if (err) { setErrorModal({ visible: true, title: 'Validation Error', message: err }); return; }
 
     setLoading(true);
+    setIsSubmitting(true);
     try {
       const serviceData: CreateServiceData = {
         name: name.trim(),
@@ -431,7 +435,10 @@ export default function AddEditServiceScreen() {
     } catch (e: any) {
       if (__DEV__) console.error('Error saving service:', e);
       setErrorModal({ visible: true, title: 'Error', message: e.message || 'Failed to save service' });
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+      setIsSubmitting(false);
+    }
   };
 
   const getSelectedCategoryName = () => {
@@ -764,12 +771,17 @@ export default function AddEditServiceScreen() {
 
             {/* ── Action Buttons ────────────────────────────── */}
             <View style={st.actions}>
-              <TouchableOpacity style={st.cancelBtn} onPress={() => router.back()} disabled={loading}>
+              <TouchableOpacity style={st.cancelBtn} onPress={() => router.back()} disabled={loading || isSubmitting}>
                 <Text style={st.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.submitBtn} onPress={handleSubmit} disabled={loading}>
+              <TouchableOpacity style={[st.submitBtn, { opacity: isSubmitting ? 0.6 : 1 }]} onPress={handleSubmit} disabled={loading || isSubmitting}>
                 <LinearGradient colors={[ACCENT, '#0284C7']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={st.submitBtnGrad}>
-                  {loading ? <ActivityIndicator color="#FFF" /> : (
+                  {(loading || isSubmitting) ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <ActivityIndicator color="#FFF" size="small" />
+                      <Text style={st.submitBtnText}>{isEditMode ? 'Updating...' : 'Creating...'}</Text>
+                    </View>
+                  ) : (
                     <>
                       <Ionicons name={isEditMode ? 'checkmark-circle' : 'add-circle'} size={20} color="#FFF" />
                       <Text style={st.submitBtnText}>{isEditMode ? 'Update Service' : 'Create Service'}</Text>

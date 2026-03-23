@@ -41,3 +41,4 @@ export * from './coinDrops';
 export * from './brandedCoins';
 export * from './earningAnalytics';
 export * from './bonusCampaigns';
+export * from './pos';

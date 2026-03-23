@@ -55,6 +55,15 @@ export default function MoreScreen() {
           route: '/stores',
         },
         {
+          id: 'customers',
+          title: 'Customers',
+          subtitle: 'View customer list, orders & spending',
+          icon: 'people',
+          iconBg: '#EDE9FE',
+          iconColor: '#7C3AED',
+          route: '/(dashboard)/customers',
+        },
+        {
           id: 'visits',
           title: 'Visits',
           subtitle: 'Track customer visits & check-ins',
@@ -146,6 +155,16 @@ export default function MoreScreen() {
       title: 'Marketing & Creators',
       items: [
         {
+          id: 'prive-campaigns',
+          title: 'Privé Campaigns',
+          subtitle: 'Social cashback campaigns & submissions',
+          icon: 'megaphone',
+          iconBg: '#FDF2F8',
+          iconColor: '#EC4899',
+          route: '/prive-campaigns',
+          badge: 'NEW',
+        },
+        {
           id: 'creator-picks',
           title: 'Creator Picks',
           subtitle: 'Review & approve creator product picks',
@@ -153,6 +172,16 @@ export default function MoreScreen() {
           iconBg: '#F5F3FF',
           iconColor: '#8B5CF6',
           route: creatorAnalyticsRoute,
+          badge: 'NEW',
+        },
+        {
+          id: 'banners',
+          title: 'Promotional Banners',
+          subtitle: 'Schedule and manage store banners',
+          icon: 'images',
+          iconBg: '#FFF7ED',
+          iconColor: '#EA580C',
+          route: '/(dashboard)/banners',
           badge: 'NEW',
         },
         {
@@ -248,6 +277,15 @@ export default function MoreScreen() {
           iconBg: '#F0F9FF',
           iconColor: '#0EA5E9',
           route: '/services',
+        },
+        {
+          id: 'day-end-report',
+          title: 'Day-End Report',
+          subtitle: 'Daily sales, orders & revenue summary',
+          icon: 'today',
+          iconBg: '#EDE9FE',
+          iconColor: '#7C3AED',
+          route: '/(dashboard)/day-end-report',
         },
         {
           id: 'reports',

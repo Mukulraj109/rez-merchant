@@ -6,7 +6,7 @@ import { apiClient } from './api';
 export interface OfflineAction {
   id: string;
   idempotencyKey: string;
-  type: 'CREATE_PRODUCT' | 'UPDATE_PRODUCT' | 'DELETE_PRODUCT' | 'UPDATE_ORDER' | 'APPROVE_CASHBACK' | 'REJECT_CASHBACK';
+  type: 'CREATE_PRODUCT' | 'UPDATE_PRODUCT' | 'DELETE_PRODUCT' | 'UPDATE_ORDER' | 'APPROVE_CASHBACK' | 'REJECT_CASHBACK' | 'CREATE_BILL';
   endpoint: string;
   method: 'POST' | 'PUT' | 'DELETE';
   data?: any;
@@ -366,6 +366,16 @@ class OfflineService {
       endpoint: `/api/cashback/${cashbackId}/reject`,
       method: 'PUT',
       data: { reason },
+      maxRetries: 5,
+    });
+  }
+
+  async queueBillCreation(billData: any): Promise<void> {
+    await this.queueOfflineAction({
+      type: 'CREATE_BILL',
+      endpoint: '/api/store-payment/create-bill',
+      method: 'POST',
+      data: billData,
       maxRetries: 5,
     });
   }

@@ -348,6 +348,67 @@ export default function DashboardLayout() {
           headerShown: false,
         }}
       />
+      <Tabs.Screen
+        name="day-end-report"
+        options={{
+          title: 'Day-End Report',
+          href: null,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'document-text' : 'document-text-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="pos"
+        options={{
+          title: 'POS',
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="customers"
+        options={{
+          title: 'Customers',
+          href: null,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'people' : 'people-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="send-notification"
+        options={{
+          title: 'Send Notification',
+          href: null,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'megaphone' : 'megaphone-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="banners"
+        options={{
+          title: 'Banners',
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

@@ -87,6 +87,7 @@ export default function AddProductScreen() {
   const { activeStore, stores } = useStore();
   const params = useLocalSearchParams<{ storeId?: string }>();
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Store selection
   const [selectedStoreId, setSelectedStoreId] = useState<string>(
@@ -460,6 +461,8 @@ export default function AddProductScreen() {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+
     if (!validateForm()) {
       showAlert('Validation Error', 'Please fix all errors before submitting.');
       return;
@@ -491,6 +494,7 @@ export default function AddProductScreen() {
     }
 
     setLoading(true);
+    setIsSubmitting(true);
 
     try {
       // Build product request payload
@@ -652,6 +656,7 @@ export default function AddProductScreen() {
       showAlert('Error', error.message || 'Failed to create product');
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -1383,12 +1388,15 @@ export default function AddProductScreen() {
         {/* Submit Button */}
         <View style={styles.submitContainer}>
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            style={[styles.submitButton, (loading || isSubmitting) && styles.submitButtonDisabled, { opacity: isSubmitting ? 0.6 : 1 }]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || isSubmitting}
           >
-            {loading ? (
-              <ActivityIndicator size="small" color={Colors.light.background} />
+            {(loading || isSubmitting) ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ActivityIndicator size="small" color={Colors.light.background} />
+                <ThemedText style={styles.submitText}>Creating...</ThemedText>
+              </View>
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={24} color={Colors.light.background} />

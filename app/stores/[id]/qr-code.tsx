@@ -49,6 +49,7 @@ export default function StoreQRCodeScreen() {
   const [qrData, setQrData] = useState<QRCodeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -64,17 +65,15 @@ export default function StoreQRCodeScreen() {
   // Fetch QR code data
   const fetchQRData = useCallback(async () => {
     try {
+      setFetchError(null);
       const response = await api.get(`/store-payment/qr/${storeId}`);
       if (response.success) {
         setQrData(response.data);
       }
     } catch (error: any) {
       if (__DEV__) console.error('Error fetching QR data:', error);
-      setErrorMessage({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to fetch QR code data',
-      });
-      setShowErrorModal(true);
+      const msg = error.response?.data?.message || 'Failed to fetch QR code data';
+      setFetchError(msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -312,6 +311,31 @@ export default function StoreQRCodeScreen() {
           <ActivityIndicator size="large" color={Colors.light.primary} />
           <Text style={styles.loadingText}>Loading QR code...</Text>
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (fetchError && !qrData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Store QR Code</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+          <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+          <Text style={{ fontSize: 16, fontWeight: '600', marginTop: 12, color: '#111' }}>{fetchError}</Text>
+          <TouchableOpacity
+            onPress={() => { setFetchError(null); setLoading(true); fetchQRData(); }}
+            style={{ marginTop: 16, backgroundColor: '#7C3AED', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 }}
+          >
+            <Text style={{ color: 'white', fontWeight: '600' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+        <BottomNav />
       </SafeAreaView>
     );
   }

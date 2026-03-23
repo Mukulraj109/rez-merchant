@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,7 +10,10 @@ import {
   Modal,
   Text,
   ActivityIndicator,
+  Platform,
+  Vibration,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
@@ -30,6 +33,8 @@ import { Colors, Spacing, Shadows, BorderRadius, Typography } from '@/constants/
 import { Card, Heading2, Heading3, BodyText, Caption, Badge, Button } from '@/components/ui/DesignSystemComponents';
 import { useOrdersDashboard, StatusFilter } from '@/hooks/useOrdersDashboard';
 import type { Order, OrderStatus } from '@/types/api';
+
+const SOUND_PREF_KEY = 'merchant_order_sound_enabled';
 
 const { width } = Dimensions.get('window');
 
@@ -319,6 +324,55 @@ export default function OrdersScreen() {
     stores, STATUS_TRANSITIONS,
   } = dashboard;
 
+  // ── Sound Alert for New Orders ──
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const prevOrdersCountRef = useRef(newOrdersCount);
+
+  // Load sound preference from storage
+  useEffect(() => {
+    AsyncStorage.getItem(SOUND_PREF_KEY).then((val) => {
+      if (val !== null) setSoundEnabled(val === 'true');
+    }).catch(() => {});
+  }, []);
+
+  const toggleSound = useCallback(async () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    try {
+      await AsyncStorage.setItem(SOUND_PREF_KEY, next.toString());
+    } catch {}
+  }, [soundEnabled]);
+
+  const playOrderSound = useCallback(async () => {
+    try {
+      const { Audio } = await import('expo-av');
+      // Use a simple notification beep pattern
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' },
+        { shouldPlay: true, volume: 0.8 }
+      );
+      // Unload after playing
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) {
+          sound.unloadAsync().catch(() => {});
+        }
+      });
+    } catch {
+      // Sound not available (web or missing module) — use vibration as fallback
+      if (Platform.OS !== 'web') {
+        Vibration.vibrate([0, 500, 200, 500]);
+      }
+    }
+  }, []);
+
+  // Play sound when new orders arrive
+  useEffect(() => {
+    if (newOrdersCount > prevOrdersCountRef.current && soundEnabled) {
+      playOrderSound();
+    }
+    prevOrdersCountRef.current = newOrdersCount;
+  }, [newOrdersCount, soundEnabled, playOrderSound]);
+
   const renderOrderCard = useCallback(({ item, index }: { item: Order; index: number }) => (
     <OrderCard
       order={item}
@@ -375,6 +429,15 @@ export default function OrdersScreen() {
               {realTime.isConnected ? 'Live' : 'Offline'}
             </BodyText>
           </Animated.View>
+          <TouchableOpacity style={styles.soundToggleButton} onPress={toggleSound}>
+            <View style={[styles.soundToggleInner, !soundEnabled && styles.soundToggleMuted]}>
+              <Ionicons
+                name={soundEnabled ? 'volume-high' : 'volume-mute'}
+                size={18}
+                color={soundEnabled ? Colors.primary[500] : Colors.gray[400]}
+              />
+            </View>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.analyticsButton} onPress={() => router.push('/orders/analytics')}>
             <View style={styles.analyticsButtonInner}>
               <Ionicons name="analytics" size={20} color={Colors.primary[500]} />
@@ -499,6 +562,9 @@ const styles = StyleSheet.create({
   realtimeIndicator: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
   realtimeStatusDot: { width: 8, height: 8, borderRadius: 4 },
   realtimeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  soundToggleButton: { padding: 4 },
+  soundToggleInner: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.primary[50], justifyContent: 'center', alignItems: 'center' },
+  soundToggleMuted: { backgroundColor: Colors.gray[100] },
   analyticsButton: { padding: 4 },
   analyticsButtonInner: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.primary[50], justifyContent: 'center', alignItems: 'center' },
   statusTabs: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm },

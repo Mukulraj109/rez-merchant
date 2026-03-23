@@ -3,17 +3,17 @@
  * Displays all team members with search, filter, and invite functionality
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
   StyleSheet,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
   RefreshControl,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -36,6 +36,9 @@ export default function TeamMembersScreen() {
   const [filteredMembers, setFilteredMembers] = useState<TeamMemberSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<MerchantRole | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<TeamMemberStatus | 'all'>('all');
@@ -44,7 +47,7 @@ export default function TeamMembersScreen() {
 
   useEffect(() => {
     if (token) {
-      fetchTeamMembers();
+      fetchTeamMembers(1);
       checkPermissions();
     }
   }, [token]);
@@ -63,23 +66,38 @@ export default function TeamMembersScreen() {
     }
   };
 
-  const fetchTeamMembers = async () => {
+  const fetchTeamMembers = async (pageNum: number = 1, append: boolean = false) => {
     try {
-      setLoading(true);
-      const response = await teamService.getTeamMembers();
-      setTeamMembers(response.data.teamMembers);
+      if (pageNum === 1 && !append) setLoading(true);
+      if (pageNum > 1) setLoadingMore(true);
+      const response = await teamService.getTeamMembers({ page: pageNum, limit: 20 });
+      const newMembers = response.data.teamMembers || [];
+      if (append) {
+        setTeamMembers(prev => [...prev, ...newMembers]);
+      } else {
+        setTeamMembers(newMembers);
+      }
+      setHasMore(newMembers.length >= 20);
+      setPage(pageNum);
     } catch (error: any) {
       showAlert('Error', error.message || 'Failed to load team members');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchTeamMembers();
+    await fetchTeamMembers(1);
     setRefreshing(false);
   };
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore && !loading) {
+      fetchTeamMembers(page + 1, true);
+    }
+  }, [hasMore, loadingMore, loading, page]);
 
   const filterTeamMembers = () => {
     let filtered = [...teamMembers];
@@ -135,10 +153,9 @@ export default function TeamMembersScreen() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const renderMemberCard = (member: TeamMemberSummary) => {
+  const renderMemberCard = useCallback(({ item: member }: { item: TeamMemberSummary }) => {
     return (
       <TouchableOpacity
-        key={member.id}
         style={styles.memberCard}
         onPress={() => router.push(`/team/${member.id}`)}
         activeOpacity={0.7}
@@ -187,7 +204,7 @@ export default function TeamMembersScreen() {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, []);
 
   const renderEmptyState = () => {
     if (searchQuery || filterRole !== 'all' || filterStatus !== 'all') {
@@ -389,9 +406,21 @@ export default function TeamMembersScreen() {
         </View>
 
         {/* Team Members List */}
-        <ScrollView
+        <FlatList
+          data={filteredMembers}
+          renderItem={renderMemberCard}
+          keyExtractor={(item) => item.id}
           style={styles.content}
+          contentContainerStyle={styles.membersList}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator size="small" color={Colors.light.primary} style={{ padding: 20 }} />
+            ) : (
+              <View style={styles.bottomSpacing} />
+            )
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -400,17 +429,9 @@ export default function TeamMembersScreen() {
               tintColor={Colors.light.primary}
             />
           }
-        >
-          {filteredMembers.length === 0 ? (
-            renderEmptyState()
-          ) : (
-            <View style={styles.membersList}>
-              {filteredMembers.map((member) => renderMemberCard(member))}
-            </View>
-          )}
-
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
+        />
 
         {/* Invite Button (FAB) */}
         {canInvite && (
@@ -551,7 +572,7 @@ const styles = StyleSheet.create({
   },
   membersList: {
     padding: 16,
-    gap: 12,
+    paddingBottom: 80,
   },
   memberCard: {
     backgroundColor: Colors.light.background,

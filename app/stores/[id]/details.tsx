@@ -842,6 +842,49 @@ export default function StoreDetailsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Delivery & Operations */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="bicycle" size={20} color={Colors.light.primary} />
+              <Text style={styles.sectionTitle}>Delivery & Operations</Text>
+            </View>
+            <Text style={styles.sectionSubtext}>
+              Configure delivery zones and holiday closures
+            </Text>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/delivery-zones`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="map-outline" size={24} color="#3B82F6" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Delivery Zones</Text>
+                    <Text style={styles.actionCardSubtitle}>Set up delivery zones with custom fees and limits</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => router.push(`/stores/${store._id}/holidays`)}
+            >
+              <View style={styles.actionCardContent}>
+                <View style={styles.actionCardLeft}>
+                  <Ionicons name="calendar-outline" size={24} color="#DC2626" />
+                  <View style={styles.actionCardText}>
+                    <Text style={styles.actionCardTitle}>Holidays & Closures</Text>
+                    <Text style={styles.actionCardSubtitle}>Schedule days off and closure dates</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Actions */}
           <View style={styles.actionsSection}>
             {!store.isActive ? (
