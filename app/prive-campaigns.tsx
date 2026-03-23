@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/services/api/apiClient';
+import { apiClient } from '@/services/api/client';
 
 interface Campaign {
   _id: string; title: string; status: string; slots: number; slotsUsed: number;
