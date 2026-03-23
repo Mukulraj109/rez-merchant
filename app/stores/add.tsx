@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 import { useStore } from '@/contexts/StoreContext';
@@ -140,6 +141,10 @@ export default function AddStoreScreen() {
   const [scTableBooking, setScTableBooking] = useState(false);
   const [scStorePickup, setScStorePickup] = useState(false);
 
+  // GPS coordinates for store location
+  const [storeCoordinates, setStoreCoordinates] = useState<[number, number] | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+
   // Food-specific dietary toggles (managed outside react-hook-form for simplicity)
   const [isHalal, setIsHalal] = useState(false);
   const [isVegetarian, setIsVegetarian] = useState(false);
@@ -159,6 +164,7 @@ export default function AddStoreScreen() {
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<StoreFormData>({
     resolver: zodResolver(storeSchema) as any,
     defaultValues: {
@@ -396,6 +402,38 @@ export default function AddStoreScreen() {
     setBannerUrls(prev => prev.filter((_, idx) => idx !== index));
   };
 
+  const handleGetLocation = async () => {
+    setLocationLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        showError('Permission Denied', 'Location permission is required to detect your store location.');
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
+      setStoreCoordinates(coords);
+
+      // Reverse geocode to auto-fill address fields
+      const [reverseResult] = await Location.reverseGeocodeAsync({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+      if (reverseResult) {
+        if (reverseResult.street || reverseResult.name) {
+          setValue('address', [reverseResult.name, reverseResult.street].filter(Boolean).join(', '));
+        }
+        if (reverseResult.city) setValue('city', reverseResult.city);
+        if (reverseResult.region) setValue('state', reverseResult.region);
+        if (reverseResult.postalCode) setValue('pincode', reverseResult.postalCode);
+      }
+    } catch (err) {
+      showError('Location Error', 'Could not detect location. Please enter address manually.');
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
   const toOptional = (value: string | undefined): string | undefined => {
     return value && value.trim() ? value.trim() : undefined;
   };
@@ -420,6 +458,7 @@ export default function AddStoreScreen() {
           state: toOptional(data.state),
           pincode: toOptional(data.pincode),
           landmark: toOptional(data.landmark),
+          ...(storeCoordinates && { coordinates: storeCoordinates }),
         },
         operationalInfo: {
           deliveryTime: toOptional(data.deliveryTime),
@@ -715,6 +754,24 @@ export default function AddStoreScreen() {
           />
 
           <Text style={styles.sectionTitle}>Location</Text>
+
+          <TouchableOpacity
+            style={[styles.locationButton, locationLoading && { opacity: 0.6 }]}
+            onPress={handleGetLocation}
+            disabled={locationLoading}
+          >
+            {locationLoading ? (
+              <ActivityIndicator size="small" color="#7C3AED" />
+            ) : (
+              <Ionicons name="navigate" size={18} color="#7C3AED" />
+            )}
+            <Text style={styles.locationButtonText}>
+              {storeCoordinates ? 'Location Detected' : 'Get Current Location'}
+            </Text>
+            {storeCoordinates && (
+              <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+            )}
+          </TouchableOpacity>
 
           <FormInput
             name="address"
@@ -1262,6 +1319,25 @@ const styles = StyleSheet.create({
     color: Colors.gray[900],
     marginTop: 16,
     marginBottom: 12,
+  },
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#7C3AED',
+    borderStyle: 'dashed',
+    backgroundColor: '#F5F3FF',
+    marginBottom: 12,
+  },
+  locationButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7C3AED',
   },
   sectionHint: {
     fontSize: 12,
